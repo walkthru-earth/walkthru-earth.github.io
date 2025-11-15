@@ -58,29 +58,25 @@ This document outlines the validated, production-ready technical stack for the W
     "@types/node": "^22.0.0",
 
     // UI Framework & Styling
-    "tailwindcss": "^4.0.0",        // Released: Jan 22, 2025 (Oxide engine)
+    "tailwindcss": "^4.1.17",       // Latest: v4.1.17 (Oxide engine)
+    "@tailwindcss/postcss": "^4.1.17",
     "postcss": "^8.4.47",
     "autoprefixer": "^10.4.20",
-    "tailwindcss-animate": "^1.0.7",
 
     // Theme Management
-    "next-themes": "^0.4.3",        // Industry standard for Next.js dark mode
+    "next-themes": "^0.4.6",        // Industry standard for Next.js dark mode
 
     // Component Utilities
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.5.4",
+    "tailwind-merge": "^3.4.0",
 
     // Animation Libraries
-    "@studio-freight/lenis": "^1.1.15",  // Lightweight smooth scroll (2.13kb)
-    "framer-motion": "^12.0.0",          // ⚠️ CORRECTED: v12 for React 19 support
-    "gsap": "^3.12.5",                   // Optional: Advanced animations
-    "@gsap/react": "^2.1.1",
+    "lenis": "^1.3.15",             // Lightweight smooth scroll (renamed package)
+    "framer-motion": "^12.0.0",     // React 19 compatible
 
     // Icons
-    "lucide-react": "^0.460.0",     // Primary icon library
-    "@radix-ui/react-icons": "^1.3.2",
-    "react-icons": "^5.3.0"
+    "lucide-react": "^0.553.0",     // Primary icon library
   },
   "devDependencies": {
     // Development Tools
@@ -158,12 +154,13 @@ This document outlines the validated, production-ready technical stack for the W
 
 ### Smooth Scroll: Lenis vs Alternatives
 
-**Lenis (@studio-freight/lenis) - RECOMMENDED**
+**Lenis (lenis) - RECOMMENDED**
 - ✅ Lightweight: 2.13kb
 - ✅ Built on scrollTo, not transforms
 - ✅ Keeps native APIs intact
 - ✅ No interference with other libraries
 - ✅ Smooth motion without breaking platform
+- ⚠️ **Package renamed:** Now `lenis` (was `@studio-freight/lenis`)
 
 **Alternatives Considered:**
 
@@ -451,18 +448,166 @@ export default {
 
 ## Deployment Platform
 
-### Recommended: Vercel
+### Primary: GitHub Pages (Static Export)
 
-**Why Vercel for Next.js 16?**
+**Current Implementation:**
+- ✅ Static export (`output: 'export'` in next.config.mjs)
+- ✅ Automated deployment via GitHub Actions
+- ✅ Custom domain: walkthru.earth
+- ✅ Free hosting with GitHub Pages
+- ✅ Automatic deployments on push to main
+- ✅ `.nojekyll` file to disable Jekyll processing
+
+**Deployment Workflow:**
+- Workflow file: `.github/workflows/deploy.yml`
+- Uses `actions/deploy-pages@v4`
+- Builds to `./out` directory
+- Auto-deploys on every push to main branch
+
+**Custom Domain Setup:**
+- CNAME file: `public/CNAME` containing `walkthru.earth`
+- DNS configuration via Namecheap
+- GitHub Pages serves from custom domain
+
+### Alternative Platforms
+
+**Vercel (Alternative):**
 - ✅ Zero-config deployment
 - ✅ Turbopack optimization
-- ✅ Edge Functions support
+- ✅ Edge Functions support (not available in static export)
 - ✅ Automatic HTTPS
 - ✅ Global CDN
 - ✅ Preview deployments
-- ✅ Analytics integration
 
-**Alternative:** Cloudflare Pages, Netlify (with configuration)
+**Other Options:** Cloudflare Pages, Netlify (both support static export)
+
+---
+
+## SEO & Metadata Automation
+
+### Auto-Generated Sitemap
+
+**Implementation:** `app/sitemap.ts`
+
+```typescript
+import { MetadataRoute } from 'next';
+
+export const dynamic = 'force-static';
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    {
+      url: 'https://walkthru.earth',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 1.0,
+    },
+    // Additional pages...
+  ];
+}
+```
+
+**Benefits:**
+- ✅ Automatically generated at build time
+- ✅ Includes all main sections and anchors
+- ✅ Proper priority and change frequency metadata
+- ✅ Served at `/sitemap.xml`
+
+### LLM-Friendly Robots.txt
+
+**Implementation:** `app/robots.ts`
+
+```typescript
+import { MetadataRoute } from 'next';
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [
+      { userAgent: '*', allow: '/', disallow: ['/api/', '/_next/'] },
+      { userAgent: 'GPTBot', allow: '/' },
+      { userAgent: 'ChatGPT-User', allow: '/' },
+      { userAgent: 'Google-Extended', allow: '/' },
+      { userAgent: 'anthropic-ai', allow: '/' },
+      { userAgent: 'ClaudeBot', allow: '/' },
+      { userAgent: 'Claude-Web', allow: '/' },
+    ],
+    sitemap: 'https://walkthru.earth/sitemap.xml',
+  };
+}
+```
+
+**Supported Crawlers:**
+- OpenAI (GPTBot, ChatGPT-User)
+- Google (Google-Extended for AI training)
+- Anthropic (ClaudeBot, Claude-Web, anthropic-ai)
+
+### Structured Data (JSON-LD)
+
+**Implementation:** In `app/layout.tsx`
+
+```typescript
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Walkthru',
+  url: 'https://walkthru.earth',
+  logo: 'https://walkthru.earth/icon.svg',
+  description: 'People-first urban intelligence platform...',
+  sameAs: [
+    'https://github.com/walkthru-earth',
+    'https://www.linkedin.com/company/walkthru-earth/',
+    'https://source.coop/walkthru',
+  ],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'General Inquiries',
+    url: 'https://walkthru.earth/#contact',
+  },
+  knowsAbout: [
+    'Urban Planning',
+    'Data Analytics',
+    'Livability Index',
+    // ...more topics
+  ],
+};
+```
+
+**Benefits:**
+- ✅ Rich snippets in search results
+- ✅ Knowledge graph integration
+- ✅ Enhanced social sharing
+- ✅ AI model context
+
+---
+
+## Branding & Assets
+
+### Logo System
+
+**Primary Logo:** `/public/icon.svg`
+- Topographic triangle design
+- SVG format for scalability
+- Used in metadata and social sharing
+
+**Favicon:** `/app/icon.png`
+- PNG format for browser compatibility
+- Auto-generated by Next.js
+
+### Source Cooperative Integration
+
+**Logo:** `/public/source-coop-logo.png`
+
+**Integration Points:**
+- "Explore Your Data" button with Source.coop branding
+- Links to https://source.coop/walkthru
+- Positioned in hero/CTA sections
+
+### Contact Information
+
+**Email:** hi@walkthru.earth
+- Displayed in footer
+- Used for general inquiries
+- Linked in structured data
 
 ---
 
@@ -470,13 +615,14 @@ export default {
 
 ### ✅ Validated Stack
 
-1. **Next.js 16** - Latest stable, production-ready
-2. **React 19.2** - Latest with View Transitions
-3. **Tailwind CSS 4.0** - Oxide engine performance
-4. **Framer Motion 12** - React 19 compatible ⚠️
-5. **next-themes 0.4.3** - Industry standard dark mode
-6. **Lenis 1.1.15** - Lightweight smooth scroll
-7. **shadcn/ui CLI 3.0** - Latest component system
+1. **Next.js 16.0.3** - Latest stable, production-ready
+2. **React 19.2.0** - Latest with View Transitions
+3. **Tailwind CSS 4.1.17** - Oxide engine performance
+4. **Framer Motion 12.0.0** - React 19 compatible ⚠️
+5. **next-themes 0.4.6** - Industry standard dark mode
+6. **Lenis 1.3.15** - Lightweight smooth scroll (package renamed from @studio-freight/lenis)
+7. **lucide-react 0.553.0** - Icon library
+8. **tailwind-merge 3.4.0** - Utility class merging
 
 ### 🔴 Critical Actions Required
 

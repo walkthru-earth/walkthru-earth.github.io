@@ -107,19 +107,20 @@ git push -u origin main
 # Install exact versions for compatibility
 npm install \
   framer-motion@12.0.0 \
-  @studio-freight/lenis@^1.1.15 \
-  next-themes@^0.4.3 \
+  lenis@^1.3.15 \
+  next-themes@^0.4.6 \
   class-variance-authority@^0.7.1 \
   clsx@^2.1.1 \
-  tailwind-merge@^2.5.4 \
-  lucide-react@^0.460.0
+  tailwind-merge@^3.4.0 \
+  lucide-react@^0.553.0 \
+  tailwindcss@^4.1.17 \
+  @tailwindcss/postcss@^4.1.17
 
 # Install dev dependencies
 npm install -D \
   prettier@^3.3.0 \
   prettier-plugin-tailwindcss@^0.6.0 \
-  @types/node@^22.0.0 \
-  tailwindcss-animate@^1.0.7
+  @types/node@^22.0.0
 ```
 
 ### Step 1.5: Configure Prettier
@@ -725,7 +726,7 @@ Create `components/shared/smooth-scroll.tsx`:
 'use client';
 
 import { useEffect } from 'react';
-import Lenis from '@studio-freight/lenis';
+import Lenis from 'lenis';
 
 export function SmoothScroll() {
   useEffect(() => {
@@ -1099,9 +1100,105 @@ Already handled in `globals.css` via:
 
 **Duration:** 2 days
 
-### Step 7.1: Create Metadata
+### Step 7.1: Create Sitemap
 
-Already done in `app/layout.tsx`, but enhance with:
+Create `app/sitemap.ts`:
+
+```typescript
+import { MetadataRoute } from 'next';
+
+export const dynamic = 'force-static';
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = 'https://walkthru.earth';
+
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/#patterns`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/#indices`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/#vision`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/#contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+  ];
+}
+```
+
+### Step 7.2: Create Robots.txt
+
+Create `app/robots.ts`:
+
+```typescript
+import { MetadataRoute } from 'next';
+
+export const dynamic = 'force-static';
+
+export default function robots(): MetadataRoute.Robots {
+  const baseUrl = 'https://walkthru.earth';
+
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/api/', '/_next/'],
+      },
+      {
+        userAgent: 'GPTBot',
+        allow: '/',
+      },
+      {
+        userAgent: 'ChatGPT-User',
+        allow: '/',
+      },
+      {
+        userAgent: 'Google-Extended',
+        allow: '/',
+      },
+      {
+        userAgent: 'anthropic-ai',
+        allow: '/',
+      },
+      {
+        userAgent: 'ClaudeBot',
+        allow: '/',
+      },
+      {
+        userAgent: 'Claude-Web',
+        allow: '/',
+      },
+    ],
+    sitemap: `${baseUrl}/sitemap.xml`,
+  };
+}
+```
+
+### Step 7.3: Add Structured Data to Layout
+
+Update `app/layout.tsx` to include JSON-LD:
 
 ```typescript
 // app/metadata.ts
@@ -1174,30 +1271,27 @@ export const siteMetadata: Metadata = {
 };
 ```
 
-### Step 7.2: Configure Next.js
+### Step 7.4: Configure Next.js for Static Export
 
 Update `next.config.mjs`:
 
 ```javascript
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Static export for GitHub Pages
+  output: 'export',
+
   // Turbopack is default in Next.js 16
-  experimental: {
-    logging: {
-      level: 'verbose',
-      fullUrl: true,
-    },
-    optimizedNavigation: true,
+  turbopack: {
+    root: '.',
   },
 
   images: {
+    unoptimized: true, // Required for static export
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-
-  // Font optimization
-  optimizeFonts: true,
 
   // Compression
   compress: true,
@@ -1241,6 +1335,11 @@ const nextConfig = {
 export default nextConfig;
 ```
 
+**Key Changes for Static Export:**
+- Added `output: 'export'` for static HTML generation
+- Added `images.unoptimized: true` (required for static sites)
+- Configured `turbopack.root` for build optimization
+
 ---
 
 ## Phase 8: Testing & QA
@@ -1281,24 +1380,150 @@ npx lighthouse https://your-site.vercel.app --view
 
 ---
 
-## Phase 9: Deployment
+## Phase 9: GitHub Pages Deployment
 
 **Duration:** 1 day
 
-### Step 9.1: Set Up Environment Variables
+### Step 9.1: Create GitHub Pages Files
 
-Create `.env.local`:
+Create `public/.nojekyll`:
 
 ```bash
-NEXT_PUBLIC_SITE_URL=https://walkthru.earth
-# Add other variables as needed
+touch public/.nojekyll
 ```
 
-### Step 9.2: Deploy to Vercel
+This disables Jekyll processing on GitHub Pages.
+
+Create `public/CNAME`:
+
+```
+walkthru.earth
+```
+
+This configures the custom domain.
+
+### Step 9.2: Set Up GitHub Actions Workflow
+
+Create `.github/workflows/deploy.yml`:
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with Next.js
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+### Step 9.3: Configure GitHub Repository
+
+1. **Enable GitHub Pages:**
+   - Go to repository Settings > Pages
+   - Source: GitHub Actions
+
+2. **Push to Main Branch:**
+   ```bash
+   git add .
+   git commit -m "Add GitHub Pages deployment"
+   git push origin main
+   ```
+
+3. **Monitor Deployment:**
+   - Check Actions tab for workflow status
+   - Wait for deployment to complete
+   - Site will be live at https://walkthru.earth
+
+### Step 9.4: Configure Custom Domain DNS
+
+**In Namecheap (or your DNS provider):**
+
+1. **Add CNAME Record:**
+   ```
+   Type: CNAME
+   Host: @
+   Value: <username>.github.io
+   TTL: Automatic
+   ```
+
+2. **Add www Subdomain (optional):**
+   ```
+   Type: CNAME
+   Host: www
+   Value: <username>.github.io
+   TTL: Automatic
+   ```
+
+3. **Wait for DNS Propagation:**
+   - Usually takes 5-30 minutes
+   - Check with: `dig walkthru.earth`
+
+### Step 9.5: Verify Deployment
+
+**Checklist:**
+- [ ] Site loads at https://walkthru.earth
+- [ ] HTTPS is enabled (automatic with GitHub Pages)
+- [ ] All assets load correctly
+- [ ] Sitemap accessible at /sitemap.xml
+- [ ] Robots.txt accessible at /robots.txt
+- [ ] Smooth scroll works
+- [ ] Dark mode toggle works
+- [ ] All sections render correctly
+
+### Alternative: Deploy to Vercel
+
+If you prefer Vercel instead of GitHub Pages:
 
 ```bash
 # Install Vercel CLI
 npm i -g vercel
+
+# Remove static export from next.config.mjs
+# (Keep everything else, just remove output: 'export')
 
 # Deploy
 vercel
@@ -1307,14 +1532,11 @@ vercel
 vercel --prod
 ```
 
-Or connect GitHub repo to Vercel dashboard for automatic deployments.
-
-### Step 9.3: Configure Custom Domain
-
-In Vercel dashboard:
-1. Go to Project Settings > Domains
-2. Add `walkthru.earth` and `www.walkthru.earth`
-3. Update DNS records as instructed
+**Vercel Benefits:**
+- Image optimization (remove `unoptimized: true`)
+- Edge functions support
+- Automatic preview deployments
+- Built-in analytics
 
 ---
 

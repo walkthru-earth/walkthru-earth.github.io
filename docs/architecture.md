@@ -646,69 +646,160 @@ graph LR
 
 ## Deployment Architecture
 
-### Build and Deploy Pipeline
+### Build and Deploy Pipeline (GitHub Pages)
 
 ```mermaid
 graph TB
     subgraph "Development"
         Dev[Developer] --> Git[Git Commit]
-        Git --> Push[Git Push]
+        Git --> Push[Git Push to main]
     end
 
-    subgraph "CI/CD - Vercel"
-        Push --> Trigger[Webhook Trigger]
-        Trigger --> Clone[Clone Repository]
-        Clone --> Install[npm install]
-        Install --> TypeCheck[Type Check]
-        TypeCheck --> Lint[ESLint]
-        Lint --> Build[next build]
+    subgraph "CI/CD - GitHub Actions"
+        Push --> Trigger[Workflow Trigger]
+        Trigger --> Checkout[Checkout Code]
+        Checkout --> SetupNode[Setup Node.js 20]
+        SetupNode --> Install[npm ci]
+        Install --> Build[npm run build]
     end
 
     subgraph "Build Process"
         Build --> Turbopack[Turbopack Compilation]
-        Turbopack --> RSC[Generate RSC Payload]
-        Turbopack --> SSG[Static Generation]
-        Turbopack --> Assets[Optimize Assets]
+        Turbopack --> StaticExport[Static Export output: 'export']
+        StaticExport --> OutDir[Generate ./out directory]
 
-        Assets --> Images[Image Optimization]
+        OutDir --> HTML[Static HTML files]
+        OutDir --> Assets[Optimize Assets]
+
+        Assets --> Images[Unoptimized Images]
         Assets --> Fonts[Font Subsetting]
         Assets --> CSS[CSS Minification]
         Assets --> JS[JS Tree-shaking]
     end
 
-    subgraph "Deployment"
-        RSC --> Deploy[Deploy to Edge]
-        SSG --> Deploy
-        Images --> Deploy
-        Fonts --> Deploy
-        CSS --> Deploy
-        JS --> Deploy
+    subgraph "GitHub Pages Deployment"
+        HTML --> Upload[Upload Pages Artifact]
+        Images --> Upload
+        Fonts --> Upload
+        CSS --> Upload
+        JS --> Upload
 
-        Deploy --> Edge1[Edge Location 1]
-        Deploy --> Edge2[Edge Location 2]
-        Deploy --> EdgeN[Edge Location N...]
+        Upload --> Deploy[actions/deploy-pages@v4]
+        Deploy --> Pages[GitHub Pages Server]
+        Pages --> CDN[GitHub CDN]
     end
 
-    subgraph "Verification"
-        Edge1 --> Health[Health Check]
-        Health --> Success{Build Success?}
-        Success -->|Yes| Live[Production Live]
-        Success -->|No| Rollback[Rollback]
+    subgraph "Custom Domain"
+        CDN --> DNS[DNS: walkthru.earth]
+        DNS --> CNAME[CNAME Record]
+        CNAME --> Live[Production Live]
     end
 
     style Build fill:#000000,color:#ffffff
     style Turbopack fill:#f97316
-    style Deploy fill:#0070f3
+    style Deploy fill:#2088FF
+    style Pages fill:#0070f3
     style Live fill:#22c55e
-    style Rollback fill:#ef4444
 ```
 
-### Edge Network Distribution
+### GitHub Actions Workflow
+
+**File:** `.github/workflows/deploy.yml`
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build with Next.js
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+### Static Export Configuration
+
+**File:** `next.config.mjs`
+
+```javascript
+const nextConfig = {
+  // Static export for GitHub Pages
+  output: 'export',
+
+  images: {
+    unoptimized: true, // Required for static export
+    formats: ['image/avif', 'image/webp'],
+  },
+
+  // Other configuration...
+};
+```
+
+**Key Points:**
+- `output: 'export'` enables static HTML export
+- `images.unoptimized: true` disables Next.js Image Optimization API (not available in static export)
+- Builds to `./out` directory
+- All pages pre-rendered at build time
+- No server-side features (API routes, ISR, server actions)
+
+### Custom Domain Setup
+
+**Files Required:**
+1. `public/CNAME` - Contains `walkthru.earth`
+2. `public/.nojekyll` - Disables Jekyll processing
+
+**DNS Configuration (Namecheap):**
+```
+Type: CNAME
+Host: @
+Value: <username>.github.io
+TTL: Automatic
+```
+
+### CDN Distribution
 
 ```mermaid
 graph TB
-    subgraph "Global Edge Network"
-        Origin[Vercel Origin Server]
+    subgraph "GitHub Pages CDN"
+        Origin[GitHub Pages Origin]
 
         NA[North America Edge]
         EU[Europe Edge]
@@ -733,11 +824,11 @@ graph TB
     U2 -.->|Route to nearest| EU
     U3 -.->|Route to nearest| ASIA
 
-    NA --> Cache1[Edge Cache]
-    EU --> Cache2[Edge Cache]
-    ASIA --> Cache3[Edge Cache]
+    NA --> Cache1[Static Cache]
+    EU --> Cache2[Static Cache]
+    ASIA --> Cache3[Static Cache]
 
-    style Origin fill:#000000,color:#ffffff
+    style Origin fill:#2088FF
     style NA fill:#0070f3
     style EU fill:#0070f3
     style ASIA fill:#0070f3

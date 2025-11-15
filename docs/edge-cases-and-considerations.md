@@ -739,7 +739,68 @@ theme: {
 
 ## Build & Deployment Issues
 
-### 8.1 Type Errors in Production Build
+### 8.1 Static Export Limitations
+
+**Issue:** Using `output: 'export'` disables certain Next.js features.
+
+**Not Available in Static Export:**
+- ❌ API Routes (`app/api/*`)
+- ❌ Server Actions
+- ❌ Incremental Static Regeneration (ISR)
+- ❌ Image Optimization API
+- ❌ Rewrites/Redirects (use client-side navigation)
+- ❌ Middleware (for auth, etc.)
+- ❌ `headers()` and `cookies()` functions
+- ❌ Dynamic routes with `generateStaticParams`
+
+**Available in Static Export:**
+- ✅ Static Site Generation (SSG)
+- ✅ Client-side routing
+- ✅ Client components
+- ✅ Server components (rendered at build time)
+- ✅ Metadata API
+- ✅ `sitemap.ts` and `robots.ts`
+- ✅ Font optimization
+- ✅ CSS/JS optimization
+
+**Workarounds:**
+
+**1. Image Optimization:**
+```typescript
+// next.config.mjs
+export default {
+  images: {
+    unoptimized: true, // Required for static export
+  },
+};
+```
+
+**2. API Routes:**
+Use external services or serverless functions:
+```typescript
+// Instead of app/api/contact/route.ts
+// Use: https://formspree.io or similar service
+```
+
+**3. Dynamic Content:**
+Use client-side data fetching:
+```typescript
+'use client';
+
+export function DynamicContent() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch('https://api.example.com/data')
+      .then(res => res.json())
+      .then(setData);
+  }, []);
+
+  return <div>{data?.title}</div>;
+}
+```
+
+### 8.2 Type Errors in Production Build
 
 **Issue:** Dev works, but build fails with type errors.
 
