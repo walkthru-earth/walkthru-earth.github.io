@@ -44,8 +44,49 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Walkthru',
+    alternateName: 'Walkthru Earth',
+    url: 'https://walkthru.earth',
+    logo: 'https://walkthru.earth/icon.svg',
+    description:
+      'People-first urban intelligence platform revealing hidden patterns in cities to build resilient, sustainable, and happier communities through data-driven insights.',
+    sameAs: [
+      'https://github.com/walkthru-earth',
+      'https://www.linkedin.com/company/walkthru-earth/',
+      'https://source.coop/walkthru',
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'General Inquiries',
+      url: 'https://walkthru.earth/#contact',
+    },
+    founder: {
+      '@type': 'Organization',
+      name: 'Walkthru',
+    },
+    knowsAbout: [
+      'Urban Planning',
+      'Data Analytics',
+      'Livability Index',
+      'Wellbeing Metrics',
+      'Sustainable Cities',
+      'Urban Resilience',
+      'Geospatial Data',
+      'Open Data',
+    ],
+  };
+
   return (
     <html lang="en" suppressHydrationWarning className={quicksand.variable}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      </head>
       <body className="antialiased">
         <ThemeProvider
           attribute="class"

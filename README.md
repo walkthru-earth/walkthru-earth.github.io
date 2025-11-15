@@ -34,6 +34,10 @@ Walkthru is a minimal, Apple-inspired website revealing hidden patterns in urban
 ✅ **Accessibility** - Keyboard navigation, reduced motion support, ARIA labels
 ✅ **Type-Safe** - Full TypeScript coverage
 ✅ **SEO Optimized** - Meta tags, Open Graph, Twitter cards
+✅ **Auto-Generated Sitemap** - XML sitemap regenerated on every build
+✅ **Robots.txt** - LLM-friendly robots configuration (GPTBot, ClaudeBot, etc.)
+✅ **Structured Data** - JSON-LD schema.org markup for enhanced discoverability
+✅ **GitHub Pages Deployment** - Automated CI/CD with custom domain support
 
 ## Getting Started
 
@@ -175,14 +179,15 @@ npm run format:check
 ### Production
 
 - [x] GitHub Pages deployment workflow ✅
+- [x] Auto-generated sitemap.xml ✅
+- [x] LLM-friendly robots.txt ✅
+- [x] JSON-LD structured data ✅
 - [ ] Deploy to Vercel (alternative to GitHub Pages)
 - [ ] Set up custom domain (walkthru.earth)
 - [ ] Configure environment variables
 - [ ] Set up monitoring (Sentry)
 - [ ] Performance optimization (bundle analysis)
 - [ ] Generate dynamic OG images
-- [ ] Create sitemap.xml
-- [ ] Add robots.txt
 - [ ] Set up Google Analytics / Plausible
 
 ## Key Configuration
