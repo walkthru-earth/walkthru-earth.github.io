@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+:root {
+  /* Light Mode - Walkthru Earth Tones */
+  --background: hsl(60 20% 99%); /* Warm white */
+  --foreground: hsl(0 0% 9%); /* Soft black */
+
+  --card: hsl(60 10% 98%);
+  --card-foreground: hsl(0 0% 9%);
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 9%);
+
+  --primary: hsl(158 64% 52%); /* Earth green */
+  --primary-foreground: hsl(0 0% 100%);
+
+  --secondary: hsl(37 91% 55%); /* Warm amber */
+  --secondary-foreground: hsl(0 0% 9%);
+
+  --muted: hsl(60 5% 96%);
+  --muted-foreground: hsl(0 0% 45%);
+
+  --accent: hsl(158 64% 52%);
+  --accent-foreground: hsl(0 0% 100%);
+
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 98%);
+
+  --border: hsl(60 5% 90%);
+  --input: hsl(60 5% 90%);
+  --ring: hsl(158 64% 52%);
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Dark Mode - Night Earth Tones */
+  --background: hsl(0 0% 7%); /* Deep charcoal */
+  --foreground: hsl(60 10% 98%); /* Soft white */
+
+  --card: hsl(0 0% 10%);
+  --card-foreground: hsl(60 10% 98%);
+
+  --popover: hsl(0 0% 10%);
+  --popover-foreground: hsl(60 10% 98%);
+
+  --primary: hsl(158 64% 42%); /* Muted earth green */
+  --primary-foreground: hsl(0 0% 9%);
+
+  --secondary: hsl(37 70% 45%); /* Muted amber */
+  --secondary-foreground: hsl(60 10% 98%);
+
+  --muted: hsl(0 0% 15%);
+  --muted-foreground: hsl(60 5% 65%);
+
+  --accent: hsl(158 64% 42%);
+  --accent-foreground: hsl(60 10% 98%);
+
+  --destructive: hsl(0 62% 50%);
+  --destructive-foreground: hsl(60 10% 98%);
+
+  --border: hsl(0 0% 20%);
+  --input: hsl(0 0% 20%);
+  --ring: hsl(158 64% 42%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-quicksand), sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Smooth transitions for theme switching */
+  html.no-transition,
+  html.no-transition *,
+  html.no-transition *::before,
+  html.no-transition *::after {
+    transition: none !important;
+  }
+}
+
+/* Accessibility: Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.focus-visible:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Dark mode image filters */
+.dark img:not([data-no-filter]) {
+  opacity: 0.9;
+}
