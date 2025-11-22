@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
+import { Suspense } from 'react';
 import { quicksand } from './fonts';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { SmoothScroll } from '@/components/shared/smooth-scroll';
+import { PostHogProvider, PostHogPageView } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -88,15 +90,20 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SmoothScroll />
-          {children}
-        </ThemeProvider>
+        <PostHogProvider>
+          <Suspense fallback={null}>
+            <PostHogPageView />
+          </Suspense>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SmoothScroll />
+            {children}
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
