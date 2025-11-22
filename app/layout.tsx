@@ -7,27 +7,41 @@ import { PostHogProvider, PostHogPageView } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Walkthru - People-First Urban Intelligence',
+  title: 'walkthru.earth - People-First Urban Intelligence',
   description:
-    'Revealing hidden patterns in cities to build resilient, sustainable, and happier communities through data-driven insights.',
+    'Detecting hidden patterns of daily life and turning them into people-first solutions that support wellbeing in cities globally. Building infrastructure and tools to understand and improve urban life.',
   keywords:
-    'urban wellbeing, livability index, city data, sustainable communities, urban analytics',
-  authors: [{ name: 'Walkthru' }],
-  creator: 'Walkthru',
+    'urban wellbeing, livability index, city data, sustainable communities, urban analytics, IoT sensors, environmental monitoring',
+  authors: [{ name: 'walkthru.earth' }],
+  creator: 'walkthru.earth',
   metadataBase: new URL('https://walkthru.earth'),
+  alternates: {
+    canonical: 'https://walkthru.earth',
+  },
   openGraph: {
-    title: 'Walkthru - People-First Urban Intelligence',
-    description: 'Transform cities through data-driven wellbeing solutions',
+    title: 'walkthru.earth - People-First Urban Intelligence',
+    description:
+      'Detecting hidden patterns of daily life and turning them into people-first solutions for urban wellbeing',
     url: 'https://walkthru.earth',
-    siteName: 'Walkthru',
+    siteName: 'walkthru.earth',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: 'https://walkthru.earth/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'walkthru.earth - People-First Urban Intelligence',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Walkthru - People-First Urban Intelligence',
-    description: 'Transform cities through data-driven wellbeing solutions',
+    title: 'walkthru.earth - People-First Urban Intelligence',
+    description:
+      'Detecting hidden patterns of daily life and turning them into people-first solutions for urban wellbeing',
     creator: '@walkthru_earth',
+    images: ['https://walkthru.earth/og-image.png'],
   },
 };
 
@@ -49,35 +63,33 @@ export default function RootLayout({
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Walkthru',
-    alternateName: 'Walkthru Earth',
+    name: 'walkthru.earth',
     url: 'https://walkthru.earth',
     logo: 'https://walkthru.earth/icon.svg',
     description:
-      'People-first urban intelligence platform revealing hidden patterns in cities to build resilient, sustainable, and happier communities through data-driven insights.',
+      'Detecting hidden patterns of daily life and turning them into people-first solutions that support wellbeing in cities globally. Building infrastructure and tools to understand and improve urban life since March 2025.',
     sameAs: [
       'https://github.com/walkthru-earth',
       'https://www.linkedin.com/company/walkthru-earth/',
       'https://source.coop/walkthru',
+      'https://bsky.app/profile/walkthru-earth.bsky.social',
     ],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'General Inquiries',
       url: 'https://walkthru.earth/#contact',
     },
-    founder: {
-      '@type': 'Organization',
-      name: 'Walkthru',
-    },
+    foundingDate: '2025-03',
     knowsAbout: [
-      'Urban Planning',
+      'Urban Wellbeing',
+      'IoT Sensors',
+      'Environmental Monitoring',
       'Data Analytics',
       'Livability Index',
-      'Wellbeing Metrics',
       'Sustainable Cities',
       'Urban Resilience',
-      'Geospatial Data',
       'Open Data',
+      'Cloud-Native Architecture',
     ],
   };
 
