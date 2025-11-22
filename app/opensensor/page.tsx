@@ -68,7 +68,7 @@ export default function OpenSensorPage() {
               </motion.div>
 
               <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] font-light tracking-tight leading-[1.1]">
-                <GradientText className="font-semibold">OpenSensor.Earth</GradientText>
+                <GradientText className="font-semibold">OpenSensor.Space</GradientText>
                 <br />
                 Weather Station Network
               </h1>

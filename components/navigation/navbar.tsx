@@ -39,7 +39,7 @@ export function Navbar() {
                     <Link href="/opensensor" className="flex items-center gap-2 cursor-pointer">
                       <Cloud className="h-4 w-4 text-primary" />
                       <div>
-                        <div className="font-medium">OpenSensor.Earth</div>
+                        <div className="font-medium">OpenSensor.Space</div>
                         <div className="text-xs text-muted-foreground">
                           Weather Station Network
                         </div>

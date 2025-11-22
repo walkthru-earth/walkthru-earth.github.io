@@ -12,7 +12,7 @@ import Link from 'next/link';
 const initiatives = [
   {
     id: 'opensensor',
-    name: 'OpenSensor.Earth',
+    name: 'OpenSensor.Space',
     tagline: 'Cloud-Native Weather Station Network',
     description:
       'Building an open network of DIY weather stations that stream environmental data directly to the cloud. Track temperature, humidity, air quality, and more in real-time.',
