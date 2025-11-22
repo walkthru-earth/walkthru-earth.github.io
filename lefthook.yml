@@ -1,0 +1,8 @@
+# Lefthook configuration for pre-commit hooks
+# Runs fast checks using Bun on staged files only
+
+pre-commit:
+  parallel: true
+  commands:
+    lint-staged:
+      run: bunx lint-staged

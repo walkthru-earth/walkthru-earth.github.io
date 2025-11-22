@@ -19,7 +19,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "rm -rf .next node_modules",
-    "prepare": "husky"
+    "postinstall": "lefthook install"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -41,12 +41,12 @@
     "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
+    "@evilmartians/lefthook": "^2.0.4",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.0",
-    "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.3.0",
     "prettier-plugin-tailwindcss": "^0.6.0",
