@@ -10,6 +10,7 @@ Walkthru is a minimal, Apple-inspired website revealing hidden patterns in urban
 
 ## Tech Stack
 
+- **Runtime:** Bun (fast JavaScript runtime and package manager)
 - **Framework:** Next.js 16.0.3 with Turbopack
 - **Language:** TypeScript 5.7
 - **Styling:** Tailwind CSS 4.1.17 (CSS-first configuration with @theme)
@@ -19,6 +20,7 @@ Walkthru is a minimal, Apple-inspired website revealing hidden patterns in urban
 - **Theme:** next-themes 0.4.6
 - **Icons:** Lucide React 0.553.0
 - **Font:** Quicksand (Google Fonts)
+- **Git Hooks:** Lefthook 2.0.4 with lint-staged
 
 ## Features Implemented
 
@@ -41,16 +43,24 @@ Walkthru is a minimal, Apple-inspired website revealing hidden patterns in urban
 
 ## Getting Started
 
+### Prerequisites
+
+Install Bun if you haven't already:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
 ### Development
 
 ```bash
 # Install dependencies (if needed)
-npm install
+bun install
 
 # Start development server
-npm run dev
+bun run dev
 # or
-npx next dev --turbopack
+bunx next dev --turbopack
 
 # Open http://localhost:3000
 ```
@@ -59,13 +69,13 @@ npx next dev --turbopack
 
 ```bash
 # Type check
-npm run type-check
+bun run type-check
 
 # Build (creates static export in ./out)
-npm run build
+bun run build
 
 # Start production server (for local testing only)
-npm start
+bun start
 ```
 
 ### Deploy to GitHub Pages
@@ -82,7 +92,8 @@ The site is configured for automatic deployment to GitHub Pages:
    - Source: GitHub Actions
 
 3. **Push to main branch** - The workflow will automatically:
-   - Install dependencies
+   - Install dependencies with Bun
+   - Run linter (ESLint)
    - Build the static site
    - Deploy to GitHub Pages
 
@@ -101,13 +112,29 @@ Your site will be available at: `https://walkthru-earth.github.io/`
 
 ```bash
 # Lint
-npm run lint
+bun run lint
+
+# Lint and fix
+bun run lint:fix
 
 # Format with Prettier
-npm run format
+bun run format
 
 # Check formatting
-npm run format:check
+bun run format:check
+```
+
+### Git Hooks
+
+Pre-commit hooks are automatically installed via Lefthook:
+
+- Runs ESLint and Prettier on staged files
+- Fast execution with Bun
+- Configured in `lefthook.yml`
+
+```bash
+# Manually run pre-commit checks
+bunx lint-staged
 ```
 
 ## Project Structure
