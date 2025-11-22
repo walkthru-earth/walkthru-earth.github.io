@@ -81,22 +81,32 @@ export default function OpenSensorPage() {
               <div className="mt-10 flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="group" asChild>
                   <Link
-                    href="https://source.coop/youssef-harby/weather-station-realtime-parquet"
+                    href="https://opensensor.space/"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    View Live Data
+                    Explore Live Dashboard
                     <ExternalLink className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link
-                    href="https://github.com/youssef-harby/parquet-edge"
+                    href="https://github.com/walkthru-earth/opensensor-space"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <Github className="mr-2 h-4 w-4" />
-                    View on GitHub
+                    Dashboard Code
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link
+                    href="https://github.com/walkthru-earth/opensensor-space-edge"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Github className="mr-2 h-4 w-4" />
+                    Edge Code
                   </Link>
                 </Button>
               </div>
@@ -369,7 +379,7 @@ export default function OpenSensorPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="group" asChild>
                   <Link
-                    href="https://github.com/youssef-harby/parquet-edge"
+                    href="https://github.com/walkthru-earth/opensensor-space-edge"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -379,11 +389,11 @@ export default function OpenSensorPage() {
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link
-                    href="https://source.coop/youssef-harby/weather-station-realtime-parquet"
+                    href="https://opensensor.space/"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    View Network Data
+                    Explore Dashboard
                     <ExternalLink className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
