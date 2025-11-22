@@ -428,11 +428,11 @@ export default function OpenSensorPage() {
               <div className="flex flex-col justify-center gap-4 sm:flex-row">
                 <Button size="lg" className="group" asChild>
                   <Link
-                    href="https://github.com/walkthru-earth/opensensor-space-edge"
+                    href="https://opensensor.space/join-network/"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Setup Instructions
+                    Join the Network
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
