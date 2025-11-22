@@ -6,7 +6,13 @@ import { Container } from '@/components/shared/container';
 import { Logo } from '@/components/shared/logo';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ExternalLink, ChevronDown, Cloud, Heart } from 'lucide-react';
 
 export function Navbar() {
   return (
@@ -18,19 +24,44 @@ export function Navbar() {
           <div className="flex items-center gap-6">
             <div className="hidden md:flex items-center gap-6">
               <Link
-                href="#patterns"
+                href="/#patterns"
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
                 Patterns
               </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary">
+                  Initiatives
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/opensensor" className="flex items-center gap-2 cursor-pointer">
+                      <Cloud className="h-4 w-4 text-primary" />
+                      <div>
+                        <div className="font-medium">OpenSensor.Earth</div>
+                        <div className="text-xs text-muted-foreground">
+                          Weather Station Network
+                        </div>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/hormones-cities"
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <Heart className="h-4 w-4 text-secondary" />
+                      <div>
+                        <div className="font-medium">Hormones & Cities</div>
+                        <div className="text-xs text-muted-foreground">Urban Wellbeing Survey</div>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Link
-                href="#indices"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                Indices
-              </Link>
-              <Link
-                href="#vision"
+                href="/#vision"
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
                 Vision
