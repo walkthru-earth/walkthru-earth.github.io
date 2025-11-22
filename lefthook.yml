@@ -4,5 +4,7 @@
 pre-commit:
   parallel: true
   commands:
+    type-check:
+      run: bun run type-check
     lint-staged:
       run: bunx lint-staged

@@ -195,6 +195,7 @@ npm run format:check
 ### Tailwind CSS v4
 
 Using the new CSS-first configuration with `@theme inline` directive:
+
 - Dark mode enabled with class-based switching
 - Light theme: Warm whites (hsl(60 20% 99%)), earth green (hsl(158 64% 52%)), amber (hsl(37 91% 55%))
 - Dark theme: Deep charcoal (hsl(0 0% 7%)), muted earth tones

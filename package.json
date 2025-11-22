@@ -54,12 +54,11 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "bun run lint:fix",
-      "bun run type-check",
-      "bun run format"
+      "eslint --fix",
+      "prettier --write"
     ],
     "*.{json,md,css}": [
-      "bun run format"
+      "prettier --write"
     ]
   }
 }
