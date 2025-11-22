@@ -136,11 +136,11 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
                 Environmental{' '}
                 <span className="text-primary font-medium">Sensor Capabilities</span>
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
                 Comprehensive monitoring with the Pimoroni Enviro+ sensor pack
               </p>
             </motion.div>
@@ -176,7 +176,7 @@ export default function OpenSensorPage() {
                       <div className="p-3 rounded-lg bg-primary/10 w-fit mb-3">
                         <sensor.icon className="h-5 w-5 text-primary" />
                       </div>
-                      <CardTitle className="text-lg">{sensor.name}</CardTitle>
+                      <CardTitle className="text-xl md:text-2xl">{sensor.name}</CardTitle>
                       <CardDescription>{sensor.desc}</CardDescription>
                     </CardHeader>
                   </Card>
@@ -196,10 +196,10 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
                 How It <span className="text-primary font-medium">Works</span>
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
                 Edge cloud-native architecture for efficient, resilient data collection
               </p>
             </motion.div>
@@ -283,10 +283,10 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
                 Required <span className="text-primary font-medium">Hardware</span>
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
                 Everything you need to build your own weather station
               </p>
             </motion.div>
@@ -334,7 +334,7 @@ export default function OpenSensorPage() {
                   <Card className="h-full">
                     <CardHeader>
                       <div className="flex items-start justify-between mb-2">
-                        <CardTitle className="text-lg">{item.name}</CardTitle>
+                        <CardTitle className="text-xl md:text-2xl">{item.name}</CardTitle>
                         <Badge variant={item.required ? 'default' : 'secondary'}>
                           {item.required ? 'Required' : 'Optional'}
                         </Badge>
@@ -358,7 +358,7 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="max-w-3xl mx-auto text-center"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6">
                 Join the <GradientText className="font-semibold">Weather Station Network</GradientText>
               </h2>
               <p className="text-lg text-muted-foreground mb-10">

@@ -20,19 +20,19 @@ export function CTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto"
+          className="text-center max-w-4xl mx-auto"
         >
-          <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight mb-8">
             Ready to Transform{' '}
             <span className="text-primary font-medium">Your City?</span>
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed">
             Join us in building more livable, sustainable, and happier
             communities through data-driven insights.
           </p>
 
-          <div className="flex justify-center mb-12">
-            <Button size="lg" className="group gap-2" asChild>
+          <div className="flex justify-center mb-16">
+            <Button size="lg" className="group gap-2 text-lg px-8 py-6" asChild>
               <Link
                 href="https://source.coop/walkthru"
                 target="_blank"
@@ -42,24 +42,24 @@ export function CTA() {
                 <Image
                   src="/source-coop-logo.png"
                   alt="Source Cooperative"
-                  width={24}
-                  height={24}
+                  width={28}
+                  height={28}
                   className="rounded-sm"
                 />
                 Explore Your Data
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
           </div>
 
-          <div className="flex justify-center gap-6">
+          <div className="flex justify-center gap-8">
             <a
               href="https://github.com/walkthru-earth"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
-              <Github className="h-6 w-6" />
+              <Github className="h-8 w-8" />
               <span className="sr-only">GitHub</span>
             </a>
             <a
@@ -68,7 +68,7 @@ export function CTA() {
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
-              <Linkedin className="h-6 w-6" />
+              <Linkedin className="h-8 w-8" />
               <span className="sr-only">LinkedIn</span>
             </a>
           </div>

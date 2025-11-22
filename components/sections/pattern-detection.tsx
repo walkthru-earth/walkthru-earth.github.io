@@ -42,18 +42,18 @@ export function PatternDetection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
             Detecting the{' '}
             <span className="text-primary font-medium">Invisible</span>
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Patterns that shape daily life, hidden in plain sight
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {patterns.map((pattern, index) => (
             <motion.div
               key={pattern.title}
@@ -62,10 +62,10 @@ export function PatternDetection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
-              <Card className="p-6 h-full hover:shadow-lg transition-shadow">
-                <pattern.icon className="h-10 w-10 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2">{pattern.title}</h3>
-                <p className="text-muted-foreground">{pattern.description}</p>
+              <Card className="p-8 h-full hover:shadow-lg transition-shadow">
+                <pattern.icon className="h-12 w-12 text-primary mb-6" />
+                <h3 className="text-2xl md:text-3xl font-semibold mb-3">{pattern.title}</h3>
+                <p className="text-lg text-muted-foreground leading-relaxed">{pattern.description}</p>
               </Card>
             </motion.div>
           ))}

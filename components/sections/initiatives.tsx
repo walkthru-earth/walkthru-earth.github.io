@@ -57,12 +57,12 @@ export function Initiatives() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
             Our <span className="text-primary font-medium">Initiatives</span>
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Building the infrastructure and tools to understand and improve urban life
           </p>
         </motion.div>
@@ -81,20 +81,20 @@ export function Initiatives() {
                 <Card className="h-full hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/50">
                   <CardHeader>
                     <div className="flex items-start justify-between mb-4">
-                      <div className={`p-3 rounded-lg ${initiative.bgColor}`}>
-                        <Icon className={`h-6 w-6 ${initiative.color}`} />
+                      <div className={`p-4 rounded-lg ${initiative.bgColor}`}>
+                        <Icon className={`h-8 w-8 ${initiative.color}`} />
                       </div>
-                      <Badge variant={initiative.status === 'Active' ? 'default' : 'secondary'}>
+                      <Badge variant={initiative.status === 'Active' ? 'default' : 'secondary'} className="text-sm px-3 py-1">
                         {initiative.status}
                       </Badge>
                     </div>
-                    <CardTitle className="text-2xl">{initiative.name}</CardTitle>
-                    <CardDescription className="text-base font-medium">
+                    <CardTitle className="text-3xl md:text-4xl mb-2">{initiative.name}</CardTitle>
+                    <CardDescription className="text-lg md:text-xl font-medium">
                       {initiative.tagline}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground mb-6">{initiative.description}</p>
+                    <p className="text-lg text-muted-foreground mb-6 leading-relaxed">{initiative.description}</p>
 
                     <div className="flex flex-wrap gap-2 mb-6">
                       {initiative.highlights.map((highlight) => (

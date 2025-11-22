@@ -18,21 +18,21 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Container>
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           <Logo size="md" showText />
 
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-6">
+          <div className="flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-8">
               <Link
                 href="/#patterns"
-                className="text-sm font-medium transition-colors hover:text-primary"
+                className="text-base font-medium transition-colors hover:text-primary"
               >
                 Patterns
               </Link>
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary">
+                <DropdownMenuTrigger className="flex items-center gap-1 text-base font-medium transition-colors hover:text-primary">
                   Initiatives
-                  <ChevronDown className="h-3.5 w-3.5" />
+                  <ChevronDown className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
@@ -62,7 +62,7 @@ export function Navbar() {
               </DropdownMenu>
               <Link
                 href="/#vision"
-                className="text-sm font-medium transition-colors hover:text-primary"
+                className="text-base font-medium transition-colors hover:text-primary"
               >
                 Vision
               </Link>
@@ -80,13 +80,13 @@ export function Navbar() {
                 <Image
                   src="/source-coop-logo.png"
                   alt="Source Cooperative"
-                  width={20}
-                  height={20}
+                  width={24}
+                  height={24}
                   className="rounded-sm"
                 />
-                <span className="hidden sm:inline">Explore Your Data</span>
-                <span className="sm:hidden">Your Data</span>
-                <ExternalLink className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Explore Data</span>
+                <span className="sm:hidden">Data</span>
+                <ExternalLink className="h-4 w-4" />
               </Link>
             </Button>
           </div>

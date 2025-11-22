@@ -58,7 +58,7 @@ export function Hero() {
             </span>
           </motion.div>
 
-          <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] font-light tracking-tight leading-[1.1]">
+          <h1 className="text-[clamp(3.5rem,9vw,7rem)] font-light tracking-tight leading-[1.05]">
             Cities Shape Us
             <br />
             <GradientText className="font-semibold">
@@ -66,7 +66,7 @@ export function Hero() {
             </GradientText>
           </h1>
 
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl font-normal">
+          <p className="mt-8 text-xl md:text-2xl text-muted-foreground max-w-3xl font-normal leading-relaxed">
             We detect invisible patterns in urban life, transforming data into
             insights for resilient, happier communities.
           </p>
@@ -87,21 +87,21 @@ export function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1 }}
-            className="mt-16 flex items-center gap-8 text-sm text-muted-foreground"
+            className="mt-20 flex items-center gap-8 text-base text-muted-foreground"
           >
             <div>
-              <div className="text-2xl font-semibold text-foreground">10+</div>
-              <div>Indices Tracked</div>
+              <div className="text-3xl md:text-4xl font-semibold text-foreground">10+</div>
+              <div className="text-lg">Indices Tracked</div>
             </div>
-            <div className="h-8 w-px bg-border" />
+            <div className="h-10 w-px bg-border" />
             <div>
-              <div className="text-2xl font-semibold text-foreground">50+</div>
-              <div>Metrics Analyzed</div>
+              <div className="text-3xl md:text-4xl font-semibold text-foreground">50+</div>
+              <div className="text-lg">Metrics Analyzed</div>
             </div>
-            <div className="h-8 w-px bg-border" />
+            <div className="h-10 w-px bg-border" />
             <div>
-              <div className="text-2xl font-semibold text-foreground">∞</div>
-              <div>Communities Served</div>
+              <div className="text-3xl md:text-4xl font-semibold text-foreground">∞</div>
+              <div className="text-lg">Communities Served</div>
             </div>
           </motion.div>
         </motion.div>

@@ -122,10 +122,10 @@ export default function HormonesCitiesPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
                 Our <span className="text-secondary font-medium">Vision</span>
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
                 Detecting hidden patterns in urban life to create people-first solutions
               </p>
             </motion.div>
@@ -186,10 +186,10 @@ export default function HormonesCitiesPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
                 Survey <span className="text-secondary font-medium">Categories</span>
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
                 Understanding multiple dimensions of urban life
               </p>
             </motion.div>
@@ -229,7 +229,7 @@ export default function HormonesCitiesPage() {
                       <div className="p-3 rounded-lg bg-secondary/10 w-fit mb-3">
                         <category.icon className="h-5 w-5 text-secondary" />
                       </div>
-                      <CardTitle className="text-lg">{category.name}</CardTitle>
+                      <CardTitle className="text-xl md:text-2xl">{category.name}</CardTitle>
                       <CardDescription>{category.desc}</CardDescription>
                     </CardHeader>
                   </Card>
@@ -249,10 +249,10 @@ export default function HormonesCitiesPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
                 Living <span className="text-secondary font-medium">Indices</span>
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
                 Comprehensive metrics tracking what matters for thriving, sustainable communities
               </p>
             </motion.div>
@@ -419,10 +419,10 @@ export default function HormonesCitiesPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
                 Privacy & <span className="text-secondary font-medium">Transparency</span>
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
                 Your data, your control, always anonymous
               </p>
             </motion.div>
@@ -486,7 +486,7 @@ export default function HormonesCitiesPage() {
               transition={{ duration: 0.6 }}
               className="max-w-3xl mx-auto"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6 text-center">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6 text-center">
                 The <GradientText className="font-semibold">"Less is More"</GradientText> Philosophy
               </h2>
               <Card className="border-2 border-secondary/20">
@@ -551,7 +551,7 @@ export default function HormonesCitiesPage() {
               transition={{ duration: 0.6 }}
               className="max-w-3xl mx-auto text-center"
             >
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6">
                 Stay <GradientText className="font-semibold">Tuned</GradientText>
               </h2>
               <p className="text-lg text-muted-foreground mb-10">
