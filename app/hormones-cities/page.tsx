@@ -80,7 +80,7 @@ export default function HormonesCitiesPage() {
         {/* Hero Section - Extended for scroll-based screenshot rotation */}
         <section ref={heroRef} className="relative h-[300vh]">
           {/* Sticky container that stays in viewport while scrolling */}
-          <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+          <div className="sticky top-20 h-[calc(100vh-5rem)] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-background to-secondary/10" />
 
             <motion.div
@@ -96,7 +96,7 @@ export default function HormonesCitiesPage() {
               }}
             />
 
-            <Container className="relative z-10 py-20">
+            <Container className="relative z-10 py-8 md:py-12 lg:py-20">
               <div className="grid lg:grid-cols-[1fr_auto] gap-8 lg:gap-16 items-center">
               {/* Left: Content */}
               <motion.div
