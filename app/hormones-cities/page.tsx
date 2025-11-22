@@ -80,7 +80,7 @@ export default function HormonesCitiesPage() {
         {/* Hero Section - Extended for scroll-based screenshot rotation */}
         <section ref={heroRef} className="relative h-[300vh]">
           {/* Sticky container that stays in viewport while scrolling */}
-          <div className="sticky top-20 h-[calc(100vh-5rem)] flex items-center justify-center overflow-hidden">
+          <div className="sticky top-0 h-[100dvh] flex items-start md:items-center overflow-hidden pt-20">
             <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-background to-secondary/10" />
 
             <motion.div
@@ -96,8 +96,8 @@ export default function HormonesCitiesPage() {
               }}
             />
 
-            <Container className="relative z-10 py-8 md:py-12 lg:py-20">
-              <div className="grid lg:grid-cols-[1fr_auto] gap-8 lg:gap-16 items-center">
+            <Container className="relative z-10 py-4 md:py-8">
+              <div className="grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-16 items-start lg:items-center">
               {/* Left: Content */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -109,7 +109,7 @@ export default function HormonesCitiesPage() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary mb-6"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary mb-4 md:mb-6"
                 >
                   <Heart className="h-4 w-4" />
                   <span className="text-sm font-medium">Anonymous Urban Wellbeing Survey</span>
@@ -121,13 +121,13 @@ export default function HormonesCitiesPage() {
                   Understanding Urban Life
                 </h1>
 
-                <p className="mt-6 text-lg md:text-xl text-muted-foreground font-normal">
+                <p className="mt-4 md:mt-6 text-lg md:text-xl text-muted-foreground font-normal">
                   A modern, transparent, anonymous survey platform revealing how cities shape our
                   feelings and behaviors. Building happier, more sustainable communities through
                   data-driven insights.
                 </p>
 
-                <div className="mt-10 flex flex-col sm:flex-row gap-4">
+                <div className="mt-6 md:mt-10 flex flex-col sm:flex-row gap-4">
                   <Button size="lg" className="group" disabled>
                     Coming Soon
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -141,7 +141,7 @@ export default function HormonesCitiesPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 1 }}
-                  className="mt-16 flex items-center gap-6 text-sm text-muted-foreground"
+                  className="mt-8 md:mt-16 flex items-center gap-4 md:gap-6 text-sm text-muted-foreground"
                 >
                   <div>
                     <div className="text-2xl font-semibold text-foreground">100%</div>
@@ -165,9 +165,9 @@ export default function HormonesCitiesPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="relative flex justify-center items-center"
+                className="relative flex justify-center items-center mx-auto lg:mx-0"
               >
-                <div className="relative w-[220px] sm:w-[260px] lg:w-[300px]">
+                <div className="relative w-[200px] sm:w-[240px] lg:w-[300px]">
                   {/* Phone Frame */}
                   <div className="relative w-full aspect-[9/19.5] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-foreground/10 bg-background">
                     {/* Rotating Screenshots */}
@@ -209,7 +209,7 @@ export default function HormonesCitiesPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 1.2 }}
-                    className="absolute -bottom-12 left-1/2 -translate-x-1/2 text-center text-xs text-muted-foreground"
+                    className="absolute -bottom-12 left-1/2 -translate-x-1/2 text-center text-xs text-muted-foreground hidden lg:block"
                   >
                     <div className="flex gap-1.5 mb-2 justify-center">
                       {screenshots.map((_, index) => (

@@ -34,7 +34,7 @@ export default function OpenSensorPage() {
       <Navbar />
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
+        <section className="relative min-h-[100dvh] md:min-h-[80dvh] flex items-center justify-center overflow-hidden pt-20 md:pt-24">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10" />
 
           <motion.div
@@ -50,7 +50,7 @@ export default function OpenSensorPage() {
             }}
           />
 
-          <Container className="relative z-10">
+          <Container className="relative z-10 py-8 md:py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
