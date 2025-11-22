@@ -1,10 +1,8 @@
 # Lefthook configuration for pre-commit hooks
-# Runs fast checks using Bun on staged files only
+# Runs fast formatting checks using Bun on staged files only
+# Build step includes type-checking
 
 pre-commit:
-  parallel: true
   commands:
-    type-check:
-      run: bun run type-check
     lint-staged:
       run: bunx lint-staged

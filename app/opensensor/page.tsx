@@ -6,9 +6,14 @@ import { Footer } from '@/components/sections/footer';
 import { Container } from '@/components/shared/container';
 import { GradientText } from '@/components/shared/gradient-text';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   ArrowRight,
   Cloud,
@@ -26,7 +31,6 @@ import {
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function OpenSensorPage() {
   return (
@@ -34,11 +38,11 @@ export default function OpenSensorPage() {
       <Navbar />
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[100dvh] md:min-h-[80dvh] flex items-center justify-center overflow-hidden pt-20 md:pt-24">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10" />
+        <section className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden pt-20 md:min-h-[80dvh] md:pt-24">
+          <div className="from-primary/5 via-background to-primary/10 absolute inset-0 bg-gradient-to-br" />
 
           <motion.div
-            className="absolute top-1/4 -right-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
+            className="bg-primary/20 absolute top-1/4 -right-1/4 h-96 w-96 rounded-full blur-3xl"
             animate={{
               scale: [1, 1.2, 1],
               opacity: [0.3, 0.5, 0.3],
@@ -61,24 +65,29 @@ export default function OpenSensorPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6"
+                className="bg-primary/10 text-primary mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2"
               >
                 <Cloud className="h-4 w-4" />
-                <span className="text-sm font-medium">Cloud-Native Environmental Monitoring</span>
+                <span className="text-sm font-medium">
+                  Cloud-Native Environmental Monitoring
+                </span>
               </motion.div>
 
-              <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] font-light tracking-tight leading-[1.1]">
-                <GradientText className="font-semibold">OpenSensor.Space</GradientText>
+              <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.1] font-light tracking-tight">
+                <GradientText className="font-semibold">
+                  OpenSensor.Space
+                </GradientText>
                 <br />
                 Weather Station Network
               </h1>
 
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl font-normal">
-                A community-driven network of DIY weather stations streaming real-time environmental
-                data to the cloud. Built with Raspberry Pi, open data formats, and edge computing.
+              <p className="text-muted-foreground mt-6 max-w-2xl text-lg font-normal md:text-xl">
+                A community-driven network of DIY weather stations streaming
+                real-time environmental data to the cloud. Built with Raspberry
+                Pi, open data formats, and edge computing.
               </p>
 
-              <div className="mt-10 flex flex-col sm:flex-row gap-4">
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <Button size="lg" className="group" asChild>
                   <Link
                     href="https://opensensor.space/"
@@ -115,20 +124,26 @@ export default function OpenSensorPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 1 }}
-                className="mt-16 flex items-center gap-8 text-sm text-muted-foreground"
+                className="text-muted-foreground mt-16 flex items-center gap-8 text-sm"
               >
                 <div>
-                  <div className="text-2xl font-semibold text-foreground">178K+</div>
+                  <div className="text-foreground text-2xl font-semibold">
+                    178K+
+                  </div>
                   <div>Data Points</div>
                 </div>
-                <div className="h-8 w-px bg-border" />
+                <div className="bg-border h-8 w-px" />
                 <div>
-                  <div className="text-2xl font-semibold text-foreground">16+</div>
+                  <div className="text-foreground text-2xl font-semibold">
+                    16+
+                  </div>
                   <div>Sensors</div>
                 </div>
-                <div className="h-8 w-px bg-border" />
+                <div className="bg-border h-8 w-px" />
                 <div>
-                  <div className="text-2xl font-semibold text-foreground">Open</div>
+                  <div className="text-foreground text-2xl font-semibold">
+                    Open
+                  </div>
                   <div>Source & Data</div>
                 </div>
               </motion.div>
@@ -144,24 +159,42 @@ export default function OpenSensorPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="text-center mb-16"
+              className="mb-16 text-center"
             >
-              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
+              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
                 Environmental{' '}
-                <span className="text-primary font-medium">Sensor Capabilities</span>
+                <span className="text-primary font-medium">
+                  Sensor Capabilities
+                </span>
               </h2>
-              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
+              <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
                 Comprehensive monitoring with the Pimoroni Enviro+ sensor pack
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
               {[
-                { icon: Thermometer, name: 'Temperature', desc: 'Ambient & raw temp' },
+                {
+                  icon: Thermometer,
+                  name: 'Temperature',
+                  desc: 'Ambient & raw temp',
+                },
                 { icon: Gauge, name: 'Pressure', desc: 'Atmospheric pressure' },
-                { icon: Droplets, name: 'Humidity', desc: 'Relative humidity %' },
-                { icon: Wind, name: 'Gas Sensors', desc: 'Oxidised, reducing, NH3' },
-                { icon: Sun, name: 'Light (Lux)', desc: 'Ambient light levels' },
+                {
+                  icon: Droplets,
+                  name: 'Humidity',
+                  desc: 'Relative humidity %',
+                },
+                {
+                  icon: Wind,
+                  name: 'Gas Sensors',
+                  desc: 'Oxidised, reducing, NH3',
+                },
+                {
+                  icon: Sun,
+                  name: 'Light (Lux)',
+                  desc: 'Ambient light levels',
+                },
                 { icon: Activity, name: 'Proximity', desc: 'Object detection' },
                 {
                   icon: Cloud,
@@ -181,12 +214,14 @@ export default function OpenSensorPage() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
                 >
-                  <Card className="h-full hover:shadow-md transition-shadow">
+                  <Card className="h-full transition-shadow hover:shadow-md">
                     <CardHeader>
-                      <div className="p-3 rounded-lg bg-primary/10 w-fit mb-3">
-                        <sensor.icon className="h-5 w-5 text-primary" />
+                      <div className="bg-primary/10 mb-3 w-fit rounded-lg p-3">
+                        <sensor.icon className="text-primary h-5 w-5" />
                       </div>
-                      <CardTitle className="text-xl md:text-2xl">{sensor.name}</CardTitle>
+                      <CardTitle className="text-xl md:text-2xl">
+                        {sensor.name}
+                      </CardTitle>
                       <CardDescription>{sensor.desc}</CardDescription>
                     </CardHeader>
                   </Card>
@@ -197,24 +232,25 @@ export default function OpenSensorPage() {
         </section>
 
         {/* How It Works Section */}
-        <section className="py-24 bg-muted/30">
+        <section className="bg-muted/30 py-24">
           <Container>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="text-center mb-16"
+              className="mb-16 text-center"
             >
-              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
+              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
                 How It <span className="text-primary font-medium">Works</span>
               </h2>
-              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
-                Edge cloud-native architecture for efficient, resilient data collection
+              <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
+                Edge cloud-native architecture for efficient, resilient data
+                collection
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="mb-12 grid gap-8 md:grid-cols-3">
               {[
                 {
                   icon: Wifi,
@@ -244,24 +280,26 @@ export default function OpenSensorPage() {
                 >
                   <Card className="h-full">
                     <CardHeader>
-                      <div className="p-3 rounded-lg bg-primary/10 w-fit mb-3">
-                        <step.icon className="h-6 w-6 text-primary" />
+                      <div className="bg-primary/10 mb-3 w-fit rounded-lg p-3">
+                        <step.icon className="text-primary h-6 w-6" />
                       </div>
                       <CardTitle>{step.title}</CardTitle>
-                      <CardDescription className="text-base">{step.description}</CardDescription>
+                      <CardDescription className="text-base">
+                        {step.description}
+                      </CardDescription>
                     </CardHeader>
                   </Card>
                 </motion.div>
               ))}
             </div>
 
-            <Card className="border-2 border-primary/20">
+            <Card className="border-primary/20 border-2">
               <CardHeader>
                 <CardTitle>Cloud-Native Benefits</CardTitle>
                 <CardDescription>Why this architecture matters</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   {[
                     'Energy efficient - minimal hardware requirements',
                     'Cost effective - no servers to maintain',
@@ -271,10 +309,12 @@ export default function OpenSensorPage() {
                     'Transparent - all code and data publicly available',
                   ].map((benefit) => (
                     <div key={benefit} className="flex items-start gap-3">
-                      <div className="mt-1 p-1 rounded-full bg-primary/20">
-                        <div className="h-2 w-2 rounded-full bg-primary" />
+                      <div className="bg-primary/20 mt-1 rounded-full p-1">
+                        <div className="bg-primary h-2 w-2 rounded-full" />
                       </div>
-                      <span className="text-sm text-muted-foreground">{benefit}</span>
+                      <span className="text-muted-foreground text-sm">
+                        {benefit}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -291,17 +331,18 @@ export default function OpenSensorPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="text-center mb-16"
+              className="mb-16 text-center"
             >
-              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
-                Required <span className="text-primary font-medium">Hardware</span>
+              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+                Required{' '}
+                <span className="text-primary font-medium">Hardware</span>
               </h2>
-              <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl leading-relaxed mx-auto">
+              <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
                 Everything you need to build your own weather station
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[
                 {
                   name: 'Raspberry Pi Zero 2 W',
@@ -343,9 +384,13 @@ export default function OpenSensorPage() {
                 >
                   <Card className="h-full">
                     <CardHeader>
-                      <div className="flex items-start justify-between mb-2">
-                        <CardTitle className="text-xl md:text-2xl">{item.name}</CardTitle>
-                        <Badge variant={item.required ? 'default' : 'secondary'}>
+                      <div className="mb-2 flex items-start justify-between">
+                        <CardTitle className="text-xl md:text-2xl">
+                          {item.name}
+                        </CardTitle>
+                        <Badge
+                          variant={item.required ? 'default' : 'secondary'}
+                        >
                           {item.required ? 'Required' : 'Optional'}
                         </Badge>
                       </div>
@@ -359,24 +404,28 @@ export default function OpenSensorPage() {
         </section>
 
         {/* Join Network CTA */}
-        <section className="py-24 bg-gradient-to-br from-primary/5 to-primary/10">
+        <section className="from-primary/5 to-primary/10 bg-gradient-to-br py-24">
           <Container>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="max-w-3xl mx-auto text-center"
+              className="mx-auto max-w-3xl text-center"
             >
-              <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6">
-                Join the <GradientText className="font-semibold">Weather Station Network</GradientText>
+              <h2 className="mb-6 text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+                Join the{' '}
+                <GradientText className="font-semibold">
+                  Weather Station Network
+                </GradientText>
               </h2>
-              <p className="text-lg text-muted-foreground mb-10">
-                Build your own station and contribute to open environmental data. We welcome
-                contributions from anyone interested in monitoring urban ecosystems.
+              <p className="text-muted-foreground mb-10 text-lg">
+                Build your own station and contribute to open environmental
+                data. We welcome contributions from anyone interested in
+                monitoring urban ecosystems.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col justify-center gap-4 sm:flex-row">
                 <Button size="lg" className="group" asChild>
                   <Link
                     href="https://github.com/walkthru-earth/opensensor-space-edge"
@@ -399,50 +448,61 @@ export default function OpenSensorPage() {
                 </Button>
               </div>
 
-              <div className="mt-12 p-6 bg-card rounded-lg border">
-                <h3 className="text-xl font-medium mb-4">Contributing to the Network</h3>
-                <div className="grid md:grid-cols-2 gap-4 text-left">
+              <div className="bg-card mt-12 rounded-lg border p-6">
+                <h3 className="mb-4 text-xl font-medium">
+                  Contributing to the Network
+                </h3>
+                <div className="grid gap-4 text-left md:grid-cols-2">
                   <div className="flex items-start gap-3">
-                    <div className="mt-1 p-1 rounded-full bg-primary/20">
-                      <div className="h-2 w-2 rounded-full bg-primary" />
+                    <div className="bg-primary/20 mt-1 rounded-full p-1">
+                      <div className="bg-primary h-2 w-2 rounded-full" />
                     </div>
                     <div>
-                      <div className="font-medium text-sm mb-1">Build Your Station</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="mb-1 text-sm font-medium">
+                        Build Your Station
+                      </div>
+                      <div className="text-muted-foreground text-sm">
                         Follow setup instructions and configure your hardware
                       </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="mt-1 p-1 rounded-full bg-primary/20">
-                      <div className="h-2 w-2 rounded-full bg-primary" />
+                    <div className="bg-primary/20 mt-1 rounded-full p-1">
+                      <div className="bg-primary h-2 w-2 rounded-full" />
                     </div>
                     <div>
-                      <div className="font-medium text-sm mb-1">Choose Storage</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="mb-1 text-sm font-medium">
+                        Choose Storage
+                      </div>
+                      <div className="text-muted-foreground text-sm">
                         Use Source Cooperative or your own S3-compatible storage
                       </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="mt-1 p-1 rounded-full bg-primary/20">
-                      <div className="h-2 w-2 rounded-full bg-primary" />
+                    <div className="bg-primary/20 mt-1 rounded-full p-1">
+                      <div className="bg-primary h-2 w-2 rounded-full" />
                     </div>
                     <div>
-                      <div className="font-medium text-sm mb-1">Submit a PR</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="mb-1 text-sm font-medium">
+                        Submit a PR
+                      </div>
+                      <div className="text-muted-foreground text-sm">
                         Add your station ID, location, and storage URL
                       </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="mt-1 p-1 rounded-full bg-primary/20">
-                      <div className="h-2 w-2 rounded-full bg-primary" />
+                    <div className="bg-primary/20 mt-1 rounded-full p-1">
+                      <div className="bg-primary h-2 w-2 rounded-full" />
                     </div>
                     <div>
-                      <div className="font-medium text-sm mb-1">Share Insights</div>
-                      <div className="text-sm text-muted-foreground">
-                        Contribute dashboard improvements or custom visualizations
+                      <div className="mb-1 text-sm font-medium">
+                        Share Insights
+                      </div>
+                      <div className="text-muted-foreground text-sm">
+                        Contribute dashboard improvements or custom
+                        visualizations
                       </div>
                     </div>
                   </div>
