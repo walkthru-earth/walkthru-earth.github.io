@@ -1,8 +1,6 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
-import Image from 'next/image';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/sections/footer';
@@ -12,66 +10,27 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  ArrowRight,
-  Heart,
-  Users,
-  TrendingUp,
-  Shield,
-  Eye,
-  Brain,
-  Home,
-  Smile,
-  Globe,
-  Lock,
-  BarChart3,
-  MessageCircle,
-} from 'lucide-react';
+import { ArrowRight, Heart } from 'lucide-react';
 
-const screenshots = [
-  {
-    src: '/hormones-cities-ai.png',
-    alt: 'AI Chat Interface',
-    width: 280,
-    height: 600,
-    hasFade: false,
-  },
-  {
-    src: '/hormones-cities-dashboard.png',
-    alt: 'City-Wide Trends Dashboard',
-    width: 280,
-    height: 1500,
-    hasFade: true,
-  },
-  {
-    src: '/hormones-cities-survey.png',
-    alt: 'Survey Categories',
-    width: 280,
-    height: 1200,
-    hasFade: true,
-  },
-];
+// Custom hooks and components
+import { useScrollScreenshots } from './hooks/useScrollScreenshots';
+import { ScrollingPhoneMockup } from './components/ScrollingPhoneMockup';
+
+// Data
+import {
+  screenshots,
+  visionCards,
+  surveyCategories,
+  privacyFeatures,
+  livabilityMetrics,
+  wellbeingMetrics,
+  resilienceMetrics,
+  philosophyPoints,
+  expectations,
+} from './data/content';
 
 export default function HormonesCitiesPage() {
-  const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end end'],
-  });
-
-  // Create opacity transforms for each screenshot
-  const screenshot0Opacity = useTransform(scrollYProgress, [0, 0.25, 0.4], [1, 1, 0]);
-  const screenshot1Opacity = useTransform(scrollYProgress, [0.35, 0.5, 0.65], [0, 1, 0]);
-  const screenshot2Opacity = useTransform(scrollYProgress, [0.6, 0.75, 1], [0, 1, 1]);
-
-  const screenshotOpacities = [screenshot0Opacity, screenshot1Opacity, screenshot2Opacity];
-
-  // Create indicator dot opacities
-  const dot0Opacity = useTransform(scrollYProgress, [0, 0.25, 0.4], [1, 1, 0.3]);
-  const dot1Opacity = useTransform(scrollYProgress, [0.35, 0.5, 0.65], [0.3, 1, 0.3]);
-  const dot2Opacity = useTransform(scrollYProgress, [0.6, 0.75, 1], [0.3, 1, 1]);
-
-  const dotOpacities = [dot0Opacity, dot1Opacity, dot2Opacity];
+  const { heroRef, screenshotOpacities, dotOpacities, mobileTextOpacity, mobilePhoneOpacity } = useScrollScreenshots(screenshots.length);
 
   return (
     <>
@@ -80,7 +39,7 @@ export default function HormonesCitiesPage() {
         {/* Hero Section - Extended for scroll-based screenshot rotation */}
         <section ref={heroRef} className="relative h-[300vh]">
           {/* Sticky container that stays in viewport while scrolling */}
-          <div className="sticky top-0 h-[100dvh] flex items-start md:items-center overflow-hidden pt-20">
+          <div className="sticky top-0 h-[120dvh] md:h-[110dvh] flex items-start md:items-center overflow-hidden pt-20">
             <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-background to-secondary/10" />
 
             <motion.div
@@ -97,13 +56,17 @@ export default function HormonesCitiesPage() {
             />
 
             <Container className="relative z-10 py-4 md:py-8">
-              <div className="grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-16 items-start lg:items-center">
-              {/* Left: Content */}
+              {/* Mobile: Overlapping fade transition, Desktop: Side-by-side grid */}
+              <div className="relative lg:grid lg:grid-cols-[1fr_auto] lg:gap-16 lg:items-center">
+              {/* Text Content - Fades out on mobile scroll, always visible on desktop */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="max-w-2xl"
+                style={{
+                  opacity: mobileTextOpacity,
+                }}
+                className="max-w-2xl lg:!opacity-100"
               >
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -160,71 +123,18 @@ export default function HormonesCitiesPage() {
                 </motion.div>
               </motion.div>
 
-              {/* Right: Phone Mockup with Scroll-based Screenshot Rotation */}
+              {/* Phone Mockup - Fades in on mobile scroll, positioned absolutely on mobile */}
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                className="relative flex justify-center items-center mx-auto lg:mx-0"
+                style={{
+                  opacity: mobilePhoneOpacity,
+                }}
+                className="absolute inset-0 flex items-center justify-center pointer-events-none lg:relative lg:!opacity-100 lg:pointer-events-auto"
               >
-                <div className="relative w-[200px] sm:w-[240px] lg:w-[300px]">
-                  {/* Phone Frame */}
-                  <div className="relative w-full aspect-[9/19.5] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-foreground/10 bg-background">
-                    {/* Rotating Screenshots */}
-                    {screenshots.map((screenshot, index) => (
-                      <motion.div
-                        key={screenshot.src}
-                        className="absolute inset-0"
-                        style={{
-                          opacity: screenshotOpacities[index],
-                        }}
-                      >
-                        <div
-                          className="w-full h-full relative"
-                          style={
-                            screenshot.hasFade
-                              ? {
-                                  maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-                                  WebkitMaskImage:
-                                    'linear-gradient(to bottom, black 60%, transparent 100%)',
-                                }
-                              : {}
-                          }
-                        >
-                          <Image
-                            src={screenshot.src}
-                            alt={screenshot.alt}
-                            width={screenshot.width}
-                            height={screenshot.height}
-                            className="w-full h-auto object-cover object-top"
-                            priority={index === 0}
-                          />
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Scroll Indicator */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.8, delay: 1.2 }}
-                    className="absolute -bottom-12 left-1/2 -translate-x-1/2 text-center text-xs text-muted-foreground hidden lg:block"
-                  >
-                    <div className="flex gap-1.5 mb-2 justify-center">
-                      {screenshots.map((_, index) => (
-                        <motion.div
-                          key={index}
-                          className="w-1.5 h-1.5 rounded-full bg-secondary"
-                          style={{
-                            opacity: dotOpacities[index],
-                          }}
-                        />
-                      ))}
-                    </div>
-                    Scroll to explore
-                  </motion.div>
-                </div>
+                <ScrollingPhoneMockup
+                  screenshots={screenshots}
+                  screenshotOpacities={screenshotOpacities}
+                  dotOpacities={dotOpacities}
+                />
               </motion.div>
               </div>
             </Container>
@@ -250,29 +160,7 @@ export default function HormonesCitiesPage() {
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-8 mb-12">
-              {[
-                {
-                  icon: Eye,
-                  title: 'Detect Patterns',
-                  description:
-                    'Identify patterns not yet detected in cities and people\'s lives through analytics, data, AI, and science.',
-                  color: 'text-secondary',
-                },
-                {
-                  icon: Brain,
-                  title: 'Understand Behavior',
-                  description:
-                    'Once patterns are clear, we understand behavior and create tailored solutions for happier lives without relying on capitalism.',
-                  color: 'text-secondary',
-                },
-                {
-                  icon: Users,
-                  title: 'Build Communities',
-                  description:
-                    'Create resilient, sustainable, and happier communities in urban ecosystems that communicate and complement each other.',
-                  color: 'text-secondary',
-                },
-              ].map((item, index) => (
+              {visionCards.map((item, index) => (
                 <motion.div
                   key={item.title}
                   initial={{ opacity: 0, y: 20 }}
@@ -314,28 +202,7 @@ export default function HormonesCitiesPage() {
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  icon: Home,
-                  name: 'Housing & Livability',
-                  desc: 'Access to essentials, infrastructure quality',
-                },
-                {
-                  icon: Smile,
-                  name: 'Well-being & Mood',
-                  desc: 'Emotional health, stress levels, happiness',
-                },
-                {
-                  icon: Users,
-                  name: 'Community Connection',
-                  desc: 'Social bonds, safety perception, belonging',
-                },
-                {
-                  icon: Globe,
-                  name: 'Environmental Factors',
-                  desc: 'Air quality, noise, green spaces, light',
-                },
-              ].map((category, index) => (
+              {surveyCategories.map((category, index) => (
                 <motion.div
                   key={category.name}
                   initial={{ opacity: 0, y: 20 }}
@@ -408,13 +275,11 @@ export default function HormonesCitiesPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
-                          {['Water Quality', 'Power Reliability', 'Weather & Air Quality', 'Food Access'].map(
-                            (metric) => (
-                              <Badge key={metric} variant="secondary">
-                                {metric}
-                              </Badge>
-                            )
-                          )}
+                          {livabilityMetrics.coreEssentials.map((metric) => (
+                            <Badge key={metric} variant="secondary">
+                              {metric}
+                            </Badge>
+                          ))}
                         </div>
                       </CardContent>
                     </Card>
@@ -426,15 +291,7 @@ export default function HormonesCitiesPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
-                          {[
-                            'Schools',
-                            'Hospitals',
-                            'Public Transport',
-                            'Distance from Sewage',
-                            'Distance from Power Stations',
-                            'Distance from Waste Points',
-                            'Accessibility (POD)',
-                          ].map((metric) => (
+                          {livabilityMetrics.accessProximity.map((metric) => (
                             <Badge key={metric} variant="secondary">
                               {metric}
                             </Badge>
@@ -450,13 +307,7 @@ export default function HormonesCitiesPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
-                          {[
-                            'Sun Exposure',
-                            'Green Areas',
-                            'Light Pollution',
-                            'Tap Water Safety',
-                            'Building Density',
-                          ].map((metric) => (
+                          {livabilityMetrics.environmental.map((metric) => (
                             <Badge key={metric} variant="secondary">
                               {metric}
                             </Badge>
@@ -477,16 +328,7 @@ export default function HormonesCitiesPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {[
-                          'Stress Levels',
-                          'Safety Perception',
-                          'Social Connection',
-                          'Work-Life Balance',
-                          'Happiness Index',
-                          'Community Support',
-                          'Mental Health Access',
-                          'Recreational Facilities',
-                        ].map((metric) => (
+                        {wellbeingMetrics.map((metric) => (
                           <Badge key={metric} variant="secondary">
                             {metric}
                           </Badge>
@@ -506,15 +348,7 @@ export default function HormonesCitiesPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {[
-                          'Climate Adaptability',
-                          'Economic Stability',
-                          'Infrastructure Robustness',
-                          'Resource Efficiency',
-                          'Emergency Preparedness',
-                          'Community Cohesion',
-                          'Disaster Recovery',
-                        ].map((metric) => (
+                        {resilienceMetrics.map((metric) => (
                           <Badge key={metric} variant="secondary">
                             {metric}
                           </Badge>
@@ -547,32 +381,7 @@ export default function HormonesCitiesPage() {
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {[
-                {
-                  icon: Lock,
-                  title: '100% Anonymous',
-                  description:
-                    'No personally identifiable information collected. All responses are completely anonymous and cannot be traced back to individuals.',
-                },
-                {
-                  icon: Shield,
-                  title: 'Open & Transparent',
-                  description:
-                    'All methods, analytics, and aggregated data are open and transparent. We use synthetic data for prototypes and invite partners to contribute real data.',
-                },
-                {
-                  icon: BarChart3,
-                  title: 'Aggregated Insights',
-                  description:
-                    'Individual responses are aggregated to detect patterns and trends. Insights are shared publicly to benefit communities, researchers, and policymakers.',
-                },
-                {
-                  icon: MessageCircle,
-                  title: 'Community-Driven',
-                  description:
-                    'Survey questions and categories evolve based on community needs. Your feedback shapes how we understand and improve urban life.',
-                },
-              ].map((item, index) => (
+              {privacyFeatures.map((item, index) => (
                 <motion.div
                   key={item.title}
                   initial={{ opacity: 0, y: 20 }}
@@ -616,42 +425,16 @@ export default function HormonesCitiesPage() {
                       wellbeing over consumption:
                     </p>
                     <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <div className="mt-1 p-1 rounded-full bg-secondary/20 flex-shrink-0">
-                          <div className="h-2 w-2 rounded-full bg-secondary" />
-                        </div>
-                        <span>
-                          <strong>Cost of Living Transparency:</strong> Understanding happiness with
-                          facilities relative to monthly costs in different areas
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="mt-1 p-1 rounded-full bg-secondary/20 flex-shrink-0">
-                          <div className="h-2 w-2 rounded-full bg-secondary" />
-                        </div>
-                        <span>
-                          <strong>Removing Purchase Guilt:</strong> Help people feel content without
-                          the pressure to spend money to be happy in cities
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="mt-1 p-1 rounded-full bg-secondary/20 flex-shrink-0">
-                          <div className="h-2 w-2 rounded-full bg-secondary" />
-                        </div>
-                        <span>
-                          <strong>Education & Contentment:</strong> Educating people to be happy with
-                          what they already have, focusing on sustainable practices
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="mt-1 p-1 rounded-full bg-secondary/20 flex-shrink-0">
-                          <div className="h-2 w-2 rounded-full bg-secondary" />
-                        </div>
-                        <span>
-                          <strong>Data-Driven Change:</strong> Using open sensor data to build urban
-                          ecosystems that are resilient, sustainable, and genuinely happier
-                        </span>
-                      </li>
+                      {philosophyPoints.map((point) => (
+                        <li key={point.title} className="flex items-start gap-3">
+                          <div className="mt-1 p-1 rounded-full bg-secondary/20 flex-shrink-0">
+                            <div className="h-2 w-2 rounded-full bg-secondary" />
+                          </div>
+                          <span>
+                            <strong>{point.title}:</strong> {point.description}
+                          </span>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 </CardContent>
@@ -692,50 +475,17 @@ export default function HormonesCitiesPage() {
               <div className="mt-12 p-6 bg-card rounded-lg border">
                 <h3 className="text-xl font-medium mb-4">What to Expect</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-left">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 p-1 rounded-full bg-secondary/20">
-                      <div className="h-2 w-2 rounded-full bg-secondary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm mb-1">Mobile-First Design</div>
-                      <div className="text-sm text-muted-foreground">
-                        Beautiful, intuitive interface inspired by modern design principles
+                  {expectations.map((expectation) => (
+                    <div key={expectation.title} className="flex items-start gap-3">
+                      <div className="mt-1 p-1 rounded-full bg-secondary/20">
+                        <div className="h-2 w-2 rounded-full bg-secondary" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm mb-1">{expectation.title}</div>
+                        <div className="text-sm text-muted-foreground">{expectation.description}</div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 p-1 rounded-full bg-secondary/20">
-                      <div className="h-2 w-2 rounded-full bg-secondary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm mb-1">Quick Surveys</div>
-                      <div className="text-sm text-muted-foreground">
-                        Short, focused questions that respect your time
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 p-1 rounded-full bg-secondary/20">
-                      <div className="h-2 w-2 rounded-full bg-secondary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm mb-1">Personal Insights</div>
-                      <div className="text-sm text-muted-foreground">
-                        See how your experiences compare to city-wide trends
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 p-1 rounded-full bg-secondary/20">
-                      <div className="h-2 w-2 rounded-full bg-secondary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm mb-1">Public Impact</div>
-                      <div className="text-sm text-muted-foreground">
-                        Contribute to open data that helps improve urban life for everyone
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </motion.div>
