@@ -10,7 +10,7 @@ interface Screenshot {
 }
 
 interface UseScrollScreenshotsReturn {
-  heroRef: React.RefObject<HTMLDivElement>;
+  heroRef: React.RefObject<HTMLDivElement | null>;
   screenshotOpacities: MotionValue<number>[];
   dotOpacities: MotionValue<number>[];
   mobileTextOpacity: MotionValue<number>;
