@@ -1,6 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/sections/footer';
 import { Container } from '@/components/shared/container';
@@ -24,92 +27,208 @@ import {
   BarChart3,
   MessageCircle,
 } from 'lucide-react';
-import Link from 'next/link';
+
+const screenshots = [
+  {
+    src: '/hormones-cities-ai.png',
+    alt: 'AI Chat Interface',
+    width: 280,
+    height: 600,
+    hasFade: false,
+  },
+  {
+    src: '/hormones-cities-dashboard.png',
+    alt: 'City-Wide Trends Dashboard',
+    width: 280,
+    height: 1500,
+    hasFade: true,
+  },
+  {
+    src: '/hormones-cities-survey.png',
+    alt: 'Survey Categories',
+    width: 280,
+    height: 1200,
+    hasFade: true,
+  },
+];
 
 export default function HormonesCitiesPage() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end end'],
+  });
+
+  // Create opacity transforms for each screenshot
+  const screenshot0Opacity = useTransform(scrollYProgress, [0, 0.25, 0.4], [1, 1, 0]);
+  const screenshot1Opacity = useTransform(scrollYProgress, [0.35, 0.5, 0.65], [0, 1, 0]);
+  const screenshot2Opacity = useTransform(scrollYProgress, [0.6, 0.75, 1], [0, 1, 1]);
+
+  const screenshotOpacities = [screenshot0Opacity, screenshot1Opacity, screenshot2Opacity];
+
+  // Create indicator dot opacities
+  const dot0Opacity = useTransform(scrollYProgress, [0, 0.25, 0.4], [1, 1, 0.3]);
+  const dot1Opacity = useTransform(scrollYProgress, [0.35, 0.5, 0.65], [0.3, 1, 0.3]);
+  const dot2Opacity = useTransform(scrollYProgress, [0.6, 0.75, 1], [0.3, 1, 1]);
+
+  const dotOpacities = [dot0Opacity, dot1Opacity, dot2Opacity];
+
   return (
     <>
       <Navbar />
       <main>
-        {/* Hero Section */}
-        <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-background to-secondary/10" />
+        {/* Hero Section - Extended for scroll-based screenshot rotation */}
+        <section ref={heroRef} className="relative h-[300vh]">
+          {/* Sticky container that stays in viewport while scrolling */}
+          <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-background to-secondary/10" />
 
-          <motion.div
-            className="absolute top-1/4 -right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-
-          <Container className="relative z-10">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="max-w-4xl"
-            >
+              className="absolute top-1/4 -right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.5, 0.3],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+
+            <Container className="relative z-10 py-20">
+              <div className="grid lg:grid-cols-[1fr_auto] gap-8 lg:gap-16 items-center">
+              {/* Left: Content */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="max-w-2xl"
               >
-                <Heart className="h-4 w-4" />
-                <span className="text-sm font-medium">Anonymous Urban Wellbeing Survey</span>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary mb-6"
+                >
+                  <Heart className="h-4 w-4" />
+                  <span className="text-sm font-medium">Anonymous Urban Wellbeing Survey</span>
+                </motion.div>
+
+                <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] font-light tracking-tight leading-[1.1]">
+                  <GradientText className="font-semibold">Hormones & Cities</GradientText>
+                  <br />
+                  Understanding Urban Life
+                </h1>
+
+                <p className="mt-6 text-lg md:text-xl text-muted-foreground font-normal">
+                  A modern, transparent, anonymous survey platform revealing how cities shape our
+                  feelings and behaviors. Building happier, more sustainable communities through
+                  data-driven insights.
+                </p>
+
+                <div className="mt-10 flex flex-col sm:flex-row gap-4">
+                  <Button size="lg" className="group" disabled>
+                    Coming Soon
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                    <Link href="#vision">Learn More</Link>
+                  </Button>
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 1 }}
+                  className="mt-16 flex items-center gap-6 text-sm text-muted-foreground"
+                >
+                  <div>
+                    <div className="text-2xl font-semibold text-foreground">100%</div>
+                    <div>Anonymous</div>
+                  </div>
+                  <div className="h-8 w-px bg-border" />
+                  <div>
+                    <div className="text-2xl font-semibold text-foreground">Open</div>
+                    <div>Data & Science</div>
+                  </div>
+                  <div className="h-8 w-px bg-border" />
+                  <div>
+                    <div className="text-2xl font-semibold text-foreground">∞</div>
+                    <div>Communities</div>
+                  </div>
+                </motion.div>
               </motion.div>
 
-              <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] font-light tracking-tight leading-[1.1]">
-                <GradientText className="font-semibold">Hormones & Cities</GradientText>
-                <br />
-                Understanding Urban Life
-              </h1>
+              {/* Right: Phone Mockup with Scroll-based Screenshot Rotation */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="relative flex justify-center items-center"
+              >
+                <div className="relative w-[220px] sm:w-[260px] lg:w-[300px]">
+                  {/* Phone Frame */}
+                  <div className="relative w-full aspect-[9/19.5] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-foreground/10 bg-background">
+                    {/* Rotating Screenshots */}
+                    {screenshots.map((screenshot, index) => (
+                      <motion.div
+                        key={screenshot.src}
+                        className="absolute inset-0"
+                        style={{
+                          opacity: screenshotOpacities[index],
+                        }}
+                      >
+                        <div
+                          className="w-full h-full relative"
+                          style={
+                            screenshot.hasFade
+                              ? {
+                                  maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+                                  WebkitMaskImage:
+                                    'linear-gradient(to bottom, black 60%, transparent 100%)',
+                                }
+                              : {}
+                          }
+                        >
+                          <Image
+                            src={screenshot.src}
+                            alt={screenshot.alt}
+                            width={screenshot.width}
+                            height={screenshot.height}
+                            className="w-full h-auto object-cover object-top"
+                            priority={index === 0}
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
 
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl font-normal">
-                A modern, transparent, anonymous survey platform revealing how cities shape our
-                feelings and behaviors. Building happier, more sustainable communities through
-                data-driven insights.
-              </p>
-
-              <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="group" disabled>
-                  Coming Soon
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="#vision">Learn More</Link>
-                </Button>
+                  {/* Scroll Indicator */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.8, delay: 1.2 }}
+                    className="absolute -bottom-12 left-1/2 -translate-x-1/2 text-center text-xs text-muted-foreground"
+                  >
+                    <div className="flex gap-1.5 mb-2 justify-center">
+                      {screenshots.map((_, index) => (
+                        <motion.div
+                          key={index}
+                          className="w-1.5 h-1.5 rounded-full bg-secondary"
+                          style={{
+                            opacity: dotOpacities[index],
+                          }}
+                        />
+                      ))}
+                    </div>
+                    Scroll to explore
+                  </motion.div>
+                </div>
+              </motion.div>
               </div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 1 }}
-                className="mt-16 flex items-center gap-8 text-sm text-muted-foreground"
-              >
-                <div>
-                  <div className="text-2xl font-semibold text-foreground">100%</div>
-                  <div>Anonymous</div>
-                </div>
-                <div className="h-8 w-px bg-border" />
-                <div>
-                  <div className="text-2xl font-semibold text-foreground">Open</div>
-                  <div>Data & Science</div>
-                </div>
-                <div className="h-8 w-px bg-border" />
-                <div>
-                  <div className="text-2xl font-semibold text-foreground">∞</div>
-                  <div>Communities</div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </Container>
+            </Container>
+          </div>
         </section>
 
         {/* Vision Section */}
