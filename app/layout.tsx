@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import { quicksand } from './fonts';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { SmoothScroll } from '@/components/shared/smooth-scroll';
 import { PostHogProvider, PostHogPageView } from './providers';
+import { ConsentInit } from '@/components/consent-init';
+import { CookieConsentBanner } from '@/components/cookie-consent-banner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -102,6 +105,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
+        <ConsentInit />
         <PostHogProvider>
           <Suspense fallback={null}>
             <PostHogPageView />
@@ -114,8 +118,10 @@ export default function RootLayout({
           >
             <SmoothScroll />
             {children}
+            <CookieConsentBanner />
           </ThemeProvider>
         </PostHogProvider>
+        <GoogleAnalytics gaId="G-CZBNSV0DW4" />
       </body>
     </html>
   );
