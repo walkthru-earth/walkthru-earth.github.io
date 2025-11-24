@@ -12,7 +12,7 @@ export function CTA() {
   return (
     <Section id="contact" className="relative overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10 dark:from-primary/5 dark:to-secondary/5" />
+      <div className="from-primary/10 via-background to-secondary/10 dark:from-primary/5 dark:to-secondary/5 absolute inset-0 bg-gradient-to-br" />
 
       <Container className="relative">
         <motion.div
@@ -20,21 +20,21 @@ export function CTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-4xl mx-auto"
+          className="mx-auto max-w-4xl text-center"
         >
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight mb-8">
+          <h2 className="mb-8 text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
             Ready to Transform{' '}
             <span className="text-primary font-medium">Your City?</span>
           </h2>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed">
+          <p className="text-muted-foreground mb-12 text-xl leading-relaxed md:text-2xl">
             Join us in building more livable, sustainable, and happier
             communities through data-driven insights.
           </p>
 
-          <div className="flex justify-center mb-16">
-            <Button size="lg" className="group gap-2 text-lg px-8 py-6" asChild>
+          <div className="mb-16 flex justify-center">
+            <Button size="lg" className="group gap-2 px-8 py-6 text-lg" asChild>
               <Link
-                href="https://source.coop/walkthru"
+                href="https://source.coop/walkthru-earth"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2"

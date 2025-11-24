@@ -74,7 +74,7 @@ export default function RootLayout({
     sameAs: [
       'https://github.com/walkthru-earth',
       'https://www.linkedin.com/company/walkthru-earth/',
-      'https://source.coop/walkthru',
+      'https://source.coop/walkthru-earth',
       'https://bsky.app/profile/walkthru-earth.bsky.social',
     ],
     contactPoint: {

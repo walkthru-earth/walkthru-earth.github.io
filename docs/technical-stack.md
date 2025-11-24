@@ -556,7 +556,7 @@ const structuredData = {
   sameAs: [
     'https://github.com/walkthru-earth',
     'https://www.linkedin.com/company/walkthru-earth/',
-    'https://source.coop/walkthru',
+    'https://source.coop/walkthru-earth',
   ],
   contactPoint: {
     '@type': 'ContactPoint',
@@ -599,7 +599,7 @@ const structuredData = {
 
 **Integration Points:**
 - "Explore Your Data" button with Source.coop branding
-- Links to https://source.coop/walkthru
+- Links to https://source.coop/walkthru-earth
 - Positioned in hero/CTA sections
 
 ### Contact Information

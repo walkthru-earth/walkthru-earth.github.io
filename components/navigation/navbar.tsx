@@ -27,32 +27,35 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
       <Container>
         <div className="flex h-20 items-center justify-between">
           <Logo size="md" showText />
 
           <div className="flex items-center gap-4 md:gap-8">
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden items-center gap-8 md:flex">
               <Link
                 href="/#patterns"
-                className="text-base font-medium transition-colors hover:text-primary"
+                className="hover:text-primary text-base font-medium transition-colors"
               >
                 Patterns
               </Link>
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1 text-base font-medium transition-colors hover:text-primary">
+                <DropdownMenuTrigger className="hover:text-primary flex items-center gap-1 text-base font-medium transition-colors">
                   Initiatives
                   <ChevronDown className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link href="/opensensor" className="flex items-center gap-2 cursor-pointer">
-                      <Cloud className="h-4 w-4 text-primary" />
+                    <Link
+                      href="/opensensor"
+                      className="flex cursor-pointer items-center gap-2"
+                    >
+                      <Cloud className="text-primary h-4 w-4" />
                       <div>
                         <div className="font-medium">OpenSensor.Space</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-muted-foreground text-xs">
                           Weather Station Network
                         </div>
                       </div>
@@ -61,12 +64,14 @@ export function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link
                       href="/hormones-cities"
-                      className="flex items-center gap-2 cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2"
                     >
-                      <Heart className="h-4 w-4 text-secondary" />
+                      <Heart className="text-secondary h-4 w-4" />
                       <div>
                         <div className="font-medium">Hormones & Cities</div>
-                        <div className="text-xs text-muted-foreground">Urban Wellbeing Survey</div>
+                        <div className="text-muted-foreground text-xs">
+                          Urban Wellbeing Survey
+                        </div>
                       </div>
                     </Link>
                   </DropdownMenuItem>
@@ -74,7 +79,7 @@ export function Navbar() {
               </DropdownMenu>
               <Link
                 href="/#vision"
-                className="text-base font-medium transition-colors hover:text-primary"
+                className="hover:text-primary text-base font-medium transition-colors"
               >
                 Vision
               </Link>
@@ -82,9 +87,9 @@ export function Navbar() {
 
             <ThemeToggle />
 
-            <Button asChild className="gap-2 hidden sm:flex">
+            <Button asChild className="hidden gap-2 sm:flex">
               <Link
-                href="https://source.coop/walkthru"
+                href="https://source.coop/walkthru-earth"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2"
@@ -112,58 +117,62 @@ export function Navbar() {
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
-                  <SheetDescription>Navigate to different sections</SheetDescription>
+                  <SheetDescription>
+                    Navigate to different sections
+                  </SheetDescription>
                 </SheetHeader>
-                <nav className="flex flex-col gap-4 mt-8">
+                <nav className="mt-8 flex flex-col gap-4">
                   <Link
                     href="/#patterns"
-                    className="flex items-center gap-3 text-lg font-medium py-3 px-4 rounded-lg hover:bg-accent transition-colors"
+                    className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 text-lg font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Patterns
                   </Link>
 
                   <div className="border-t pt-2">
-                    <div className="text-sm font-semibold text-muted-foreground px-4 mb-2">
+                    <div className="text-muted-foreground mb-2 px-4 text-sm font-semibold">
                       Initiatives
                     </div>
                     <Link
                       href="/opensensor"
-                      className="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-accent transition-colors"
+                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <Cloud className="h-5 w-5 text-primary" />
+                      <Cloud className="text-primary h-5 w-5" />
                       <div>
                         <div className="font-medium">OpenSensor.Space</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-muted-foreground text-sm">
                           Weather Station Network
                         </div>
                       </div>
                     </Link>
                     <Link
                       href="/hormones-cities"
-                      className="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-accent transition-colors"
+                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <Heart className="h-5 w-5 text-secondary" />
+                      <Heart className="text-secondary h-5 w-5" />
                       <div>
                         <div className="font-medium">Hormones & Cities</div>
-                        <div className="text-sm text-muted-foreground">Urban Wellbeing Survey</div>
+                        <div className="text-muted-foreground text-sm">
+                          Urban Wellbeing Survey
+                        </div>
                       </div>
                     </Link>
                   </div>
 
                   <Link
                     href="/#vision"
-                    className="flex items-center gap-3 text-lg font-medium py-3 px-4 rounded-lg hover:bg-accent transition-colors"
+                    className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 text-lg font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Vision
                   </Link>
 
-                  <Button asChild className="gap-2 mt-4">
+                  <Button asChild className="mt-4 gap-2">
                     <Link
-                      href="https://source.coop/walkthru"
+                      href="https://source.coop/walkthru-earth"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2"
