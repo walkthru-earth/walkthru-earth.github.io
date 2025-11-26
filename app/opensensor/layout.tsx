@@ -3,16 +3,16 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'opensensor.space - Cloud-Native IoT Sensor Network | walkthru.earth',
   description:
-    'Connecting IoT sensors and streaming real-time environmental data to the cloud with minimum carbon footprint. Open data from air quality sensors published since April 2025.',
+    'Enterprise-grade IoT infrastructure for connecting sensors to the cloud. Scalable from a single sensor to millions of devices with minimal carbon footprint. Open source and open data.',
   keywords:
-    'IoT sensors, environmental monitoring, air quality, cloud-native, open data, parquet, edge computing, carbon footprint, sustainable IoT',
+    'IoT sensors, environmental monitoring, cloud-native, open data, parquet, edge computing, Raspberry Pi, ESP32, industrial IoT, scalable sensors, sustainable infrastructure',
   alternates: {
     canonical: 'https://walkthru.earth/opensensor',
   },
   openGraph: {
     title: 'opensensor.space - Cloud-Native IoT Sensor Network',
     description:
-      'Connecting IoT sensors and streaming real-time environmental data to the cloud with minimum carbon footprint possible.',
+      'Enterprise-grade IoT infrastructure. Scalable from a single sensor to millions of devices with minimal carbon footprint.',
     url: 'https://walkthru.earth/opensensor',
     siteName: 'walkthru.earth',
     locale: 'en_US',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'opensensor.space - Cloud-Native IoT Sensor Network',
     description:
-      'Connecting IoT sensors and streaming real-time environmental data to the cloud with minimum carbon footprint.',
+      'Enterprise-grade IoT infrastructure. Scalable from a single sensor to millions of devices with minimal carbon footprint.',
     creator: '@walkthru_earth',
     images: ['https://walkthru.earth/og-opensensor.png'],
   },

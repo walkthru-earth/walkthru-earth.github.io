@@ -29,6 +29,12 @@ import {
   Wifi,
   HardDrive,
   Zap,
+  Server,
+  Leaf,
+  Globe,
+  Lock,
+  Layers,
+  Cpu,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -69,7 +75,7 @@ export default function OpenSensorPage() {
               >
                 <Cloud className="h-4 w-4" />
                 <span className="text-sm font-medium">
-                  Cloud-Native Environmental Monitoring
+                  Cloud-Native IoT Infrastructure
                 </span>
               </motion.div>
 
@@ -78,13 +84,13 @@ export default function OpenSensorPage() {
                   OpenSensor.Space
                 </GradientText>
                 <br />
-                Weather Station Network
+                IoT Sensor Network
               </h1>
 
               <p className="text-muted-foreground mt-6 max-w-2xl text-lg font-normal md:text-xl">
-                A community-driven network of DIY weather stations streaming
-                real-time environmental data to the cloud. Built with Raspberry
-                Pi, open data formats, and edge computing.
+                Connecting IoT sensors and streaming real-time environmental
+                data to the cloud with minimum carbon footprint. Scalable from a
+                single sensor to millions of devices.
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -110,7 +116,7 @@ export default function OpenSensorPage() {
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link
-                    href="https://github.com/walkthru-earth/opensensor-space-edge"
+                    href="https://github.com/walkthru-earth/opensensor-enviroplus"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -128,16 +134,16 @@ export default function OpenSensorPage() {
               >
                 <div>
                   <div className="text-foreground text-2xl font-semibold">
-                    178K+
+                    1.3M+
                   </div>
                   <div>Data Points</div>
                 </div>
                 <div className="bg-border h-8 w-px" />
                 <div>
                   <div className="text-foreground text-2xl font-semibold">
-                    16+
+                    6+
                   </div>
-                  <div>Sensors</div>
+                  <div>Sensor Types</div>
                 </div>
                 <div className="bg-border h-8 w-px" />
                 <div>
@@ -151,7 +157,7 @@ export default function OpenSensorPage() {
           </Container>
         </section>
 
-        {/* Sensors Section */}
+        {/* Platform Benefits Section */}
         <section className="py-24">
           <Container>
             <motion.div
@@ -162,13 +168,88 @@ export default function OpenSensorPage() {
               className="mb-16 text-center"
             >
               <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
-                Environmental{' '}
-                <span className="text-primary font-medium">
-                  Sensor Capabilities
-                </span>
+                Platform{' '}
+                <span className="text-primary font-medium">Benefits</span>
               </h2>
               <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
-                Comprehensive monitoring with the Pimoroni Enviro+ sensor pack
+                Enterprise-grade IoT infrastructure with minimal environmental
+                impact
+              </p>
+            </motion.div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  icon: Leaf,
+                  name: 'Low Carbon Footprint',
+                  desc: 'Optimized for energy efficiency with minimal server infrastructure',
+                },
+                {
+                  icon: Globe,
+                  name: 'Scalable Architecture',
+                  desc: 'From a single sensor to millions of devices worldwide',
+                },
+                {
+                  icon: Lock,
+                  name: 'Open Source & Transparent',
+                  desc: 'Full visibility into code, data formats, and infrastructure',
+                },
+                {
+                  icon: Layers,
+                  name: 'Hardware Agnostic',
+                  desc: 'Support for Raspberry Pi, ESP32, and industrial PLCs',
+                },
+                {
+                  icon: Database,
+                  name: 'Standard Data Formats',
+                  desc: 'Parquet files compatible with any analytics tool',
+                },
+                {
+                  icon: Zap,
+                  name: 'Real-Time Processing',
+                  desc: 'Query billions of records directly in the browser',
+                },
+              ].map((benefit, index) => (
+                <motion.div
+                  key={benefit.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                >
+                  <Card className="h-full transition-shadow hover:shadow-md">
+                    <CardHeader>
+                      <div className="bg-primary/10 mb-3 w-fit rounded-lg p-3">
+                        <benefit.icon className="text-primary h-5 w-5" />
+                      </div>
+                      <CardTitle className="text-xl md:text-2xl">
+                        {benefit.name}
+                      </CardTitle>
+                      <CardDescription>{benefit.desc}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </Container>
+        </section>
+
+        {/* Supported Sensors Section */}
+        <section className="bg-muted/30 py-24">
+          <Container>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="mb-16 text-center"
+            >
+              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+                Supported{' '}
+                <span className="text-primary font-medium">Sensors</span>
+              </h2>
+              <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
+                Connect any IoT sensor to the cloud with our flexible platform
               </p>
             </motion.div>
 
@@ -177,34 +258,38 @@ export default function OpenSensorPage() {
                 {
                   icon: Thermometer,
                   name: 'Temperature',
-                  desc: 'Ambient & raw temp',
+                  desc: 'Ambient & industrial sensors',
                 },
-                { icon: Gauge, name: 'Pressure', desc: 'Atmospheric pressure' },
+                {
+                  icon: Gauge,
+                  name: 'Pressure',
+                  desc: 'Atmospheric & process',
+                },
                 {
                   icon: Droplets,
                   name: 'Humidity',
-                  desc: 'Relative humidity %',
+                  desc: 'Environmental monitoring',
                 },
                 {
                   icon: Wind,
                   name: 'Gas Sensors',
-                  desc: 'Oxidised, reducing, NH3',
+                  desc: 'Air quality & emissions',
                 },
                 {
                   icon: Sun,
                   name: 'Light (Lux)',
-                  desc: 'Ambient light levels',
+                  desc: 'Solar & ambient light',
                 },
-                { icon: Activity, name: 'Proximity', desc: 'Object detection' },
+                { icon: Activity, name: 'Motion', desc: 'Presence & activity' },
                 {
                   icon: Cloud,
                   name: 'Particulate Matter',
                   desc: 'PM1.0, PM2.5, PM10',
                 },
                 {
-                  icon: Database,
-                  name: 'Particle Count',
-                  desc: 'Size distribution data',
+                  icon: Cpu,
+                  name: 'Custom Sensors',
+                  desc: 'Any data stream',
                 },
               ].map((sensor, index) => (
                 <motion.div
@@ -231,8 +316,8 @@ export default function OpenSensorPage() {
           </Container>
         </section>
 
-        {/* How It Works Section */}
-        <section className="bg-muted/30 py-24">
+        {/* Architecture Section */}
+        <section className="py-24">
           <Container>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -242,11 +327,11 @@ export default function OpenSensorPage() {
               className="mb-16 text-center"
             >
               <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
-                How It <span className="text-primary font-medium">Works</span>
+                Cloud-Native{' '}
+                <span className="text-primary font-medium">Architecture</span>
               </h2>
               <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
-                Edge cloud-native architecture for efficient, resilient data
-                collection
+                Serverless infrastructure designed for efficiency and scale
               </p>
             </motion.div>
 
@@ -256,19 +341,19 @@ export default function OpenSensorPage() {
                   icon: Wifi,
                   title: 'Edge Collection',
                   description:
-                    'Raspberry Pi Zero W collects sensor data at 1-second intervals. Runs autonomously, even offline.',
+                    'IoT devices collect sensor data at configurable intervals. Works autonomously, even offline with local buffering.',
                 },
                 {
                   icon: HardDrive,
                   title: 'Cloud Storage',
                   description:
-                    'Data streams directly to S3-compatible storage in Parquet format. No intermediate database needed.',
+                    'Data streams directly to S3-compatible object storage in Parquet format. No intermediate database required.',
                 },
                 {
-                  icon: Zap,
+                  icon: Server,
                   title: 'Real-Time Analysis',
                   description:
-                    'Query data directly in browser using DuckDB. Evidence.dev dashboards update automatically.',
+                    'Query data directly in browser using DuckDB WebAssembly. Dashboards update automatically.',
                 },
               ].map((step, index) => (
                 <motion.div
@@ -295,18 +380,20 @@ export default function OpenSensorPage() {
 
             <Card className="border-primary/20 border-2">
               <CardHeader>
-                <CardTitle>Cloud-Native Benefits</CardTitle>
-                <CardDescription>Why this architecture matters</CardDescription>
+                <CardTitle>Technical Advantages</CardTitle>
+                <CardDescription>
+                  Why organizations choose opensensor.space
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                   {[
                     'Energy efficient - minimal hardware requirements',
                     'Cost effective - no servers to maintain',
-                    'Scalable - easily add more sensors or locations',
-                    'Open - data in standard formats accessible to many tools',
-                    'Resilient - works offline, syncs when reconnected',
-                    'Transparent - all code and data publicly available',
+                    'Infinitely scalable - add sensors without infrastructure changes',
+                    'Interoperable - standard data formats for any analytics tool',
+                    'Resilient - offline operation with automatic sync',
+                    'Transparent - open source code and public data',
                   ].map((benefit) => (
                     <div key={benefit} className="flex items-start gap-3">
                       <div className="bg-primary/20 mt-1 rounded-full p-1">
@@ -323,8 +410,8 @@ export default function OpenSensorPage() {
           </Container>
         </section>
 
-        {/* Hardware Requirements Section */}
-        <section className="py-24">
+        {/* Supported Devices Section */}
+        <section className="bg-muted/30 py-24">
           <Container>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -334,45 +421,45 @@ export default function OpenSensorPage() {
               className="mb-16 text-center"
             >
               <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
-                Required{' '}
-                <span className="text-primary font-medium">Hardware</span>
+                Supported{' '}
+                <span className="text-primary font-medium">Devices</span>
               </h2>
               <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
-                Everything you need to build your own weather station
+                From prototypes to industrial deployments
               </p>
             </motion.div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[
                 {
-                  name: 'Raspberry Pi Zero 2 W',
-                  desc: 'The brain of your weather station with WiFi',
-                  required: true,
+                  name: 'BME280',
+                  desc: 'Temperature, pressure, and humidity sensor',
+                  badge: 'Implemented',
                 },
                 {
-                  name: 'Enviro+ Air Quality',
-                  desc: 'Main sensor package with temp, humidity, pressure, gas, and light sensors',
-                  required: true,
+                  name: 'Gas Sensors',
+                  desc: 'Oxidised, reducing, and NH3 gas detection',
+                  badge: 'Implemented',
                 },
                 {
-                  name: 'PMS5003 Sensor',
-                  desc: 'Particulate matter sensor for air quality monitoring',
-                  required: true,
+                  name: 'LTR559',
+                  desc: 'Ambient light (lux) and proximity sensor',
+                  badge: 'Implemented',
                 },
                 {
-                  name: 'microSD Card (8GB+)',
-                  desc: 'Storage for Raspberry Pi OS',
-                  required: true,
-                },
-                {
-                  name: 'Power Supply',
-                  desc: 'Micro USB power supply for Pi Zero',
-                  required: true,
+                  name: 'PMS5003',
+                  desc: 'Particulate matter sensor (PM1, PM2.5, PM10)',
+                  badge: 'Implemented',
                 },
                 {
                   name: 'GPS Module',
-                  desc: 'Optional: For mobile installations and location tracking',
-                  required: false,
+                  desc: 'Location tracking for mobile sensor installations',
+                  badge: 'Roadmap',
+                },
+                {
+                  name: 'LoRa / Radio (AIS)',
+                  desc: 'Long-range wireless and radio signal reception',
+                  badge: 'Roadmap',
                 },
               ].map((item, index) => (
                 <motion.div
@@ -388,11 +475,22 @@ export default function OpenSensorPage() {
                         <CardTitle className="text-xl md:text-2xl">
                           {item.name}
                         </CardTitle>
-                        <Badge
-                          variant={item.required ? 'default' : 'secondary'}
-                        >
-                          {item.required ? 'Required' : 'Optional'}
-                        </Badge>
+                        {item.badge === 'Implemented' ? (
+                          <motion.div
+                            initial={{ backgroundColor: 'rgb(234 179 8)' }}
+                            whileInView={{ backgroundColor: 'rgb(34 197 94)' }}
+                            viewport={{ once: true }}
+                            transition={{
+                              duration: 1.5,
+                              delay: 0.5 + index * 0.1,
+                            }}
+                            className="rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+                          >
+                            {item.badge}
+                          </motion.div>
+                        ) : (
+                          <Badge variant="secondary">{item.badge}</Badge>
+                        )}
                       </div>
                       <CardDescription>{item.desc}</CardDescription>
                     </CardHeader>
@@ -403,7 +501,7 @@ export default function OpenSensorPage() {
           </Container>
         </section>
 
-        {/* Join Network CTA */}
+        {/* CTA Section */}
         <section className="from-primary/5 to-primary/10 bg-gradient-to-br py-24">
           <Container>
             <motion.div
@@ -414,15 +512,15 @@ export default function OpenSensorPage() {
               className="mx-auto max-w-3xl text-center"
             >
               <h2 className="mb-6 text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
-                Join the{' '}
+                Connect Your{' '}
                 <GradientText className="font-semibold">
-                  Weather Station Network
+                  Sensors to the Cloud
                 </GradientText>
               </h2>
               <p className="text-muted-foreground mb-10 text-lg">
-                Build your own station and contribute to open environmental
-                data. We welcome contributions from anyone interested in
-                monitoring urban ecosystems.
+                Start streaming sensor data with our open-source platform.
+                Contribute to the growing network of environmental monitoring
+                stations worldwide.
               </p>
 
               <div className="flex flex-col justify-center gap-4 sm:flex-row">
@@ -449,9 +547,7 @@ export default function OpenSensorPage() {
               </div>
 
               <div className="bg-card mt-12 rounded-lg border p-6">
-                <h3 className="mb-4 text-xl font-medium">
-                  Contributing to the Network
-                </h3>
+                <h3 className="mb-4 text-xl font-medium">Getting Started</h3>
                 <div className="grid gap-4 text-left md:grid-cols-2">
                   <div className="flex items-start gap-3">
                     <div className="bg-primary/20 mt-1 rounded-full p-1">
@@ -459,10 +555,10 @@ export default function OpenSensorPage() {
                     </div>
                     <div>
                       <div className="mb-1 text-sm font-medium">
-                        Build Your Station
+                        Deploy Edge Software
                       </div>
                       <div className="text-muted-foreground text-sm">
-                        Follow setup instructions and configure your hardware
+                        Install the edge client on your IoT device
                       </div>
                     </div>
                   </div>
@@ -472,7 +568,7 @@ export default function OpenSensorPage() {
                     </div>
                     <div>
                       <div className="mb-1 text-sm font-medium">
-                        Choose Storage
+                        Configure Storage
                       </div>
                       <div className="text-muted-foreground text-sm">
                         Use Source Cooperative or your own S3-compatible storage
@@ -485,10 +581,10 @@ export default function OpenSensorPage() {
                     </div>
                     <div>
                       <div className="mb-1 text-sm font-medium">
-                        Submit a PR
+                        Register Your Station
                       </div>
                       <div className="text-muted-foreground text-sm">
-                        Add your station ID, location, and storage URL
+                        Submit a PR with your station ID and location
                       </div>
                     </div>
                   </div>
@@ -498,11 +594,10 @@ export default function OpenSensorPage() {
                     </div>
                     <div>
                       <div className="mb-1 text-sm font-medium">
-                        Share Insights
+                        Start Streaming
                       </div>
                       <div className="text-muted-foreground text-sm">
-                        Contribute dashboard improvements or custom
-                        visualizations
+                        Your data appears on the public dashboard automatically
                       </div>
                     </div>
                   </div>
