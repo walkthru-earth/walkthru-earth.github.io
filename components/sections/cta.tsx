@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Script from 'next/script';
 import { Container } from '@/components/shared/container';
 import { Section } from '@/components/shared/section';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ export function CTA() {
             communities through data-driven insights.
           </p>
 
-          <div className="mb-16 flex justify-center">
+          <div className="mb-12 flex justify-center">
             <Button size="lg" className="group gap-2 px-8 py-6 text-lg" asChild>
               <Link
                 href="https://source.coop/walkthru-earth"
@@ -51,6 +52,25 @@ export function CTA() {
               </Link>
             </Button>
           </div>
+
+          {/* Lark Scheduler */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-card mb-12 overflow-hidden rounded-xl border shadow-lg"
+          >
+            <div
+              className="scheduler-inline-widget"
+              data-url="https://walkthru-earth.jp.larksuite.com/scheduler/embed/ae837d878cc4d6b4?hideEventDetail=true"
+              style={{ width: '100%', height: '626px' }}
+            />
+            <Script
+              src="https://walkthru-earth.jp.larksuite.com/scheduler/embed/scheduler-widget.js"
+              strategy="lazyOnload"
+            />
+          </motion.div>
 
           <div className="flex justify-center gap-8">
             <a
