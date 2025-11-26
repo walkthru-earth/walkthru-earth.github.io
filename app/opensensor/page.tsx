@@ -521,7 +521,8 @@ export default function OpenSensorPage() {
                     logoLight: '/logos/cloud-native-geo.png',
                     logoDark: '/logos/cloud-native-geo.png',
                     url: 'https://cloudnativegeo.org/',
-                    invertLight: true,
+                    invertLight: false,
+                    invertDark: true,
                   },
                   {
                     name: 'Apache Parquet',
@@ -529,6 +530,7 @@ export default function OpenSensorPage() {
                     logoDark: '/logos/apache-parquet.png',
                     url: 'https://parquet.apache.org/',
                     invertLight: false,
+                    invertDark: true,
                   },
                   {
                     name: 'DuckDB',
@@ -580,7 +582,7 @@ export default function OpenSensorPage() {
                       src={tech.logoDark}
                       alt={tech.name}
                       data-no-filter
-                      className={`h-10 w-auto object-contain opacity-60 transition-all hover:opacity-100 md:h-14 ${'invertDark' in tech && tech.invertDark ? 'invert hover:invert-0' : ''}`}
+                      className={`h-10 w-auto object-contain opacity-80 transition-all hover:opacity-100 md:h-14 ${'invertDark' in tech && tech.invertDark ? 'invert hover:invert-0' : ''}`}
                       style={{ display: 'var(--dark-display, none)' }}
                     />
                   </motion.a>
