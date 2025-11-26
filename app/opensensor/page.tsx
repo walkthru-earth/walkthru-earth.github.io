@@ -196,8 +196,8 @@ export default function OpenSensorPage() {
                 },
                 {
                   icon: Layers,
-                  name: 'Hardware Agnostic',
-                  desc: 'Support for Raspberry Pi, ESP32, and industrial PLCs',
+                  name: 'Hardware agnostic',
+                  desc: 'Works with any Python-capable device (Raspberry Pi, NVIDIA Jetson, ASUS Tinker Board, etc.)',
                 },
                 {
                   icon: Database,
@@ -207,7 +207,7 @@ export default function OpenSensorPage() {
                 {
                   icon: Zap,
                   name: 'Near Real-Time Processing',
-                  desc: 'Query billions of records directly in the browser',
+                  desc: 'Query millions of records directly in the browser',
                 },
               ].map((benefit, index) => (
                 <motion.div
