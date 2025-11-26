@@ -1,9 +1,13 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Light Mode - Walkthru Earth Tones */
   --background: hsl(60 20% 99%); /* Warm white */
   --foreground: hsl(0 0% 9%); /* Soft black */
+
+  /* Logo display switching */
+  --light-display: block;
+  --dark-display: none;
 
   --card: hsl(60 10% 98%);
   --card-foreground: hsl(0 0% 9%);
@@ -37,6 +41,10 @@
   /* Dark Mode - Night Earth Tones */
   --background: hsl(0 0% 7%); /* Deep charcoal */
   --foreground: hsl(60 10% 98%); /* Soft white */
+
+  /* Logo display switching */
+  --light-display: none;
+  --dark-display: block;
 
   --card: hsl(0 0% 10%);
   --card-foreground: hsl(60 10% 98%);

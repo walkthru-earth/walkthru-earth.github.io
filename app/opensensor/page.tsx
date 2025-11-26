@@ -518,33 +518,39 @@ export default function OpenSensorPage() {
                 {[
                   {
                     name: 'Cloud-Native Geo',
-                    logo: '/logos/cloud-native-geo.png',
+                    logoLight: '/logos/cloud-native-geo.png',
+                    logoDark: '/logos/cloud-native-geo.png',
                     url: 'https://cloudnativegeo.org/',
-                    invert: true,
+                    invertLight: true,
                   },
                   {
                     name: 'Apache Parquet',
-                    logo: '/logos/apache-parquet.png',
+                    logoLight: '/logos/apache-parquet.png',
+                    logoDark: '/logos/apache-parquet.png',
                     url: 'https://parquet.apache.org/',
-                    invert: false,
+                    invertLight: false,
                   },
                   {
                     name: 'DuckDB',
-                    logo: '/logos/duckdb.svg',
+                    logoLight: '/logos/duckdb-light.svg',
+                    logoDark: '/logos/duckdb-dark.svg',
                     url: 'https://duckdb.org/',
-                    invert: false,
+                    invertLight: false,
                   },
                   {
                     name: 'Polars',
-                    logo: '/logos/polars.png',
+                    logoLight: '/logos/polars.png',
+                    logoDark: '/logos/polars.png',
                     url: 'https://pola.rs/',
-                    invert: true,
+                    invertLight: false,
+                    invertDark: true,
                   },
                   {
                     name: 'Source Cooperative',
-                    logo: '/logos/source-coop.svg',
+                    logoLight: '/logos/source-coop-light.svg',
+                    logoDark: '/logos/source-coop-dark.svg',
                     url: 'https://source.coop/',
-                    invert: false,
+                    invertLight: false,
                   },
                 ].map((tech, index) => (
                   <motion.a
@@ -559,11 +565,23 @@ export default function OpenSensorPage() {
                     className="grayscale transition-all hover:grayscale-0"
                     title={tech.name}
                   >
+                    {/* Light theme logo */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={tech.logo}
+                      src={tech.logoLight}
                       alt={tech.name}
-                      className={`h-10 w-auto object-contain opacity-60 transition-all hover:opacity-100 md:h-14 ${tech.invert ? 'dark:invert dark:hover:invert-0' : ''}`}
+                      data-no-filter
+                      className={`h-10 w-auto object-contain opacity-80 transition-all hover:opacity-100 md:h-14 ${tech.invertLight ? 'invert hover:invert-0' : ''}`}
+                      style={{ display: 'var(--light-display, block)' }}
+                    />
+                    {/* Dark theme logo */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={tech.logoDark}
+                      alt={tech.name}
+                      data-no-filter
+                      className={`h-10 w-auto object-contain opacity-60 transition-all hover:opacity-100 md:h-14 ${'invertDark' in tech && tech.invertDark ? 'invert hover:invert-0' : ''}`}
+                      style={{ display: 'var(--dark-display, none)' }}
                     />
                   </motion.a>
                 ))}
