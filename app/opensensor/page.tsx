@@ -88,9 +88,9 @@ export default function OpenSensorPage() {
               </h1>
 
               <p className="text-muted-foreground mt-6 max-w-2xl text-lg font-normal md:text-xl">
-                Connecting IoT sensors and streaming real-time environmental
-                data to the cloud with minimum carbon footprint. Scalable from a
-                single sensor to millions of devices.
+                Connecting IoT sensors and delivering near real-time
+                environmental data to the cloud with minimum carbon footprint.
+                Scalable from a single sensor to millions of devices.
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -206,7 +206,7 @@ export default function OpenSensorPage() {
                 },
                 {
                   icon: Zap,
-                  name: 'Real-Time Processing',
+                  name: 'Near Real-Time Processing',
                   desc: 'Query billions of records directly in the browser',
                 },
               ].map((benefit, index) => (
@@ -351,7 +351,7 @@ export default function OpenSensorPage() {
                 },
                 {
                   icon: Server,
-                  title: 'Real-Time Analysis',
+                  title: 'Near Real-Time Analysis',
                   description:
                     'Query data directly in browser using DuckDB WebAssembly. Dashboards update automatically.',
                 },
@@ -589,7 +589,7 @@ export default function OpenSensorPage() {
                 </GradientText>
               </h2>
               <p className="text-muted-foreground mb-10 text-lg">
-                Start streaming sensor data with our open-source platform.
+                Start collecting sensor data with our open-source platform.
                 Contribute to the growing network of environmental monitoring
                 stations worldwide.
               </p>
