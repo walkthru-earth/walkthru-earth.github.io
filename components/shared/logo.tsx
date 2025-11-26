@@ -35,10 +35,8 @@ export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
       </div>
       {showText && (
         <div className="flex flex-col leading-none">
-          <span className="text-lg font-semibold tracking-tight">
-            walkthru
-          </span>
-          <span className="text-xs text-muted-foreground">.earth</span>
+          <span className="text-xl font-semibold tracking-tight">walkthru</span>
+          <span className="text-muted-foreground text-sm">.earth</span>
         </div>
       )}
     </Link>
