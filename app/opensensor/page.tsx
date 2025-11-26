@@ -501,6 +501,77 @@ export default function OpenSensorPage() {
           </Container>
         </section>
 
+        {/* Technology Stack Section */}
+        <section className="py-16">
+          <Container>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <p className="text-muted-foreground mb-8 text-sm font-medium tracking-wider uppercase">
+                Powered by
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+                {[
+                  {
+                    name: 'Cloud-Native Geo',
+                    logo: '/logos/cloud-native-geo.png',
+                    url: 'https://cloudnativegeo.org/',
+                    invert: true,
+                  },
+                  {
+                    name: 'Apache Parquet',
+                    logo: '/logos/apache-parquet.png',
+                    url: 'https://parquet.apache.org/',
+                    invert: false,
+                  },
+                  {
+                    name: 'DuckDB',
+                    logo: '/logos/duckdb.svg',
+                    url: 'https://duckdb.org/',
+                    invert: false,
+                  },
+                  {
+                    name: 'Polars',
+                    logo: '/logos/polars.png',
+                    url: 'https://pola.rs/',
+                    invert: true,
+                  },
+                  {
+                    name: 'Source Cooperative',
+                    logo: '/logos/source-coop.svg',
+                    url: 'https://source.coop/',
+                    invert: false,
+                  },
+                ].map((tech, index) => (
+                  <motion.a
+                    key={tech.name}
+                    href={tech.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="grayscale transition-all hover:grayscale-0"
+                    title={tech.name}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={tech.logo}
+                      alt={tech.name}
+                      className={`h-10 w-auto object-contain opacity-60 transition-all hover:opacity-100 md:h-14 ${tech.invert ? 'dark:invert dark:hover:invert-0' : ''}`}
+                    />
+                  </motion.a>
+                ))}
+              </div>
+            </motion.div>
+          </Container>
+        </section>
+
         {/* CTA Section */}
         <section className="from-primary/5 to-primary/10 bg-gradient-to-br py-24">
           <Container>
