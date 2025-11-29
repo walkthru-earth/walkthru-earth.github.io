@@ -64,27 +64,41 @@ export function updateGoogleConsent(analytics: boolean): void {
   }
 }
 
-// PostHog consent management
+// PostHog consent management with persistence switching
 export function updatePostHogConsent(analytics: boolean): void {
   if (typeof window === 'undefined') return;
 
   // Type assertion for posthog
   const posthog = (
     window as typeof window & {
-      posthog?: { opt_in_capturing: () => void; opt_out_capturing: () => void };
+      posthog?: {
+        opt_in_capturing: () => void;
+        opt_out_capturing: () => void;
+        set_config: (config: { persistence?: string }) => void;
+        persistence?: { save: () => void };
+      };
     }
   ).posthog;
 
   if (posthog) {
     if (analytics) {
+      // User accepted: switch to localStorage persistence and opt in
+      posthog.set_config({ persistence: 'localStorage' });
       posthog.opt_in_capturing();
+      // Save any data collected during anonymous session
+      if (posthog.persistence) {
+        posthog.persistence.save();
+      }
     } else {
+      // User rejected: opt out completely
       posthog.opt_out_capturing();
     }
   }
 }
 
-// Initialize default consent (denied for GDPR compliance)
+// Initialize default consent based on user's previous decision
+// If no decision yet, we use Google's Advanced Consent Mode which allows
+// cookieless pings while respecting privacy (no cookies stored)
 export function initializeDefaultConsent(): void {
   if (typeof window === 'undefined') return;
 
@@ -93,12 +107,34 @@ export function initializeDefaultConsent(): void {
   ).gtag;
 
   if (gtag) {
-    gtag('consent', 'default', {
-      analytics_storage: 'denied',
-      ad_storage: 'denied',
-      ad_user_data: 'denied',
-      ad_personalization: 'denied',
-      wait_for_update: 500,
-    });
+    const consent = getConsentPreferences();
+
+    if (consent === null) {
+      // No decision yet: use Advanced Consent Mode
+      // Google will collect anonymized, cookieless data
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500,
+      });
+    } else if (consent.analytics) {
+      // User accepted: full consent
+      gtag('consent', 'default', {
+        analytics_storage: 'granted',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+      });
+    } else {
+      // User rejected: no tracking
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+      });
+    }
   }
 }
