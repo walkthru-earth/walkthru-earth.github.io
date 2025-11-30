@@ -1,11 +1,10 @@
-import { Quicksand } from 'next/font/google';
+import localFont from 'next/font/local';
 
-export const quicksand = Quicksand({
-  subsets: ['latin'],
+export const quicksand = localFont({
+  src: './fonts/Quicksand-Variable.woff2',
   display: 'swap',
   variable: '--font-quicksand',
-  weight: ['300', '400', '500', '600', '700'],
-  preload: true,
+  weight: '300 700',
   fallback: [
     '-apple-system',
     'BlinkMacSystemFont',

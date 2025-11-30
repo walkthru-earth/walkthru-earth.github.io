@@ -119,6 +119,14 @@ export function Footer() {
             <p>
               © {new Date().getFullYear()} walkthru.earth. All rights reserved.
             </p>
+            <p className="mt-2">
+              <Link
+                href="/privacy"
+                className="hover:text-primary transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </p>
           </div>
         </div>
       </Container>
