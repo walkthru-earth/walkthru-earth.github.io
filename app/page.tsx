@@ -12,8 +12,8 @@ export default function HomePage() {
       <Navbar />
       <main>
         <Hero />
-        <PatternDetection />
         <Initiatives />
+        <PatternDetection />
         <Vision />
         <CTA />
       </main>
