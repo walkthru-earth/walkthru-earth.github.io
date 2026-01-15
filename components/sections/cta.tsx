@@ -5,7 +5,7 @@ import Script from 'next/script';
 import { Container } from '@/components/shared/container';
 import { Section } from '@/components/shared/section';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Github, Linkedin } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -71,27 +71,6 @@ export function CTA() {
               strategy="lazyOnload"
             />
           </motion.div>
-
-          <div className="flex justify-center gap-8">
-            <a
-              href="https://github.com/walkthru-earth"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Github className="h-8 w-8" />
-              <span className="sr-only">GitHub</span>
-            </a>
-            <a
-              href="https://www.linkedin.com/company/walkthru-earth/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Linkedin className="h-8 w-8" />
-              <span className="sr-only">LinkedIn</span>
-            </a>
-          </div>
         </motion.div>
       </Container>
     </Section>
