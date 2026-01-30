@@ -346,7 +346,11 @@ export default function PrivacyPage() {
                   <li>
                     <strong>Transparency:</strong> Environmental data from
                     OpenSensor.Space is publicly available in open Parquet
-                    format
+                    format under the{' '}
+                    <strong>
+                      Creative Commons Attribution 4.0 International (CC BY 4.0)
+                    </strong>{' '}
+                    license
                   </li>
                   <li>
                     <strong>Anonymization:</strong> All shared data is

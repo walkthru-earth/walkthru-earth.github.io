@@ -264,7 +264,7 @@ Detailed documentation available in `/docs`:
 
 ## License
 
-ISC
+Creative Commons Attribution 4.0 International
 
 ## Contact
 

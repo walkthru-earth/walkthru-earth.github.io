@@ -4,7 +4,7 @@
   "private": true,
   "description": "Walkthru - People-First Urban Intelligence Platform",
   "author": "Walkthru",
-  "license": "ISC",
+  "license": "CC-BY-4.0",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"

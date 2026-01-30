@@ -185,7 +185,8 @@ export function Footer() {
 
           <div className="text-muted-foreground mt-12 border-t pt-8 text-center text-base">
             <p>
-              © {new Date().getFullYear()} walkthru.earth. All rights reserved.
+              © {new Date().getFullYear()} walkthru.earth. Licensed under CC BY
+              4.0.
             </p>
             <p className="mt-2">
               <Link
