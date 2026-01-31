@@ -1,21 +1,38 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Software | walkthru.earth',
+  title: 'Software - Urban Analysis Tools | walkthru.earth',
   description:
-    'Download Imagery Desktop - Open source software for downloading and georeferencing historical satellite imagery. Access Google Earth and Esri Wayback archives from 1984 to 2025 for urban analysis.',
+    'Free, open-source software for urban analysis and pattern detection. Download tools for satellite imagery analysis, GIS research, and community projects. Cross-platform support for Windows, macOS, and Linux.',
+  keywords:
+    'urban analysis tools, satellite imagery software, GeoTIFF, GIS software, open source, free download, Windows, macOS, Linux, urban planning, pattern detection, city research',
+  alternates: {
+    canonical: 'https://walkthru.earth/software',
+  },
   openGraph: {
-    title: 'Software | walkthru.earth',
+    title: 'Software - Urban Analysis Tools | walkthru.earth',
     description:
-      'Download Imagery Desktop for historical satellite imagery analysis',
+      'Free, open-source software for urban analysis and pattern detection. Download tools for satellite imagery analysis, GIS research, and community projects.',
     url: 'https://walkthru.earth/software',
+    siteName: 'walkthru.earth',
+    locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: 'https://walkthru.earth/og-software.png',
+        width: 1200,
+        height: 630,
+        alt: 'walkthru.earth Software - Urban Analysis Tools',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Software | walkthru.earth',
+    title: 'Software - Urban Analysis Tools | walkthru.earth',
     description:
-      'Download Imagery Desktop for historical satellite imagery analysis',
+      'Free, open-source software for urban analysis and pattern detection. Download tools for satellite imagery, GIS, and community research.',
+    creator: '@walkthru_earth',
+    images: ['https://walkthru.earth/og-software.png'],
   },
 };
 

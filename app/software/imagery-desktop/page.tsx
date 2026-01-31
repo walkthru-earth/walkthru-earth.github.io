@@ -4,14 +4,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Container } from '@/components/shared/container';
 import { Section } from '@/components/shared/section';
+import { GradientText } from '@/components/shared/gradient-text';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Download,
   FileImage,
@@ -20,16 +16,17 @@ import {
   Zap,
   Loader2,
   ArrowLeft,
+  Layers,
+  Video,
+  ListTodo,
+  Github,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTheme } from 'next-themes';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/sections/footer';
-
-// Feature showcase components
-import { ScrollingDesktopMockup } from './components/ScrollingDesktopMockup';
-import { useScrollFeatures } from './hooks/useScrollFeatures';
-import { features } from './data/features';
 
 // Platform icons
 const AppleIcon = ({ className }: { className?: string }) => (
@@ -61,21 +58,136 @@ interface Release {
   }[];
 }
 
+const featureShowcase = [
+  {
+    icon: Map,
+    title: 'Interactive Map Preview',
+    description:
+      'Browse historical imagery with an intuitive timeline. Select any date from 1984 to 2025 and preview imagery before download.',
+    lightImage: '/software/imagery-desktop/feature-1-light.png',
+    darkImage: '/software/imagery-desktop/feature-1-dark.png',
+  },
+  {
+    icon: Layers,
+    title: 'Split View Comparison',
+    description:
+      'Compare imagery side-by-side across different dates. Analyze urban change, development patterns, and environmental shifts with precision.',
+    lightImage: '/software/imagery-desktop/feature-2-light.png',
+    darkImage: '/software/imagery-desktop/feature-2-dark.png',
+  },
+  {
+    icon: Video,
+    title: 'Video Timeline Export',
+    description:
+      'Create stunning timelapses showing urban transformation. Perfect for presentations, social media content, and storytelling on Instagram, TikTok, and YouTube.',
+    lightImage: '/software/imagery-desktop/feature-3-light.png',
+    darkImage: '/software/imagery-desktop/feature-3-dark.png',
+  },
+  {
+    icon: FileImage,
+    title: 'Flexible Export Options',
+    description:
+      'Export as GeoTIFF for GIS analysis, tiles for web maps, or videos for storytelling. Choose zoom levels and configure output precisely.',
+    lightImage: '/software/imagery-desktop/feature-4-light.png',
+    darkImage: '/software/imagery-desktop/feature-4-dark.png',
+  },
+  {
+    icon: ListTodo,
+    title: 'Background Task Queue',
+    description:
+      'Queue multiple exports and let them run in the background. Track progress, manage tasks, and download when ready.',
+    lightImage: '/software/imagery-desktop/feature-5-light.png',
+    darkImage: '/software/imagery-desktop/feature-5-dark.png',
+  },
+];
+
+const quickFeatures = [
+  {
+    icon: History,
+    title: 'Historical Imagery',
+    description:
+      'Access satellite imagery from 1984 to 2025 from Google Earth and Esri Wayback archives',
+  },
+  {
+    icon: Map,
+    title: 'Interactive Map Preview',
+    description:
+      'Preview imagery before download with MapLibre GL-powered visualization',
+  },
+  {
+    icon: FileImage,
+    title: 'GeoTIFF Export',
+    description:
+      'Export georeferenced GeoTIFF files ready for GIS analysis in QGIS or ArcGIS',
+  },
+  {
+    icon: Video,
+    title: 'Social Media Ready',
+    description:
+      'Create stunning timelapse videos perfect for Instagram, TikTok, YouTube, and other social platforms',
+  },
+  {
+    icon: Zap,
+    title: 'Fast & Concurrent',
+    description:
+      '10 parallel download workers with smart epoch fallback for reliable imagery',
+  },
+  {
+    icon: Sparkles,
+    title: 'AI Ready',
+    description:
+      'Export imagery for AI video tools like Sora, Runway, and Kling to generate neighborhood explainers and urban analysis content',
+  },
+];
+
+type UserOS = 'windows' | 'macos' | 'linux' | null;
+
+function detectOS(): UserOS {
+  if (typeof window === 'undefined') return null;
+
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  const platform = window.navigator.platform?.toLowerCase() || '';
+
+  if (userAgent.includes('win') || platform.includes('win')) {
+    return 'windows';
+  }
+  if (
+    userAgent.includes('mac') ||
+    platform.includes('mac') ||
+    userAgent.includes('iphone') ||
+    userAgent.includes('ipad')
+  ) {
+    return 'macos';
+  }
+  if (
+    userAgent.includes('linux') ||
+    userAgent.includes('x11') ||
+    platform.includes('linux')
+  ) {
+    return 'linux';
+  }
+
+  return null;
+}
+
 export default function ImageryDesktopPage() {
   const [release, setRelease] = useState<Release | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Scrolling feature showcase
-  const {
-    heroRef,
-    screenshotOpacities,
-    dotOpacities,
-    mobileTextOpacity,
-    mobileScreenshotOpacity,
-  } = useScrollFeatures(features.length);
+  const [userOS, setUserOS] = useState<UserOS>(null);
+  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Fetch latest release from GitHub API
+    queueMicrotask(() => {
+      setMounted(true);
+      setUserOS(detectOS());
+    });
+  }, []);
+
+  const effectiveTheme = theme === 'system' ? systemTheme : theme;
+  const isDark = mounted && effectiveTheme === 'dark';
+
+  useEffect(() => {
     fetch(
       'https://api.github.com/repos/walkthru-earth/imagery-desktop/releases/latest'
     )
@@ -113,33 +225,6 @@ export default function ImageryDesktopPage() {
       });
   }, []);
 
-  const quickFeatures = [
-    {
-      icon: History,
-      title: 'Historical Imagery',
-      description:
-        'Access satellite imagery from 1984 to 2025 from Google Earth and Esri Wayback archives',
-    },
-    {
-      icon: Map,
-      title: 'Interactive Map Preview',
-      description:
-        'Preview imagery before download with MapLibre GL-powered visualization',
-    },
-    {
-      icon: FileImage,
-      title: 'GeoTIFF Export',
-      description:
-        'Export georeferenced GeoTIFF files ready for GIS analysis in QGIS or ArcGIS',
-    },
-    {
-      icon: Zap,
-      title: 'Fast & Concurrent',
-      description:
-        '10 parallel download workers with smart epoch fallback for reliable imagery',
-    },
-  ];
-
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
       case 'windows':
@@ -153,12 +238,12 @@ export default function ImageryDesktopPage() {
     }
   };
 
-  const getPlatformName = (platform: string) => {
+  const getPlatformName = (platform: string, short = false) => {
     switch (platform) {
       case 'windows':
         return 'Windows';
       case 'macos':
-        return 'macOS';
+        return short ? 'macOS' : 'macOS (Apple Silicon)';
       case 'linux':
         return 'Linux';
       default:
@@ -166,143 +251,196 @@ export default function ImageryDesktopPage() {
     }
   };
 
+  // Sort assets to put user's OS first
+  const getSortedAssets = () => {
+    if (!release) return [];
+    const assets = [...release.assets];
+    if (userOS) {
+      assets.sort((a, b) => {
+        if (a.platform === userOS) return -1;
+        if (b.platform === userOS) return 1;
+        return 0;
+      });
+    }
+    return assets.slice(0, 3);
+  };
+
   return (
     <>
       <Navbar />
       <main>
-        {/* Hero Section with Scrolling Features */}
-        <section ref={heroRef} className="relative h-[300vh]">
-          <div className="sticky top-0 flex h-screen items-center overflow-hidden pt-16">
-            <div className="from-primary/5 via-background to-primary/10 absolute inset-0 bg-gradient-to-br" />
+        {/* Hero Section */}
+        <section className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden pt-20 md:min-h-[80dvh] md:pt-24">
+          {/* Background gradient */}
+          <div className="from-primary/5 via-background to-secondary/5 dark:from-primary/10 dark:to-secondary/10 absolute inset-0 bg-gradient-to-br" />
 
-            <div className="relative z-10 flex h-full w-full flex-col lg:block">
-              {/* Desktop: side-by-side grid, Mobile: stacked with screenshots above text */}
-              <div className="h-full lg:grid lg:grid-cols-2 lg:items-center lg:gap-8 lg:px-8 xl:px-12">
-                {/* Desktop Mockup with Scrolling Screenshots - Comes FIRST on mobile */}
-                <motion.div
-                  style={{
-                    opacity: mobileScreenshotOpacity,
-                  }}
-                  className="flex flex-1 items-center justify-center px-4 lg:order-2 lg:px-0 lg:opacity-100!"
-                >
-                  <ScrollingDesktopMockup
-                    features={features}
-                    screenshotOpacities={screenshotOpacities}
-                    dotOpacities={dotOpacities}
-                  />
-                </motion.div>
+          {/* Animated gradient orbs */}
+          <motion.div
+            className="bg-primary/20 absolute top-1/4 -right-1/4 h-96 w-96 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          <motion.div
+            className="bg-secondary/20 absolute -bottom-1/4 -left-1/4 h-96 w-96 rounded-full blur-3xl"
+            animate={{
+              scale: [1.2, 1, 1.2],
+              opacity: [0.5, 0.3, 0.5],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
 
-                {/* Text Content - Below screenshots on mobile, left side on desktop */}
-                <div className="px-6 pb-8 lg:order-1 lg:px-0 lg:pb-0">
-                  {/* Static elements that fade out on mobile */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    style={{
-                      opacity: mobileTextOpacity,
-                    }}
-                    className="lg:opacity-100!"
-                  >
-                    <Button variant="ghost" asChild className="mb-3 lg:mb-4">
-                      <Link href="/software" className="gap-2">
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Software
-                      </Link>
-                    </Button>
+          <Container className="relative z-10 py-8 md:py-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="max-w-4xl"
+            >
+              <Button variant="ghost" asChild className="mb-4">
+                <Link href="/software" className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Software
+                </Link>
+              </Button>
 
-                    {/* App Icon */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.6 }}
-                      className="mb-3 lg:mb-4"
-                    >
-                      <Image
-                        src="/software/imagery-desktop/appicon.png"
-                        alt="Imagery Desktop Icon"
-                        width={80}
-                        height={80}
-                        className="rounded-2xl shadow-lg"
-                      />
-                    </motion.div>
-                  </motion.div>
-
-                  {/* Dynamic Feature Titles - Always visible, rotate based on scroll */}
-                  <div className="relative mb-4 min-h-[180px] lg:mb-6 lg:min-h-[280px]">
-                    {features.map((feature, index) => (
-                      <motion.div
-                        key={feature.title}
-                        className="absolute top-0 right-0 left-0"
-                        style={{
-                          opacity: screenshotOpacities[index],
-                        }}
-                      >
-                        <h1 className="text-[clamp(1.5rem,4.5vw,3.5rem)] leading-[1.1] font-light tracking-tight">
-                          <span className="text-primary font-semibold">
-                            {feature.title}
-                          </span>
-                        </h1>
-
-                        <p className="text-muted-foreground mt-2 text-xs font-normal lg:mt-3 lg:text-base">
-                          {feature.description}
-                        </p>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Static elements that fade out on mobile */}
-                  <motion.div
-                    style={{
-                      opacity: mobileTextOpacity,
-                    }}
-                    className="lg:opacity-100!"
-                  >
-                    <div className="mb-4 lg:mb-6">
-                      <Button size="lg" asChild className="gap-2">
-                        <a href="#download">
-                          <Download className="h-5 w-5" />
-                          Download Latest
-                        </a>
-                      </Button>
-                    </div>
-
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.8, delay: 1 }}
-                      className="text-muted-foreground flex items-center gap-3 text-xs lg:gap-4 lg:text-sm"
-                    >
-                      <div>
-                        <div className="text-foreground text-xl font-semibold lg:text-2xl">
-                          40+
-                        </div>
-                        <div>Years</div>
-                      </div>
-                      <div className="bg-border h-6 w-px lg:h-8" />
-                      <div>
-                        <div className="text-foreground text-xl font-semibold lg:text-2xl">
-                          2
-                        </div>
-                        <div>Sources</div>
-                      </div>
-                      <div className="bg-border h-6 w-px lg:h-8" />
-                      <div>
-                        <div className="text-foreground text-xl font-semibold lg:text-2xl">
-                          ∞
-                        </div>
-                        <div>Possible</div>
-                      </div>
-                    </motion.div>
-                  </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="mb-6 flex items-center gap-4"
+              >
+                <Image
+                  src="/software/imagery-desktop/appicon.png"
+                  alt="Imagery Desktop Icon"
+                  width={64}
+                  height={64}
+                  className="rounded-xl shadow-lg"
+                />
+                <div className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-2">
+                  <History className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    Historical Pattern Detection
+                  </span>
                 </div>
+              </motion.div>
+
+              <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.1] font-light tracking-tight">
+                <GradientText className="font-semibold">
+                  Imagery Desktop
+                </GradientText>
+                <br />
+                See How Cities Change
+              </h1>
+
+              <p className="text-muted-foreground mt-6 max-w-2xl text-lg font-normal md:text-xl">
+                Download and analyze historical satellite imagery from 1984 to
+                2025. Detect urban growth patterns, environmental changes, and
+                community transformations over time.
+              </p>
+
+              {/* Download Buttons - Right in the Hero */}
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                {loading ? (
+                  <Button size="lg" disabled>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading Downloads...
+                  </Button>
+                ) : release ? (
+                  <>
+                    {getSortedAssets().map((asset) => {
+                      const Icon = getPlatformIcon(asset.platform);
+                      const isUserOS = asset.platform === userOS;
+                      return (
+                        <div key={asset.name} className="flex flex-col gap-1">
+                          <Button
+                            size="lg"
+                            variant={isUserOS ? 'default' : 'outline'}
+                            asChild
+                          >
+                            <a
+                              href={asset.downloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="gap-2"
+                            >
+                              <Icon className="h-5 w-5" />
+                              {getPlatformName(asset.platform, true)}
+                            </a>
+                          </Button>
+                          {asset.platform === 'macos' && (
+                            <span className="text-muted-foreground text-center text-xs">
+                              Apple Silicon only
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <Button size="lg" variant="outline" asChild>
+                    <Link
+                      href="https://github.com/walkthru-earth/imagery-desktop/releases"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Github className="mr-2 h-4 w-4" />
+                      View on GitHub
+                    </Link>
+                  </Button>
+                )}
               </div>
-            </div>
-          </div>
+
+              {release && (
+                <p className="text-muted-foreground mt-4 text-sm">
+                  Version {release.version} • Released{' '}
+                  {new Date(release.publishedAt).toLocaleDateString()}
+                </p>
+              )}
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 1 }}
+                className="text-muted-foreground mt-12 flex items-center gap-8 text-sm"
+              >
+                <div>
+                  <div className="text-foreground text-2xl font-semibold">
+                    40+
+                  </div>
+                  <div>Years of Imagery</div>
+                </div>
+                <div className="bg-border h-8 w-px" />
+                <div>
+                  <div className="text-foreground text-2xl font-semibold">
+                    2
+                  </div>
+                  <div>Data Sources</div>
+                </div>
+                <div className="bg-border h-8 w-px" />
+                <div>
+                  <div className="text-foreground text-2xl font-semibold">
+                    Free
+                  </div>
+                  <div>Forever</div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </Container>
         </section>
 
         {/* Quick Features Section */}
-        <Section className="bg-muted/30">
+        <Section className="bg-muted/50">
           <Container>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -311,10 +449,10 @@ export default function ImageryDesktopPage() {
               transition={{ duration: 0.6 }}
               className="mb-16 text-center"
             >
-              <h2 className="text-4xl font-light tracking-tight md:text-5xl">
+              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
                 Key <span className="text-primary font-medium">Features</span>
               </h2>
-              <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg md:text-xl">
+              <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
                 Everything you need to analyze urban change through satellite
                 imagery
               </p>
@@ -353,8 +491,72 @@ export default function ImageryDesktopPage() {
           </Container>
         </Section>
 
-        {/* Video Demo Section */}
+        {/* Feature Showcase Section */}
         <Section>
+          <Container>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="mb-16 text-center"
+            >
+              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+                See It{' '}
+                <GradientText className="font-semibold">In Action</GradientText>
+              </h2>
+              <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
+                Powerful tools for detecting patterns in urban change
+              </p>
+            </motion.div>
+
+            <div className="space-y-16">
+              {featureShowcase.map((feature, index) => {
+                const Icon = feature.icon;
+                const isEven = index % 2 === 0;
+                return (
+                  <motion.div
+                    key={feature.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                    className={`flex flex-col gap-8 lg:flex-row lg:items-center ${isEven ? '' : 'lg:flex-row-reverse'}`}
+                  >
+                    {/* Text */}
+                    <div className="lg:w-2/5">
+                      <div className="bg-primary/10 mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg">
+                        <Icon className="text-primary h-6 w-6" />
+                      </div>
+                      <h3 className="mb-3 text-2xl font-semibold md:text-3xl">
+                        {feature.title}
+                      </h3>
+                      <p className="text-muted-foreground text-lg leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+
+                    {/* Screenshot */}
+                    <div className="lg:w-3/5">
+                      <div className="border-foreground/10 overflow-hidden rounded-xl border shadow-xl">
+                        <Image
+                          src={isDark ? feature.darkImage : feature.lightImage}
+                          alt={feature.title}
+                          width={1400}
+                          height={949}
+                          className="h-auto w-full"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </Container>
+        </Section>
+
+        {/* Video Demo Section */}
+        <Section className="bg-muted/50">
           <Container>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -363,9 +565,9 @@ export default function ImageryDesktopPage() {
               transition={{ duration: 0.6 }}
               className="mb-12 text-center"
             >
-              <h2 className="mb-4 text-4xl font-light tracking-tight md:text-5xl">
-                See It{' '}
-                <span className="text-primary font-medium">In Action</span>
+              <h2 className="mb-4 text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+                Urban{' '}
+                <span className="text-primary font-medium">Timelapse</span>
               </h2>
               <p className="text-muted-foreground mx-auto max-w-2xl text-lg md:text-xl">
                 Watch how Imagery Desktop creates stunning timelapses showing
@@ -400,116 +602,108 @@ export default function ImageryDesktopPage() {
           </Container>
         </Section>
 
-        {/* Download Section */}
-        <Section id="download" className="bg-muted/30">
+        {/* CTA Section */}
+        <section className="from-primary/5 to-secondary/5 bg-gradient-to-br py-24">
           <Container>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="mb-12 text-center"
+              className="mx-auto max-w-3xl text-center"
             >
-              <h2 className="text-4xl font-light tracking-tight md:text-5xl">
-                Download <span className="text-primary font-medium">Now</span>
+              <h2 className="mb-6 text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+                Start Detecting{' '}
+                <GradientText className="font-semibold">
+                  Urban Patterns
+                </GradientText>
               </h2>
-              <p className="text-muted-foreground mt-4 text-lg md:text-xl">
-                {loading ? (
-                  'Loading latest version...'
-                ) : release ? (
-                  <>
-                    Latest version: <strong>{release.version}</strong> •
-                    Released{' '}
-                    {new Date(release.publishedAt).toLocaleDateString()}
-                  </>
-                ) : (
-                  'Check back soon for download options'
-                )}
+              <p className="text-muted-foreground mb-10 text-lg">
+                Download Imagery Desktop and explore how your city has
+                transformed over four decades. Free, open-source, and built for
+                researchers, planners, and communities.
               </p>
-            </motion.div>
 
-            {loading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="text-primary h-12 w-12 animate-spin" />
-              </div>
-            ) : release ? (
-              <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-3">
-                {release.assets.map((asset, index) => {
-                  const Icon = getPlatformIcon(asset.platform);
-                  return (
-                    <motion.div
-                      key={asset.name}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: index * 0.1 }}
+              <div className="flex flex-col justify-center gap-4 sm:flex-row sm:flex-wrap">
+                {loading ? (
+                  <Button size="lg" disabled>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </Button>
+                ) : release ? (
+                  getSortedAssets().map((asset) => {
+                    const Icon = getPlatformIcon(asset.platform);
+                    const isUserOS = asset.platform === userOS;
+                    return (
+                      <div key={asset.name} className="flex flex-col gap-1">
+                        <Button
+                          size="lg"
+                          variant={isUserOS ? 'default' : 'outline'}
+                          asChild
+                        >
+                          <a
+                            href={asset.downloadUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="gap-2"
+                          >
+                            <Icon className="h-5 w-5" />
+                            Download for {getPlatformName(asset.platform, true)}
+                          </a>
+                        </Button>
+                        {asset.platform === 'macos' && (
+                          <span className="text-muted-foreground text-center text-xs">
+                            Apple Silicon only
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <Button size="lg" asChild>
+                    <Link
+                      href="https://github.com/walkthru-earth/imagery-desktop/releases"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      <Card className="hover:border-primary/50 h-full transition-all hover:shadow-lg">
-                        <CardHeader className="text-center">
-                          <div className="bg-muted mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full">
-                            <Icon className="h-8 w-8" />
-                          </div>
-                          <CardTitle className="text-2xl">
-                            {getPlatformName(asset.platform)}
-                          </CardTitle>
-                          <CardDescription className="text-sm">
-                            {asset.name
-                              .split('-')
-                              .pop()
-                              ?.replace('.zip', '')
-                              .replace('.tar.gz', '')}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <Button asChild className="w-full gap-2">
-                            <a
-                              href={asset.downloadUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Download className="h-4 w-4" />
-                              Download
-                            </a>
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
+                      <Github className="mr-2 h-4 w-4" />
+                      View Releases on GitHub
+                    </Link>
+                  </Button>
+                )}
               </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-muted-foreground">
-                  Download links will appear here once available.
-                </p>
-              </div>
-            )}
 
-            {/* Additional Info */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mx-auto mt-16 max-w-3xl text-center"
-            >
-              <Card className="bg-muted/50">
+              <div className="mt-6 flex justify-center gap-4">
+                <Button size="lg" variant="outline" asChild>
+                  <Link
+                    href="https://github.com/walkthru-earth/imagery-desktop"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Github className="mr-2 h-4 w-4" />
+                    Source Code
+                  </Link>
+                </Button>
+              </div>
+
+              {/* License Info */}
+              <Card className="bg-muted/50 mx-auto mt-12 max-w-2xl">
                 <CardContent className="pt-6">
-                  <h3 className="mb-3 text-xl font-semibold">
-                    Educational Purpose & License
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    This software is licensed under <strong>CC BY 4.0</strong>.
-                    The satellite imagery accessed through this application
-                    remains property of the respective providers (Google Earth,
-                    Esri). Users are responsible for complying with imagery
-                    provider terms of service.
+                  <div className="mb-2 flex items-center justify-center gap-2">
+                    <Badge variant="outline">CC BY 4.0</Badge>
+                  </div>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    This software is open-source. The satellite imagery accessed
+                    through this application remains property of the respective
+                    providers (Google Earth, Esri) and their imagery partners.
+                    Users are responsible for complying with imagery provider
+                    terms of service.
                   </p>
                 </CardContent>
               </Card>
             </motion.div>
           </Container>
-        </Section>
+        </section>
       </main>
       <Footer />
     </>
