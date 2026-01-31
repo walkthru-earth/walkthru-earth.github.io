@@ -82,6 +82,8 @@ export default function ImageryDesktopPage() {
       .then((res) => res.json())
       .then(
         (data: {
+          tag_name: string;
+          published_at: string;
           assets: { name: string; browser_download_url: string }[];
         }) => {
           const assets = data.assets.map((asset) => {
