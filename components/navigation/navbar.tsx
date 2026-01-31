@@ -21,7 +21,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { ExternalLink, ChevronDown, Cloud, Heart, Menu } from 'lucide-react';
+import {
+  ExternalLink,
+  ChevronDown,
+  Cloud,
+  Heart,
+  Menu,
+  Download,
+} from 'lucide-react';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -71,6 +78,20 @@ export function Navbar() {
                         <div className="font-medium">Hormones & Cities</div>
                         <div className="text-muted-foreground text-xs">
                           Urban Wellbeing Survey
+                        </div>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/software"
+                      className="flex cursor-pointer items-center gap-2"
+                    >
+                      <Download className="text-primary h-4 w-4" />
+                      <div>
+                        <div className="font-medium">Software</div>
+                        <div className="text-muted-foreground text-xs">
+                          Tools & Applications
                         </div>
                       </div>
                     </Link>
@@ -157,6 +178,19 @@ export function Navbar() {
                         <div className="font-medium">Hormones & Cities</div>
                         <div className="text-muted-foreground text-sm">
                           Urban Wellbeing Survey
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/software"
+                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Download className="text-primary h-5 w-5" />
+                      <div>
+                        <div className="font-medium">Software</div>
+                        <div className="text-muted-foreground text-sm">
+                          Tools & Applications
                         </div>
                       </div>
                     </Link>

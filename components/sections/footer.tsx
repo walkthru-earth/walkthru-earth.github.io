@@ -85,6 +85,14 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
+                    href="/software"
+                    className="text-muted-foreground hover:text-primary text-lg transition-colors"
+                  >
+                    Software
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/#vision"
                     className="text-muted-foreground hover:text-primary text-lg transition-colors"
                   >
