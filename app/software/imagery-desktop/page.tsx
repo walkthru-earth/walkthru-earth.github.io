@@ -602,92 +602,17 @@ export default function ImageryDesktopPage() {
           </Container>
         </Section>
 
-        {/* CTA Section */}
-        <section className="from-primary/5 to-secondary/5 bg-gradient-to-br py-24">
+        {/* License Section */}
+        <Section>
           <Container>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="mx-auto max-w-3xl text-center"
+              className="mx-auto max-w-2xl text-center"
             >
-              <h2 className="mb-6 text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
-                Start Detecting{' '}
-                <GradientText className="font-semibold">
-                  Urban Patterns
-                </GradientText>
-              </h2>
-              <p className="text-muted-foreground mb-10 text-lg">
-                Download Imagery Desktop and explore how your city has
-                transformed over four decades. Free, open-source, and built for
-                researchers, planners, and communities.
-              </p>
-
-              <div className="flex flex-col justify-center gap-4 sm:flex-row sm:flex-wrap">
-                {loading ? (
-                  <Button size="lg" disabled>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </Button>
-                ) : release ? (
-                  getSortedAssets().map((asset) => {
-                    const Icon = getPlatformIcon(asset.platform);
-                    const isUserOS = asset.platform === userOS;
-                    return (
-                      <div key={asset.name} className="flex flex-col gap-1">
-                        <Button
-                          size="lg"
-                          variant={isUserOS ? 'default' : 'outline'}
-                          asChild
-                        >
-                          <a
-                            href={asset.downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="gap-2"
-                          >
-                            <Icon className="h-5 w-5" />
-                            Download for {getPlatformName(asset.platform, true)}
-                          </a>
-                        </Button>
-                        {asset.platform === 'macos' && (
-                          <span className="text-muted-foreground text-center text-xs">
-                            Apple Silicon only
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <Button size="lg" asChild>
-                    <Link
-                      href="https://github.com/walkthru-earth/imagery-desktop/releases"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Github className="mr-2 h-4 w-4" />
-                      View Releases on GitHub
-                    </Link>
-                  </Button>
-                )}
-              </div>
-
-              <div className="mt-6 flex justify-center gap-4">
-                <Button size="lg" variant="outline" asChild>
-                  <Link
-                    href="https://github.com/walkthru-earth/imagery-desktop"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Github className="mr-2 h-4 w-4" />
-                    Source Code
-                  </Link>
-                </Button>
-              </div>
-
-              {/* License Info */}
-              <Card className="bg-muted/50 mx-auto mt-12 max-w-2xl">
+              <Card className="bg-muted/50">
                 <CardContent className="pt-6">
                   <div className="mb-2 flex items-center justify-center gap-2">
                     <Badge variant="outline">CC BY 4.0</Badge>
@@ -703,7 +628,7 @@ export default function ImageryDesktopPage() {
               </Card>
             </motion.div>
           </Container>
-        </section>
+        </Section>
       </main>
       <Footer />
     </>
