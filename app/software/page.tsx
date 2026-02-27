@@ -31,6 +31,23 @@ const software = [
     status: 'Available',
     platforms: ['Windows', 'macOS', 'Linux'],
   },
+  {
+    id: 'objex',
+    name: 'objex',
+    tagline: 'Cloud Storage Explorer in the Browser',
+    description:
+      'Browse, query, and visualize files in S3, GCS, Azure, R2, and more. SQL queries with DuckDB, interactive maps, and 100+ file format viewers — all client-side, zero backend.',
+    icon: '/software/objex/appicon.svg',
+    highlights: [
+      'SQL queries',
+      '100+ formats',
+      'Geo visualization',
+      'Zero backend',
+    ],
+    link: '/software/objex',
+    status: 'Available',
+    platforms: ['Browser'],
+  },
 ];
 
 export default function SoftwarePage() {
