@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Software - Urban Analysis Tools | walkthru.earth',
   description:
-    'Free, open-source software for urban analysis and pattern detection. Download tools for satellite imagery analysis, GIS research, and community projects. Cross-platform support for Windows, macOS, and Linux.',
+    'Free, open-source software for urban analysis, cloud storage exploration, and geospatial data. Imagery Desktop for satellite imagery analysis. objex for browsing Parquet, COG, PMTiles, Zarr, FlatGeobuf, and STAC from S3, GCS, Azure, and R2.',
   keywords:
-    'urban analysis tools, satellite imagery software, GeoTIFF, GIS software, open source, free download, Windows, macOS, Linux, urban planning, pattern detection, city research',
+    'urban analysis tools, satellite imagery software, cloud storage explorer, GeoTIFF, Parquet viewer, COG, PMTiles, Zarr, FlatGeobuf, STAC, GIS software, open source, free download, DuckDB WASM, geospatial',
   alternates: {
     canonical: 'https://walkthru.earth/software',
   },
