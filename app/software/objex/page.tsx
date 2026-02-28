@@ -177,6 +177,14 @@ const featureShowcase = [
     iframeUrl:
       'https://walkthru.earth/objex/?url=https%3A%2F%2Fs3.us-west-2.amazonaws.com%2Fus-west-2.opendata.source.coop%2Fabry-tudelft%2Feubucco%2Fflatgeobuf%2Fcountry%2FAUT.fgb',
   },
+  {
+    icon: Layers,
+    title: 'COPC Point Cloud Viewer',
+    description:
+      'Explore Cloud-Optimized Point Cloud (COPC) files directly in the browser. This classified LiDAR dataset from Autzen is streamed and rendered as an interactive 3D point cloud.',
+    iframeUrl:
+      'https://walkthru.earth/objex/?url=https%3A%2F%2Fs3.amazonaws.com%2Fhobu-lidar%2Fautzen-classified.copc.laz',
+  },
 ];
 
 const quickFeatures = [
