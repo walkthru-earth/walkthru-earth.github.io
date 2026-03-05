@@ -43,12 +43,12 @@ function SectionContent({
         {Array.from({ length: totalSections }).map((_, i) => (
           <div
             key={i}
-            className={`h-1 rounded-full transition-all duration-500 ${
+            className={`h-1.5 rounded-full transition-all duration-500 ${
               i === sectionIndex
-                ? 'w-6 bg-emerald-500 dark:bg-emerald-400'
+                ? 'w-7 bg-emerald-500 dark:bg-emerald-400'
                 : i < sectionIndex
-                  ? 'w-2 bg-black/20 dark:bg-white/30'
-                  : 'w-2 bg-black/10 dark:bg-white/10'
+                  ? 'w-2.5 bg-black/25 dark:bg-white/35'
+                  : 'w-2.5 bg-black/10 dark:bg-white/10'
             }`}
           />
         ))}
@@ -56,28 +56,28 @@ function SectionContent({
 
       {/* Subtitle */}
       {section.subtitle && (
-        <p className="mb-1 font-mono text-[10px] tracking-wider text-emerald-600 uppercase sm:text-xs dark:text-emerald-400">
+        <p className="mb-1 font-mono text-xs font-medium tracking-wider text-emerald-600 uppercase sm:text-sm dark:text-emerald-400">
           {section.subtitle}
         </p>
       )}
 
       {/* Title */}
-      <h2 className="text-foreground mb-2 text-lg leading-tight font-semibold sm:mb-3 sm:text-2xl">
+      <h2 className="text-foreground mb-2 text-xl leading-tight font-bold sm:mb-3 sm:text-3xl">
         {section.title}
       </h2>
 
       {/* Description */}
-      <p className="text-muted-foreground mb-3 text-xs leading-relaxed sm:mb-4 sm:text-sm">
+      <p className="text-foreground/70 mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">
         {section.description}
       </p>
 
       {/* Stat */}
       {section.stat.value && (
         <div className="mb-3 flex items-baseline gap-2 sm:mb-4">
-          <span className="text-foreground text-xl font-bold sm:text-2xl">
+          <span className="text-foreground text-2xl font-extrabold sm:text-3xl">
             {section.stat.value}
           </span>
-          <span className="text-muted-foreground text-[10px] sm:text-xs">
+          <span className="text-foreground/60 text-xs font-medium sm:text-sm">
             {section.stat.label}
           </span>
         </div>
@@ -96,7 +96,7 @@ function SectionContent({
           />
           <div className="mt-1 flex justify-between">
             {section.colorLegend.map((l, i) => (
-              <span key={i} className="text-muted-foreground/60 text-[10px]">
+              <span key={i} className="text-foreground/50 text-xs font-medium">
                 {l.label}
               </span>
             ))}
@@ -110,7 +110,7 @@ function SectionContent({
           href={section.sourceCoopUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-2.5 py-1 text-[10px] transition-colors hover:bg-black/10 sm:px-3 sm:py-1.5 sm:text-xs dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+          className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-black/10 sm:px-3.5 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
         >
           <Image
             src="/source-coop-logo.png"
@@ -125,10 +125,10 @@ function SectionContent({
           href={section.githubUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-2.5 py-1 text-[10px] transition-colors hover:bg-black/10 sm:px-3 sm:py-1.5 sm:text-xs dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+          className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-black/10 sm:px-3.5 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
         >
           <svg
-            className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
             viewBox="0 0 24 24"
             fill="currentColor"
             aria-hidden="true"
@@ -136,7 +136,7 @@ function SectionContent({
             <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
           </svg>
           <svg
-            className="h-2.5 w-2.5 text-amber-500 sm:h-3 sm:w-3"
+            className="h-3 w-3 text-amber-500 sm:h-3.5 sm:w-3.5"
             viewBox="0 0 24 24"
             fill="currentColor"
             aria-hidden="true"
@@ -174,7 +174,7 @@ function SectionContent({
             />
           </svg>
         </button>
-        <span className="text-muted-foreground text-xs tabular-nums sm:text-sm">
+        <span className="text-foreground/60 text-sm font-semibold tabular-nums sm:text-base">
           {sectionIndex + 1} / {totalSections}
         </span>
         <button
@@ -413,7 +413,7 @@ export const ScrollSection = memo(function ScrollSection(
         isLoading={props.isLoading ?? false}
         rowCount={props.rowCount ?? 0}
       />
-      <MobileDrawer key={props.sectionIndex} {...props} />
+      <MobileDrawer {...props} />
       <DesktopCard {...props} />
     </div>
   );

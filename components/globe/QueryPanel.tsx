@@ -141,7 +141,7 @@ export const QueryPanel = memo(function QueryPanel({
   if (!query) return null;
 
   return (
-    <div className="absolute top-4 right-4 z-20 hidden max-w-md sm:block">
+    <div className="absolute bottom-4 left-8 z-20 hidden max-w-md flex-col sm:flex">
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -182,9 +182,9 @@ export const QueryPanel = memo(function QueryPanel({
         </svg>
       </button>
 
-      {/* Expanded panel */}
+      {/* Expanded panel (opens upward) */}
       <div
-        className={`mt-2 overflow-hidden rounded-lg border border-black/10 bg-white/90 transition-all duration-200 dark:border-white/10 dark:bg-black/80 ${
+        className={`order-first mb-2 overflow-hidden rounded-lg border border-black/10 bg-white/90 transition-all duration-200 dark:border-white/10 dark:bg-black/80 ${
           expanded
             ? 'max-h-96 opacity-100'
             : 'pointer-events-none max-h-0 border-transparent opacity-0'
