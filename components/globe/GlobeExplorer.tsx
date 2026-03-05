@@ -216,7 +216,9 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     [activeSection, currentSection]
   );
 
-  const handleZoomChange = useCallback((z: number) => setZoom(z), []);
+  const handleZoomChange = useCallback((z: number) => {
+    requestAnimationFrame(() => setZoom(z));
+  }, []);
 
   return (
     <div
