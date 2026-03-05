@@ -39,7 +39,7 @@ const TOKEN_CLASSES: Record<Token['type'], string> = {
   keyword: 'text-emerald-600 dark:text-emerald-400 font-semibold',
   string: 'text-amber-600 dark:text-amber-300',
   number: 'text-sky-600 dark:text-sky-300',
-  text: '',
+  text: 'text-gray-800 dark:text-white/90',
 };
 
 /* ── Inline SQL block (used inside mobile drawer) ─────────────────── */
@@ -60,7 +60,7 @@ export function QueryPanelInline({
       <button
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        className="text-foreground/80 flex w-full items-center gap-2 px-3 py-2 font-mono text-xs"
+        className="flex w-full items-center gap-2 px-3 py-2 font-mono text-xs text-gray-800 dark:text-white/80"
       >
         <span
           className={`inline-block h-2 w-2 rounded-full transition-colors ${
@@ -78,7 +78,9 @@ export function QueryPanelInline({
           </span>
         )}
         {!isLoading && duration !== null && (
-          <span className="text-muted-foreground">{duration.toFixed(0)}ms</span>
+          <span className="text-gray-400 dark:text-white/50">
+            {duration.toFixed(0)}ms
+          </span>
         )}
         <svg
           className={`ml-auto h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
@@ -98,7 +100,7 @@ export function QueryPanelInline({
 
       {expanded && (
         <div className="border-t border-black/10 dark:border-white/10">
-          <pre className="text-foreground/90 overflow-x-auto p-3 font-mono text-xs leading-relaxed">
+          <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed text-gray-800 dark:text-white/90">
             <code>
               {tokenizeSQL(query).map((tok, i) => (
                 <span key={i} className={TOKEN_CLASSES[tok.type]}>
@@ -108,7 +110,7 @@ export function QueryPanelInline({
             </code>
           </pre>
           {(error || rowCount > 0 || duration !== null) && (
-            <div className="text-muted-foreground flex items-center gap-3 border-t border-black/10 px-3 py-2 font-mono text-[10px] dark:border-white/10">
+            <div className="flex items-center gap-3 border-t border-black/10 px-3 py-2 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/50">
               {error ? (
                 <span className="text-red-500 dark:text-red-400">{error}</span>
               ) : (
@@ -146,7 +148,7 @@ export const QueryPanel = memo(function QueryPanel({
       <button
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        className="text-foreground/80 flex items-center gap-2 rounded-lg border border-black/10 bg-white/80 px-3 py-1.5 font-mono text-xs transition-colors hover:bg-white/90 dark:border-white/10 dark:bg-black/70 dark:hover:bg-black/80"
+        className="flex items-center gap-2 rounded-lg border border-black/10 bg-white/95 px-3 py-1.5 font-mono text-xs text-gray-800 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/85 dark:text-white/80 dark:hover:bg-black/90"
       >
         <span
           className={`inline-block h-2 w-2 rounded-full transition-colors ${
@@ -164,7 +166,9 @@ export const QueryPanel = memo(function QueryPanel({
           </span>
         )}
         {!isLoading && duration !== null && (
-          <span className="text-muted-foreground">{duration.toFixed(0)}ms</span>
+          <span className="text-gray-400 dark:text-white/50">
+            {duration.toFixed(0)}ms
+          </span>
         )}
         <svg
           className={`h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
@@ -184,13 +188,13 @@ export const QueryPanel = memo(function QueryPanel({
 
       {/* Expanded panel (opens upward) */}
       <div
-        className={`order-first mb-2 overflow-hidden rounded-lg border border-black/10 bg-white/90 transition-all duration-200 dark:border-white/10 dark:bg-black/80 ${
+        className={`order-first mb-2 overflow-hidden rounded-lg border border-black/10 bg-white/95 transition-all duration-200 dark:border-white/10 dark:bg-black/85 ${
           expanded
             ? 'max-h-96 opacity-100'
             : 'pointer-events-none max-h-0 border-transparent opacity-0'
         }`}
       >
-        <pre className="text-foreground/90 overflow-x-auto p-4 font-mono text-xs leading-relaxed">
+        <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed text-gray-800 dark:text-white/90">
           <code>
             {tokenizeSQL(query).map((tok, i) => (
               <span key={i} className={TOKEN_CLASSES[tok.type]}>
@@ -201,7 +205,7 @@ export const QueryPanel = memo(function QueryPanel({
         </pre>
 
         {/* Stats bar */}
-        <div className="text-muted-foreground flex items-center gap-3 border-t border-black/10 px-4 py-2 font-mono text-[10px] dark:border-white/10">
+        <div className="flex items-center gap-3 border-t border-black/10 px-4 py-2 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/50">
           {error ? (
             <span className="text-red-500 dark:text-red-400">{error}</span>
           ) : (

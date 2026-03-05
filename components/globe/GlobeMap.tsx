@@ -242,9 +242,7 @@ export const GlobeMap = memo(function GlobeMap({
   );
 
   return (
-    <div
-      style={{ position: 'absolute', inset: 0, background: palette.background }}
-    >
+    <div className="absolute inset-0 bg-gradient-to-t from-[#d4e6f1] to-[#eaf2f8] dark:from-black dark:to-[#112]">
       <DeckGL
         views={GLOBE_VIEW}
         initialViewState={initialViewState}

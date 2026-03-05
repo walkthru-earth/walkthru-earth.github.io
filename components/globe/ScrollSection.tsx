@@ -62,22 +62,22 @@ function SectionContent({
       )}
 
       {/* Title */}
-      <h2 className="text-foreground mb-2 text-xl leading-tight font-bold sm:mb-3 sm:text-3xl">
+      <h2 className="mb-2 text-xl leading-tight font-bold text-gray-900 sm:mb-3 sm:text-3xl dark:text-white">
         {section.title}
       </h2>
 
       {/* Description */}
-      <p className="text-foreground/70 mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">
+      <p className="mb-3 text-sm leading-relaxed text-gray-700 sm:mb-4 sm:text-base dark:text-white/70">
         {section.description}
       </p>
 
       {/* Stat */}
       {section.stat.value && (
         <div className="mb-3 flex items-baseline gap-2 sm:mb-4">
-          <span className="text-foreground text-2xl font-extrabold sm:text-3xl">
+          <span className="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">
             {section.stat.value}
           </span>
-          <span className="text-foreground/60 text-xs font-medium sm:text-sm">
+          <span className="text-xs font-medium text-gray-600 sm:text-sm dark:text-white/60">
             {section.stat.label}
           </span>
         </div>
@@ -96,7 +96,10 @@ function SectionContent({
           />
           <div className="mt-1 flex justify-between">
             {section.colorLegend.map((l, i) => (
-              <span key={i} className="text-foreground/50 text-xs font-medium">
+              <span
+                key={i}
+                className="text-xs font-medium text-gray-500 dark:text-white/50"
+              >
                 {l.label}
               </span>
             ))}
@@ -119,7 +122,7 @@ function SectionContent({
             height={12}
             className="rounded-sm sm:h-3.5 sm:w-3.5"
           />
-          <span className="text-foreground/80">Data</span>
+          <span className="text-gray-800 dark:text-white/80">Data</span>
         </a>
         <a
           href={section.githubUrl}
@@ -128,7 +131,7 @@ function SectionContent({
           className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-black/10 sm:px-3.5 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
         >
           <svg
-            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+            className="h-3.5 w-3.5 text-gray-800 sm:h-4 sm:w-4 dark:text-white/80"
             viewBox="0 0 24 24"
             fill="currentColor"
             aria-hidden="true"
@@ -143,7 +146,7 @@ function SectionContent({
           >
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
-          <span className="text-foreground/80">Star</span>
+          <span className="text-gray-800 dark:text-white/80">Star</span>
         </a>
       </div>
 
@@ -157,7 +160,7 @@ function SectionContent({
           disabled={sectionIndex === 0}
           onClick={() => onSwipe?.(-1)}
           aria-label="Previous section"
-          className="text-foreground/80 flex h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-black/10 shadow-sm transition-all hover:bg-black/20 hover:shadow-md active:scale-95 disabled:opacity-20 sm:h-10 sm:w-10 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/20"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 shadow-sm transition-all hover:bg-black/20 hover:shadow-md active:scale-95 disabled:opacity-20 sm:h-10 sm:w-10 dark:border-white/15 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20"
         >
           <svg
             className="h-4 w-4 sm:h-5 sm:w-5"
@@ -174,7 +177,7 @@ function SectionContent({
             />
           </svg>
         </button>
-        <span className="text-foreground/60 text-sm font-semibold tabular-nums sm:text-base">
+        <span className="text-sm font-semibold text-gray-600 tabular-nums sm:text-base dark:text-white/60">
           {sectionIndex + 1} / {totalSections}
         </span>
         <button
@@ -182,7 +185,7 @@ function SectionContent({
           disabled={sectionIndex === totalSections - 1}
           onClick={() => onSwipe?.(1)}
           aria-label="Next section"
-          className="text-foreground/80 flex h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-black/10 shadow-sm transition-all hover:bg-black/20 hover:shadow-md active:scale-95 disabled:opacity-20 sm:h-10 sm:w-10 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/20"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 shadow-sm transition-all hover:bg-black/20 hover:shadow-md active:scale-95 disabled:opacity-20 sm:h-10 sm:w-10 dark:border-white/15 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20"
         >
           <svg
             className="h-4 w-4 sm:h-5 sm:w-5"
@@ -265,7 +268,7 @@ function MobileDrawer(props: ScrollSectionProps) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed inset-x-0 bottom-0 z-30 mx-auto flex w-fit items-center gap-2.5 rounded-t-2xl border border-b-0 border-white/20 bg-white/70 px-5 py-2.5 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/60"
+          className="fixed inset-x-0 bottom-0 z-30 mx-auto flex w-fit items-center gap-2.5 rounded-t-2xl border border-b-0 border-black/10 bg-white/90 px-5 py-2.5 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
         >
           {/* Loading pulse */}
           {isLoading && (
@@ -286,7 +289,7 @@ function MobileDrawer(props: ScrollSectionProps) {
               />
             ))}
           </div>
-          <span className="text-foreground/90 text-xs font-medium">
+          <span className="text-xs font-medium text-gray-900 dark:text-white/90">
             {section.title}
           </span>
           {isLoading && rowCount !== undefined && rowCount > 0 && (
@@ -295,7 +298,7 @@ function MobileDrawer(props: ScrollSectionProps) {
             </span>
           )}
           <svg
-            className="text-muted-foreground h-3 w-3"
+            className="h-3 w-3 text-gray-400 dark:text-white/50"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -316,7 +319,7 @@ function MobileDrawer(props: ScrollSectionProps) {
         shouldScaleBackground={false}
         modal={false}
       >
-        <DrawerContent className="max-h-[70vh] border-white/20 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-black/60">
+        <DrawerContent className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
           <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
           <div
             className="touch-pan-y overflow-y-auto px-4 pt-1 pb-6"
@@ -344,7 +347,7 @@ function DesktopCard(props: ScrollSectionProps) {
       aria-label={`Section ${props.sectionIndex + 1} of ${props.totalSections}: ${props.section.title}`}
     >
       <div className="pointer-events-auto ml-8 max-w-sm">
-        <div className="rounded-2xl border border-black/5 bg-white/90 p-6 shadow-2xl backdrop-blur-sm dark:border-white/10 dark:bg-black/70">
+        <div className="rounded-2xl border border-black/5 bg-white/95 p-6 shadow-2xl backdrop-blur-md dark:border-white/10 dark:bg-black/85">
           <SectionContent {...props} />
         </div>
       </div>
