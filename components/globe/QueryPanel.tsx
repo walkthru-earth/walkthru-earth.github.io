@@ -54,7 +54,7 @@ export const QueryPanel = memo(function QueryPanel({
   if (!query) return null;
 
   return (
-    <div className="absolute top-3 right-3 z-20 max-w-[calc(100vw-1rem)] sm:top-auto sm:right-4 sm:bottom-4 sm:max-w-md">
+    <div className="absolute right-2 bottom-2 z-20 max-w-[calc(100vw-1rem)] sm:right-4 sm:bottom-4 sm:max-w-md">
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -121,9 +121,6 @@ export const QueryPanel = memo(function QueryPanel({
             <>
               {rowCount > 0 && <span>{rowCount.toLocaleString()} rows</span>}
               {duration !== null && <span>{duration.toFixed(0)}ms</span>}
-              <span className="ml-auto text-emerald-600/60 dark:text-emerald-400/60">
-                hyparquet
-              </span>
             </>
           )}
         </div>

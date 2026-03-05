@@ -6,7 +6,6 @@ import {
   BUILDING_HEIGHT_COLORS,
   TEMPERATURE_COLORS,
   WIND_SPEED_COLORS,
-  PRECIPITATION_COLORS,
   POPULATION_DENSITY_COLORS,
 } from '../utils/color-scales';
 import { loadParquet } from '../utils/parquet-loader';
@@ -221,56 +220,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 2: Weather — Precipitation (zoom ~2.5, tropical belt)
-   * ──────────────────────────────────────────────────────────────── */
-  {
-    id: 'weather-precipitation',
-    title: 'Precipitation',
-    subtitle: 'AI Weather · 6-hour Accumulation',
-    description:
-      'Six-hour precipitation accumulation from GraphCast. The tropical rain belt, monsoon systems, and mid-latitude fronts appear as bands of moisture wrapping the globe.',
-    stat: { label: 'Resolution', value: 'H3 res 4' },
-    viewState: { latitude: 10, longitude: 100, zoom: 2.5 },
-    colorColumn: 'precipitation_mm_6hr',
-    loadData: async (ctx, onProgress) =>
-      loadParquet(
-        weatherParquet(ctx.weatherPrefix, 4),
-        [
-          'h3_index',
-          'precipitation_mm_6hr',
-          'specific_humidity_gkg',
-          'temperature_2m_C',
-        ],
-        undefined,
-        onProgress
-      ),
-    buildQuery: (ctx) => `SELECT h3_index, precipitation_mm_6hr,
-       specific_humidity_gkg, temperature_2m_C
-FROM '${weatherParquet(ctx.weatherPrefix, 4)}'`,
-    getHexagon: (d) => String(d.h3_index),
-    getFillColor: (d, range) => {
-      const precip = Math.max(0, Number(d.precipitation_mm_6hr) || 0);
-      return interpolateColor(
-        normalize(precip, range.min, range.max),
-        PRECIPITATION_COLORS
-      );
-    },
-    formatTooltip: (d) =>
-      [
-        `Precip: ${Math.max(0, Number(d.precipitation_mm_6hr)).toFixed(1)} mm/6h`,
-        `Humidity: ${Number(d.specific_humidity_gkg).toFixed(1)} g/kg`,
-        `Temp: ${Number(d.temperature_2m_C).toFixed(1)} °C`,
-      ].join('\n'),
-    extruded: false,
-    colorLegend: [
-      { label: '0 mm', color: 'rgb(255,255,204)' },
-      { label: '5 mm', color: 'rgb(65,182,196)' },
-      { label: '10+ mm', color: 'rgb(37,52,148)' },
-    ],
-  },
-
-  /* ────────────────────────────────────────────────────────────────
-   * Section 3: Terrain — Himalayas (zoom ~3.5, extruded)
+   * Section 2: Terrain — Himalayas (zoom ~3.5, extruded)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'terrain',
