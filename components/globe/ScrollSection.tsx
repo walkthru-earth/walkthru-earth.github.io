@@ -7,6 +7,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
+
 import Image from 'next/image';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import type { GlobeSection } from './data/sections';
@@ -263,54 +264,105 @@ function MobileDrawer(props: ScrollSectionProps) {
 
   return (
     <div>
-      {/* Floating reopen pill — always visible when drawer is closed */}
+      {/* Floating bottom bar — always visible when drawer is closed */}
       {!open && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="fixed inset-x-0 bottom-0 z-30 mx-auto flex w-fit items-center gap-2.5 rounded-t-2xl border border-b-0 border-black/10 bg-white/90 px-5 py-2.5 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
+        <div
+          className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between border-t border-black/10 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
+          style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
-          {/* Loading pulse */}
-          {isLoading && (
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-          )}
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalSections }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-1 rounded-full transition-all ${
-                  i === sectionIndex
-                    ? 'w-3 bg-emerald-500'
-                    : 'w-1 bg-black/15 dark:bg-white/20'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-xs font-medium text-gray-900 dark:text-white/90">
-            {section.title}
-          </span>
-          {isLoading && rowCount !== undefined && rowCount > 0 && (
-            <span className="animate-pulse text-[10px] text-amber-600 dark:text-amber-400">
-              {rowCount.toLocaleString()}
-            </span>
-          )}
-          <svg
-            className="h-3 w-3 text-gray-400 dark:text-white/50"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          {/* Prev */}
+          <button
+            type="button"
+            disabled={sectionIndex === 0}
+            onClick={() => onSwipe?.(-1)}
+            aria-label="Previous section"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 transition-all active:scale-95 disabled:opacity-20 dark:border-white/15 dark:bg-white/10 dark:text-white/80"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 15l7-7 7 7"
-            />
-          </svg>
-        </button>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+
+          {/* Center — tap to reopen drawer */}
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2"
+          >
+            {isLoading && (
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+            )}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalSections }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1 rounded-full transition-all ${
+                    i === sectionIndex
+                      ? 'w-3 bg-emerald-500'
+                      : 'w-1 bg-black/15 dark:bg-white/20'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs font-medium text-gray-900 dark:text-white/90">
+              {section.title}
+            </span>
+            {isLoading && rowCount !== undefined && rowCount > 0 && (
+              <span className="animate-pulse text-[10px] text-amber-600 dark:text-amber-400">
+                {rowCount.toLocaleString()}
+              </span>
+            )}
+            <svg
+              className="h-3 w-3 text-gray-400 dark:text-white/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 15l7-7 7 7"
+              />
+            </svg>
+          </button>
+
+          {/* Next */}
+          <button
+            type="button"
+            disabled={sectionIndex === totalSections - 1}
+            onClick={() => onSwipe?.(1)}
+            aria-label="Next section"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 transition-all active:scale-95 disabled:opacity-20 dark:border-white/15 dark:bg-white/10 dark:text-white/80"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
       )}
 
       <Drawer
@@ -393,31 +445,14 @@ function LoadingOverlay({
 export const ScrollSection = memo(function ScrollSection(
   props: ScrollSectionProps
 ) {
-  const { onSwipe } = props;
-  const touchStartX = useRef(0);
-
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  }, []);
-
-  const onTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      const dx = e.changedTouches[0].clientX - touchStartX.current;
-      if (Math.abs(dx) > 60 && onSwipe) {
-        onSwipe(dx < 0 ? 1 : -1);
-      }
-    },
-    [onSwipe]
-  );
-
   return (
-    <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <>
       <LoadingOverlay
         isLoading={props.isLoading ?? false}
         rowCount={props.rowCount ?? 0}
       />
       <MobileDrawer {...props} />
       <DesktopCard {...props} />
-    </div>
+    </>
   );
 });

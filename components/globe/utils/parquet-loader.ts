@@ -42,7 +42,7 @@ function getWorker(): Worker {
       if (!p) return;
 
       if (msg.type === 'chunk') {
-        p.accumulated.push(...msg.rows);
+        p.accumulated = p.accumulated.concat(msg.rows);
         p.onChunk?.(p.accumulated);
       } else if (msg.type === 'done') {
         pending.delete(msg.id);
