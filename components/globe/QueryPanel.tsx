@@ -54,6 +54,7 @@ export function ParquetInfoPanel({
   isLoading: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [schemaOpen, setSchemaOpen] = useState(false);
 
   return (
     <div className="absolute top-4 left-4 z-20 sm:top-6 sm:left-6">
@@ -90,10 +91,7 @@ export function ParquetInfoPanel({
 
       {/* Expanded panel */}
       {open && info && (
-        <div
-          className="mt-2 max-h-[60vh] w-72 overflow-y-auto overscroll-contain rounded-xl border border-black/10 bg-white/95 shadow-xl backdrop-blur-md sm:w-80 dark:border-white/10 dark:bg-black/85"
-          onWheel={(e) => e.stopPropagation()}
-        >
+        <div className="mt-2 w-72 rounded-xl border border-black/10 bg-white/95 shadow-xl backdrop-blur-md sm:w-80 dark:border-white/10 dark:bg-black/85">
           {/* Header */}
           <div className="flex items-center gap-2 border-b border-black/10 px-4 py-2.5 dark:border-white/10">
             <svg
@@ -142,35 +140,58 @@ export function ParquetInfoPanel({
             </div>
           </div>
 
-          {/* Schema table */}
-          <div className="border-t border-black/10 px-4 py-3 dark:border-white/10">
-            <div className="mb-2 text-[10px] font-bold tracking-wider text-gray-500 uppercase dark:text-white/50">
-              Schema
-            </div>
-            <table className="w-full font-mono text-xs">
-              <thead>
-                <tr className="text-gray-500 dark:text-white/50">
-                  <th className="pb-1.5 text-left font-semibold">Column</th>
-                  <th className="pb-1.5 text-left font-semibold">Type</th>
-                  <th className="pb-1.5 text-right font-semibold">Codec</th>
-                </tr>
-              </thead>
-              <tbody>
-                {info.columns.map((col) => (
-                  <tr key={col.name}>
-                    <td className="py-0.5 font-semibold text-gray-800 dark:text-white/85">
-                      {col.name}
-                    </td>
-                    <td className="py-0.5 text-gray-500 dark:text-white/50">
-                      {col.type ?? '?'}
-                    </td>
-                    <td className="py-0.5 text-right text-gray-400 dark:text-white/40">
-                      {col.codec ?? ''}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Schema (collapsible) */}
+          <div className="border-t border-black/10 dark:border-white/10">
+            <button
+              type="button"
+              onClick={() => setSchemaOpen(!schemaOpen)}
+              className="flex w-full items-center justify-between px-4 py-2.5"
+            >
+              <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase dark:text-white/50">
+                Schema ({info.columns.length} columns)
+              </span>
+              <svg
+                className={`h-3 w-3 text-gray-400 transition-transform duration-200 dark:text-white/40 ${schemaOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            {schemaOpen && (
+              <div className="px-4 pb-3">
+                <table className="w-full font-mono text-xs">
+                  <thead>
+                    <tr className="text-gray-500 dark:text-white/50">
+                      <th className="pb-1.5 text-left font-semibold">Column</th>
+                      <th className="pb-1.5 text-left font-semibold">Type</th>
+                      <th className="pb-1.5 text-right font-semibold">Codec</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {info.columns.map((col) => (
+                      <tr key={col.name}>
+                        <td className="py-0.5 font-semibold text-gray-800 dark:text-white/85">
+                          {col.name}
+                        </td>
+                        <td className="py-0.5 text-gray-500 dark:text-white/50">
+                          {col.type ?? '?'}
+                        </td>
+                        <td className="py-0.5 text-right text-gray-400 dark:text-white/40">
+                          {col.codec ?? ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Created by */}
