@@ -8,6 +8,7 @@ import {
   COORDINATE_SYSTEM,
   LightingEffect,
   AmbientLight,
+  LinearInterpolator,
   type PickingInfo,
 } from '@deck.gl/core';
 import { GeoJsonLayer } from '@deck.gl/layers';
@@ -27,6 +28,12 @@ const COUNTRY_BORDERS =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_admin_0_boundary_lines_land.geojson';
 
 const GLOBE_VIEW = new GlobeView({ id: 'globe', resolution: 5 });
+
+const TRANSITION_INTERPOLATOR = new LinearInterpolator([
+  'longitude',
+  'latitude',
+  'zoom',
+]);
 
 /** Reusable sphere mesh for the earth background (low-poly for perf) */
 const SPHERE_MESH = new SphereGeometry({
@@ -60,7 +67,8 @@ const THEMES = {
 /* ------------------------------------------------------------------ */
 
 interface GlobeMapProps {
-  viewState: ViewState;
+  /** Target view for the current section — globe flies here on change. */
+  targetViewState: ViewState;
   layerData: Record<string, unknown>[];
   colorRange: ColorRange;
   getHexagon: (d: Record<string, unknown>) => string;
@@ -72,7 +80,6 @@ interface GlobeMapProps {
   formatTooltip?: (d: Record<string, unknown>) => string | null;
   extruded: boolean;
   elevationScale?: number;
-  layerOpacity?: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -80,7 +87,7 @@ interface GlobeMapProps {
 /* ------------------------------------------------------------------ */
 
 export const GlobeMap = memo(function GlobeMap({
-  viewState,
+  targetViewState,
   layerData,
   colorRange,
   getHexagon,
@@ -89,11 +96,22 @@ export const GlobeMap = memo(function GlobeMap({
   formatTooltip,
   extruded,
   elevationScale = 1,
-  layerOpacity = 0.85,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
   const palette = isDark ? THEMES.dark : THEMES.light;
+
+  // deck.gl manages internal state — animates to new position on change
+  const initialViewState = useMemo(
+    () => ({
+      longitude: targetViewState.longitude,
+      latitude: targetViewState.latitude,
+      zoom: targetViewState.zoom,
+      transitionDuration: 1500,
+      transitionInterpolator: TRANSITION_INTERPOLATOR,
+    }),
+    [targetViewState.longitude, targetViewState.latitude, targetViewState.zoom]
+  );
 
   const effects = useMemo(
     () => [
@@ -120,26 +138,22 @@ export const GlobeMap = memo(function GlobeMap({
         getColor: palette.sphere,
       }),
 
-      // 2. Land masses — fade in as H3 layer fades out during transitions
+      // 2. Land masses
       new GeoJsonLayer({
         id: 'earth-land',
         data: LAND_GEOJSON,
         stroked: false,
         filled: true,
-        opacity:
-          layerData.length === 0
-            ? palette.landOpacity
-            : palette.landOpacity * (1 - layerOpacity),
+        opacity: palette.landOpacity,
         getFillColor: palette.land,
       }),
 
-      // 3. Country borders — same crossfade
+      // 3. Country borders
       new GeoJsonLayer({
         id: 'country-borders',
         data: COUNTRY_BORDERS,
         stroked: true,
         filled: false,
-        opacity: layerData.length === 0 ? 1 : 1 - layerOpacity,
         lineWidthMinPixels: 0.5,
         getLineColor: palette.borders,
       }),
@@ -163,7 +177,7 @@ export const GlobeMap = memo(function GlobeMap({
           ) => [number, number, number, number],
           getElevation:
             (getElevation as ((d: unknown) => number) | undefined) ?? (() => 0),
-          opacity: layerOpacity,
+          opacity: 0.85,
           coverage: 0.92,
           material: {
             ambient: 0.64,
@@ -187,27 +201,15 @@ export const GlobeMap = memo(function GlobeMap({
     getElevation,
     extruded,
     elevationScale,
-    layerOpacity,
     palette,
   ]);
   /* eslint-enable @typescript-eslint/no-explicit-any */
-
-  // _GlobeView only supports longitude, latitude, zoom (no pitch/bearing)
-  const deckViewState = useMemo(
-    () => ({
-      longitude: viewState.longitude,
-      latitude: viewState.latitude,
-      zoom: viewState.zoom,
-    }),
-    [viewState.longitude, viewState.latitude, viewState.zoom]
-  );
 
   const handleTooltip = useMemo(() => {
     return ({ object }: PickingInfo) => {
       if (!object) return null;
       const d = object as Record<string, unknown>;
       if (formatTooltip) return formatTooltip(d);
-      // Generic fallback: show h3_index only
       return d.h3_index ? `H3: ${d.h3_index}` : null;
     };
   }, [formatTooltip]);
@@ -218,8 +220,8 @@ export const GlobeMap = memo(function GlobeMap({
     >
       <DeckGL
         views={GLOBE_VIEW}
-        viewState={deckViewState}
-        controller={false}
+        initialViewState={initialViewState}
+        controller={true}
         effects={effects}
         layers={layers}
         getTooltip={handleTooltip}

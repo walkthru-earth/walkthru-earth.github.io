@@ -19,17 +19,7 @@ interface GlobeExplorerProps {
 }
 
 export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
-  const viewStates = useMemo(
-    () => sections.map((s) => s.viewState),
-    [sections]
-  );
-  const {
-    containerRef,
-    activeSection,
-    viewState,
-    layerOpacity,
-    scrollToSection,
-  } = useGlobeScroll(viewStates);
+  const { containerRef, activeSection } = useGlobeScroll(sections.length);
 
   const [layerData, setLayerData] = useState<Record<string, unknown>[]>([]);
   const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
@@ -175,6 +165,21 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     return loadSection(activeSection, currentSection, queryCtx);
   }, [queryCtx, activeSection, currentSection, loadSection]);
 
+  /** Scroll the page to a given section index (used by swipe). */
+  const scrollToSection = useCallback(
+    (idx: number) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const totalHeight = container.scrollHeight - window.innerHeight;
+      const progress = idx / (sections.length - 1);
+      window.scrollTo({
+        top: container.offsetTop + progress * totalHeight,
+        behavior: 'smooth',
+      });
+    },
+    [containerRef, sections.length]
+  );
+
   const totalHeight = `${sections.length * 100}vh`;
 
   return (
@@ -185,7 +190,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <GlobeMap
-          viewState={viewState}
+          targetViewState={currentSection.viewState}
           layerData={layerData}
           colorRange={colorRange}
           getHexagon={currentSection.getHexagon}
@@ -194,7 +199,6 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           formatTooltip={currentSection.formatTooltip}
           extruded={currentSection.extruded}
           elevationScale={currentSection.elevationScale}
-          layerOpacity={layerOpacity}
         />
 
         <ScrollSection

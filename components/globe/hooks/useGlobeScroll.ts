@@ -1,65 +1,16 @@
 'use client';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
-import type { ViewState } from '../data/sections';
 
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
-}
-
-function lerpViewState(a: ViewState, b: ViewState, t: number): ViewState {
-  return {
-    latitude: lerp(a.latitude, b.latitude, t),
-    longitude: lerp(a.longitude, b.longitude, t),
-    zoom: lerp(a.zoom, b.zoom, t),
-  };
-}
-
-/** Ease-in-out cubic for smooth scroll transitions. */
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-export function useGlobeScroll(viewStates: ViewState[]) {
+/**
+ * Tracks which section the user has scrolled to.
+ * No snap, no viewState lerp — just section tracking.
+ */
+export function useGlobeScroll(sectionCount: number) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
-  const [viewState, setViewState] = useState<ViewState>(viewStates[0]);
-  const [layerOpacity, setLayerOpacity] = useState(1);
   const rafRef = useRef<number>(0);
-  const sectionTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const snapTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const isSnappingRef = useRef(false);
-
-  /** Scroll to a specific section index, setting the active section immediately. */
-  const scrollToSection = useCallback(
-    (idx: number) => {
-      const container = containerRef.current;
-      if (!container) return;
-      const sectionCount = viewStates.length;
-      const clamped = Math.max(0, Math.min(sectionCount - 1, idx));
-
-      // Set active section immediately — no debounce delay
-      setActiveSection(clamped);
-      setViewState(viewStates[clamped]);
-      setLayerOpacity(1);
-
-      isSnappingRef.current = true;
-      clearTimeout(snapTimerRef.current);
-      clearTimeout(sectionTimerRef.current);
-
-      const totalHeight = container.scrollHeight - window.innerHeight;
-      const targetProgress = clamped / (sectionCount - 1);
-      window.scrollTo({
-        top: container.offsetTop + targetProgress * totalHeight,
-        behavior: 'smooth',
-      });
-
-      setTimeout(() => {
-        isSnappingRef.current = false;
-      }, 800);
-    },
-    [viewStates]
-  );
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleScroll = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
@@ -71,62 +22,15 @@ export function useGlobeScroll(viewStates: ViewState[]) {
       const totalHeight = container.scrollHeight - window.innerHeight;
       const scrolled = -rect.top;
       const progress = Math.max(0, Math.min(1, scrolled / totalHeight));
+      const newActive = Math.round(progress * (sectionCount - 1));
 
-      const sectionCount = viewStates.length;
-      const sectionProgress = progress * (sectionCount - 1);
-      const currentSection = Math.floor(sectionProgress);
-      const sectionT = sectionProgress - currentSection;
-      const clampedSection = Math.min(currentSection, sectionCount - 2);
-      const nextSection = clampedSection + 1;
-
-      // Layer opacity: full at section center, fades during transitions
-      // fractional 0 or 1 = at section center, 0.5 = between sections
-      const fractional = sectionProgress - Math.round(sectionProgress);
-      const dist = Math.abs(fractional); // 0 = centered, 0.5 = midpoint
-      // Smooth fade: full opacity in center 60%, fade in outer 40%
-      const opacity = dist < 0.2 ? 1 : 1 - (dist - 0.2) / 0.3;
-      setLayerOpacity(Math.max(0.1, Math.min(1, opacity)));
-
-      // Update view state (globe lerp) on every scroll — even during snap
-      if (clampedSection < sectionCount - 1) {
-        setViewState(
-          lerpViewState(
-            viewStates[clampedSection],
-            viewStates[nextSection],
-            easeInOutCubic(sectionT)
-          )
-        );
-      } else {
-        setViewState(viewStates[sectionCount - 1]);
-      }
-
-      // During programmatic snap/swipe, skip section debounce and snap timer
-      // (active section was already set immediately)
-      if (isSnappingRef.current) return;
-
-      const newActive =
-        sectionT > 0.5
-          ? Math.min(nextSection, sectionCount - 1)
-          : clampedSection;
-
-      // Debounce section changes (150ms) so rapid scrolling doesn't
-      // trigger multiple data loads.
-      clearTimeout(sectionTimerRef.current);
-      sectionTimerRef.current = setTimeout(() => {
+      // Debounce section changes (150ms) to avoid rapid data loads
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
         setActiveSection((prev) => (prev !== newActive ? newActive : prev));
       }, 150);
-
-      // Snap to nearest section after 250ms of scroll idle
-      clearTimeout(snapTimerRef.current);
-      snapTimerRef.current = setTimeout(() => {
-        const nearestSection = Math.round(sectionProgress);
-        const distToNearest = Math.abs(sectionProgress - nearestSection);
-        // Skip if already snapped (within 2% of a section boundary)
-        if (distToNearest < 0.02) return;
-        scrollToSection(nearestSection);
-      }, 250);
     });
-  }, [viewStates, scrollToSection]);
+  }, [sectionCount]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -134,16 +38,9 @@ export function useGlobeScroll(viewStates: ViewState[]) {
     return () => {
       window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(rafRef.current);
-      clearTimeout(sectionTimerRef.current);
-      clearTimeout(snapTimerRef.current);
+      clearTimeout(timerRef.current);
     };
   }, [handleScroll]);
 
-  return {
-    containerRef,
-    activeSection,
-    viewState,
-    layerOpacity,
-    scrollToSection,
-  };
+  return { containerRef, activeSection };
 }
