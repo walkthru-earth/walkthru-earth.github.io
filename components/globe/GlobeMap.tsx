@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo, useCallback } from 'react';
+import { memo, useMemo, useCallback, useRef } from 'react';
 import { useTheme } from 'next-themes';
 import DeckGL from '@deck.gl/react';
 import {
@@ -84,8 +84,8 @@ interface GlobeMapProps {
   onCursorOverGlobe?: (isOver: boolean) => void;
   /** Called with current zoom level as user interacts with the globe. */
   onZoomChange?: (zoom: number) => void;
-  /** Called when the globe canvas is clicked/tapped. */
-  onClick?: () => void;
+  /** Called when the globe canvas is tapped (short touch, not a drag). */
+  onTap?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -104,11 +104,12 @@ export const GlobeMap = memo(function GlobeMap({
   elevationScale = 1,
   onCursorOverGlobe,
   onZoomChange,
-  onClick,
+  onTap,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
   const palette = isDark ? THEMES.dark : THEMES.light;
+  const tapRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
   // deck.gl manages internal state — animates to new position on change
   const initialViewState = useMemo(() => {
@@ -257,7 +258,24 @@ export const GlobeMap = memo(function GlobeMap({
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#eaf2f8_0%,_#b0cfe0_45%,_#8ab4d0_100%)] dark:bg-[radial-gradient(circle_at_center,_#1a1a2e_0%,_#0a0a18_45%,_#000_100%)]">
+    <div
+      className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#eaf2f8_0%,_#b0cfe0_45%,_#8ab4d0_100%)] dark:bg-[radial-gradient(circle_at_center,_#1a1a2e_0%,_#0a0a18_45%,_#000_100%)]"
+      onPointerDown={(e) => {
+        tapRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+      }}
+      onPointerUp={(e) => {
+        const s = tapRef.current;
+        if (!s) return;
+        const dx = e.clientX - s.x;
+        const dy = e.clientY - s.y;
+        const dt = Date.now() - s.t;
+        // Short press + minimal movement = tap
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 300) {
+          onTap?.();
+        }
+        tapRef.current = null;
+      }}
+    >
       <DeckGL
         views={GLOBE_VIEW}
         initialViewState={initialViewState}
@@ -265,7 +283,6 @@ export const GlobeMap = memo(function GlobeMap({
         effects={effects}
         layers={layers}
         onHover={handleHover}
-        onClick={onClick}
         onViewStateChange={handleViewStateChange}
         getTooltip={handleTooltip}
         style={{ width: '100%', height: '100%' }}

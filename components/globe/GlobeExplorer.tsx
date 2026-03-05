@@ -276,7 +276,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         elevationScale={currentSection.elevationScale}
         onCursorOverGlobe={handleCursorOverGlobe}
         onZoomChange={handleZoomChange}
-        onClick={handleGlobeTap}
+        onTap={handleGlobeTap}
       />
 
       <ScrollSection
