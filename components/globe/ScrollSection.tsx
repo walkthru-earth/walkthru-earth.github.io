@@ -123,7 +123,7 @@ export const ScrollSection = memo(function ScrollSection({
           {/* Action buttons */}
           <div className="mt-4 flex items-center gap-2">
             <a
-              href="https://source.coop/walkthru-earth/indices"
+              href={section.sourceCoopUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-xs transition-colors hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
@@ -138,7 +138,7 @@ export const ScrollSection = memo(function ScrollSection({
               <span className="text-foreground/80">Data</span>
             </a>
             <a
-              href="https://github.com/walkthru-earth"
+              href={section.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-xs transition-colors hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"

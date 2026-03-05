@@ -50,6 +50,8 @@ export interface GlobeSection {
   extruded: boolean;
   elevationScale?: number;
   colorLegend: { label: string; color: string }[];
+  sourceCoopUrl: string;
+  githubUrl: string;
 }
 
 /* ── Data source URLs ─────────────────────────────────────────────── */
@@ -168,6 +170,8 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
       { label: '0°C', color: 'rgb(171,217,233)' },
       { label: '40°C', color: 'rgb(165,0,38)' },
     ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -217,6 +221,8 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
       { label: '12 m/s', color: 'rgb(67,162,202)' },
       { label: '25 m/s', color: 'rgb(8,64,129)' },
     ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -262,6 +268,8 @@ FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'`,
       { label: '4000 m', color: 'rgb(160,82,45)' },
       { label: '8000 m', color: 'rgb(255,250,250)' },
     ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/dem-terrain',
+    githubUrl: 'https://github.com/walkthru-earth/dem-terrain',
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -330,6 +338,8 @@ JOIN '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet' p
       { label: '1M', color: 'rgb(253,141,60)' },
       { label: '2M+', color: 'rgb(189,0,38)' },
     ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -383,6 +393,8 @@ FROM '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'`,
       { label: 'Stable', color: 'rgb(255,255,178)' },
       { label: '3x Growth', color: 'rgb(227,26,28)' },
     ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-pop-index',
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -438,5 +450,7 @@ FROM '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet'`,
       { label: 'Mid-rise', color: 'rgb(253,184,99)' },
       { label: 'High-rise', color: 'rgb(215,48,39)' },
     ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
   },
 ];
