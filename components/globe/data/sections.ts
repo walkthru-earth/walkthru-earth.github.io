@@ -45,6 +45,11 @@ export interface QueryContext {
   weatherPrefix: string;
 }
 
+export interface ColorRange {
+  min: number;
+  max: number;
+}
+
 export interface GlobeSection {
   id: string;
   title: string;
@@ -52,6 +57,8 @@ export interface GlobeSection {
   description: string;
   stat: { label: string; value: string };
   viewState: ViewState;
+  /** Column used for fill color — used to compute dynamic P5/P95 range. */
+  colorColumn: string;
   /** Load data via hyparquet. Returns rows for the H3 layer. */
   loadData: (
     bbox: BBox,
@@ -61,7 +68,8 @@ export interface GlobeSection {
   buildQuery: (bbox: BBox, ctx: QueryContext) => string;
   getHexagon: (d: Record<string, unknown>) => string;
   getFillColor: (
-    d: Record<string, unknown>
+    d: Record<string, unknown>,
+    range: ColorRange
   ) => [number, number, number, number];
   getElevation?: (d: Record<string, unknown>) => number;
   formatTooltip?: (d: Record<string, unknown>) => string | null;
@@ -155,6 +163,7 @@ export const SECTIONS: GlobeSection[] = [
       'Four global datasets — terrain, population, buildings, and weather — indexed on a unified H3 hexagonal grid. Query them directly in your browser with hyparquet.',
     stat: { label: 'Total Cells', value: '10.5B+' },
     viewState: { latitude: 20, longitude: 30, zoom: 1.2 },
+    colorColumn: '',
     loadData: async () => [],
     buildQuery: () => '',
     getHexagon: () => '',
@@ -174,6 +183,7 @@ export const SECTIONS: GlobeSection[] = [
       "AI-powered weather from NOAA GraphCast, topographically corrected with our 30m terrain model. This is today's 2-meter air temperature — the thermal fingerprint of the entire planet in one query.",
     stat: { label: 'Forecast Horizon', value: '5 days' },
     viewState: { latitude: 20, longitude: 30, zoom: 1.5 },
+    colorColumn: 'temperature_2m_C',
     loadData: async (_bbox, ctx) =>
       loadParquet(weatherParquet(ctx.weatherPrefix, 1), [
         'h3_index',
@@ -185,9 +195,12 @@ export const SECTIONS: GlobeSection[] = [
        wind_speed_10m_ms, pressure_msl_hPa
 FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
     getHexagon: (d) => String(d.h3_index),
-    getFillColor: (d) => {
+    getFillColor: (d, range) => {
       const temp = Number(d.temperature_2m_C) || 15;
-      return interpolateColor(normalize(temp, -30, 40), TEMPERATURE_COLORS);
+      return interpolateColor(
+        normalize(temp, range.min, range.max),
+        TEMPERATURE_COLORS
+      );
     },
     formatTooltip: (d) =>
       [
@@ -214,6 +227,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
       'Surface wind speeds at 10 meters above ground. Trade winds, westerlies, and storm systems become visible — each hexagon carries speed and direction vectors across 2 million cells.',
     stat: { label: 'Update Frequency', value: '12 hrs' },
     viewState: { latitude: 30, longitude: -30, zoom: 1.8 },
+    colorColumn: 'wind_speed_10m_ms',
     loadData: async (_bbox, ctx) =>
       loadParquet(weatherParquet(ctx.weatherPrefix, 3), [
         'h3_index',
@@ -225,9 +239,12 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
        wind_direction_10m_deg, temperature_2m_C
 FROM '${weatherParquet(ctx.weatherPrefix, 3)}'`,
     getHexagon: (d) => String(d.h3_index),
-    getFillColor: (d) => {
+    getFillColor: (d, range) => {
       const wind = Number(d.wind_speed_10m_ms) || 0;
-      return interpolateColor(normalize(wind, 0, 25), WIND_SPEED_COLORS);
+      return interpolateColor(
+        normalize(wind, range.min, range.max),
+        WIND_SPEED_COLORS
+      );
     },
     formatTooltip: (d) =>
       [
@@ -254,6 +271,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, 3)}'`,
       'Six-hour precipitation accumulation from GraphCast. The tropical rain belt, monsoon systems, and mid-latitude fronts appear as bands of moisture wrapping the globe.',
     stat: { label: 'Resolution', value: 'H3 res 4' },
     viewState: { latitude: 10, longitude: 100, zoom: 2.5 },
+    colorColumn: 'precipitation_mm_6hr',
     loadData: async (_bbox, ctx) =>
       loadParquet(weatherParquet(ctx.weatherPrefix, 4), [
         'h3_index',
@@ -265,9 +283,12 @@ FROM '${weatherParquet(ctx.weatherPrefix, 3)}'`,
        specific_humidity_gkg, temperature_2m_C
 FROM '${weatherParquet(ctx.weatherPrefix, 4)}'`,
     getHexagon: (d) => String(d.h3_index),
-    getFillColor: (d) => {
+    getFillColor: (d, range) => {
       const precip = Math.max(0, Number(d.precipitation_mm_6hr) || 0);
-      return interpolateColor(normalize(precip, 0, 10), PRECIPITATION_COLORS);
+      return interpolateColor(
+        normalize(precip, range.min, range.max),
+        PRECIPITATION_COLORS
+      );
     },
     formatTooltip: (d) =>
       [
@@ -294,6 +315,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, 4)}'`,
       'Elevation from the GEDTM-30m global terrain model. Each hexagon aggregates 30m resolution data — revealing slope, ruggedness, and topographic position across 10.5 billion cells worldwide.',
     stat: { label: 'Source Resolution', value: '30m' },
     viewState: { latitude: 28.5, longitude: 86.5, zoom: 3.5 },
+    colorColumn: 'elev',
     loadData: async (bbox) => {
       const rows = await loadParquet(
         `${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet`,
@@ -306,9 +328,12 @@ FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'
 WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   AND lon BETWEEN ${bbox.minLon.toFixed(1)} AND ${bbox.maxLon.toFixed(1)}`,
     getHexagon: (d) => String(d.h3_index),
-    getFillColor: (d) => {
+    getFillColor: (d, range) => {
       const elev = Number(d.elev) || 0;
-      return interpolateColor(normalize(elev, 0, 8000), ELEVATION_COLORS);
+      return interpolateColor(
+        normalize(elev, range.min, range.max),
+        ELEVATION_COLORS
+      );
     },
     getElevation: (d) => Math.max(0, Number(d.elev) || 0),
     formatTooltip: (d) =>
@@ -337,6 +362,7 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
       "2.75 billion buildings from the Global Building Atlas, joined with population projections. The Nile Delta is one of Earth's most densely built regions — 100 million people in a narrow fertile strip.",
     stat: { label: 'Total Buildings', value: '2.75B' },
     viewState: { latitude: 30.0, longitude: 31.2, zoom: 4 },
+    colorColumn: 'pop_2025',
     loadData: async (bbox) => {
       const [buildings, population] = await Promise.all([
         loadParquet(`${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`, [
@@ -375,10 +401,10 @@ JOIN '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet' p
 WHERE b.lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   AND b.lon BETWEEN ${bbox.minLon.toFixed(1)} AND ${bbox.maxLon.toFixed(1)}`,
     getHexagon: (d) => String(d.h3_index),
-    getFillColor: (d) => {
+    getFillColor: (d, range) => {
       const pop = Number(d.pop_2025) || 0;
       return interpolateColor(
-        normalize(pop, 0, 2_000_000),
+        normalize(pop, range.min, range.max),
         POPULATION_DENSITY_COLORS
       );
     },
@@ -410,6 +436,7 @@ WHERE b.lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
       'Population projections under SSP2 from WorldPop. Sub-Saharan Africa shows the most dramatic projected growth — some hexagons tripling by 2100. Extruded by current population, colored by growth ratio.',
     stat: { label: 'Projection', value: 'SSP2' },
     viewState: { latitude: 5, longitude: 25, zoom: 3.5 },
+    colorColumn: 'growth_ratio',
     loadData: async (bbox) => {
       const rows = await loadParquet(
         `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
@@ -432,10 +459,10 @@ FROM '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'
 WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   AND lon BETWEEN ${bbox.minLon.toFixed(1)} AND ${bbox.maxLon.toFixed(1)}`,
     getHexagon: (d) => String(d.h3_index),
-    getFillColor: (d) => {
+    getFillColor: (d, range) => {
       const ratio = Number(d.growth_ratio) || 1;
       return interpolateColor(
-        normalize(ratio, 0.5, 3.0),
+        normalize(ratio, range.min, range.max),
         POPULATION_GROWTH_COLORS
       );
     },
@@ -466,6 +493,7 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
       "Tokyo-Yokohama, the world's largest metro — each hexagon reports building count, average height, and footprint coverage. Extruded by density, colored by average building height.",
     stat: { label: 'Metro Population', value: '37M' },
     viewState: { latitude: 35.68, longitude: 139.76, zoom: 4 },
+    colorColumn: 'avg_height_m',
     loadData: async (bbox) => {
       const rows = await loadParquet(
         `${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`,
@@ -489,9 +517,12 @@ FROM '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet'
 WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   AND lon BETWEEN ${bbox.minLon.toFixed(1)} AND ${bbox.maxLon.toFixed(1)}`,
     getHexagon: (d) => String(d.h3_index),
-    getFillColor: (d) => {
+    getFillColor: (d, range) => {
       const height = Number(d.avg_height_m) || 0;
-      return interpolateColor(normalize(height, 0, 15), BUILDING_HEIGHT_COLORS);
+      return interpolateColor(
+        normalize(height, range.min, range.max),
+        BUILDING_HEIGHT_COLORS
+      );
     },
     getElevation: (d) => Math.max(0, Number(d.building_density) || 0),
     formatTooltip: (d) =>

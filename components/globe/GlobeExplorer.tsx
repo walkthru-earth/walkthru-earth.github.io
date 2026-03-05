@@ -11,6 +11,7 @@ import {
   resolveWeatherPrefix,
   type GlobeSection,
   type QueryContext,
+  type ColorRange,
 } from './data/sections';
 
 interface GlobeExplorerProps {
@@ -25,6 +26,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   const { containerRef, activeSection, viewState } = useGlobeScroll(viewStates);
 
   const [layerData, setLayerData] = useState<Record<string, unknown>[]>([]);
+  const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
   const [rowCount, setRowCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +37,14 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
   /** Promise-based cache — stores in-flight promises to prevent duplicate loads. */
   const cacheRef = useRef<
-    Map<number, Promise<{ rows: Record<string, unknown>[]; duration: number }>>
+    Map<
+      number,
+      Promise<{
+        rows: Record<string, unknown>[];
+        duration: number;
+        range: ColorRange;
+      }>
+    >
   >(new Map());
 
   const currentSection = sections[activeSection];
@@ -59,6 +68,25 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   }, []);
 
   /**
+   * Compute P5/P95 percentile range from loaded rows for dynamic color scaling.
+   */
+  const computeRange = useCallback(
+    (rows: Record<string, unknown>[], column: string): ColorRange => {
+      if (!column || rows.length === 0) return { min: 0, max: 1 };
+      const values = rows
+        .map((r) => Number(r[column]))
+        .filter(Number.isFinite)
+        .sort((a, b) => a - b);
+      if (values.length === 0) return { min: 0, max: 1 };
+      return {
+        min: values[Math.floor(values.length * 0.05)] ?? 0,
+        max: values[Math.floor(values.length * 0.95)] ?? 1,
+      };
+    },
+    []
+  );
+
+  /**
    * Load data for a section. Called from the scroll effect.
    * All setState calls happen inside async callbacks (satisfies lint rule).
    */
@@ -72,16 +100,19 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
       if (!loadPromise) {
         const start = performance.now();
         loadPromise = section.loadData(bbox, ctx).then((rows) => {
+          const duration = performance.now() - start;
+          const range = computeRange(rows, section.colorColumn);
           console.log(
-            `[Globe] Loaded "${section.id}": ${rows.length} rows in ${(performance.now() - start).toFixed(0)}ms`
+            `[Globe] Loaded "${section.id}": ${rows.length} rows in ${duration.toFixed(0)}ms`
           );
+          console.log(`[Globe] colorRange:`, range);
           if (rows.length > 0) {
             console.log(
               '[Globe] Sample row:',
               JSON.stringify(rows[0]).slice(0, 200)
             );
           }
-          return { rows, duration: performance.now() - start };
+          return { rows, duration, range };
         });
         cacheRef.current.set(sectionIdx, loadPromise);
         loadPromise.catch(() => cacheRef.current.delete(sectionIdx));
@@ -104,6 +135,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         .then((result) => {
           if (cancelled) return;
           setLayerData(result.rows);
+          setColorRange(result.range);
           setQueryDuration(result.duration);
           setRowCount(result.rows.length);
           setIsLoading(false);
@@ -123,7 +155,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         cancelled = true;
       };
     },
-    []
+    [computeRange]
   );
 
   // Trigger load when section changes (progressive — one section at a time)
@@ -137,6 +169,20 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     return loadSection(activeSection, currentSection, queryCtx);
   }, [queryCtx, activeSection, currentSection, loadSection]);
 
+  const scrollToSection = useCallback(
+    (idx: number) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const totalScrollHeight = container.scrollHeight - window.innerHeight;
+      const progress = idx / (sections.length - 1);
+      window.scrollTo({
+        top: container.offsetTop + progress * totalScrollHeight,
+        behavior: 'smooth',
+      });
+    },
+    [containerRef, sections.length]
+  );
+
   const totalHeight = `${sections.length * 100}vh`;
 
   return (
@@ -149,6 +195,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         <GlobeMap
           viewState={viewState}
           layerData={layerData}
+          colorRange={colorRange}
           getHexagon={currentSection.getHexagon}
           getFillColor={currentSection.getFillColor}
           getElevation={currentSection.getElevation}
@@ -162,6 +209,13 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           isActive={true}
           sectionIndex={activeSection}
           totalSections={sections.length}
+          onSwipe={(dir) => {
+            const target = Math.max(
+              0,
+              Math.min(sections.length - 1, activeSection + dir)
+            );
+            scrollToSection(target);
+          }}
         />
 
         <QueryPanel

@@ -14,7 +14,7 @@ import { GeoJsonLayer } from '@deck.gl/layers';
 import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import { SphereGeometry } from '@luma.gl/engine';
 import { H3HexagonLayer } from '@deck.gl/geo-layers';
-import type { ViewState } from './data/sections';
+import type { ViewState, ColorRange } from './data/sections';
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -62,9 +62,11 @@ const THEMES = {
 interface GlobeMapProps {
   viewState: ViewState;
   layerData: Record<string, unknown>[];
+  colorRange: ColorRange;
   getHexagon: (d: Record<string, unknown>) => string;
   getFillColor: (
-    d: Record<string, unknown>
+    d: Record<string, unknown>,
+    range: ColorRange
   ) => [number, number, number, number];
   getElevation?: (d: Record<string, unknown>) => number;
   formatTooltip?: (d: Record<string, unknown>) => string | null;
@@ -79,6 +81,7 @@ interface GlobeMapProps {
 export const GlobeMap = memo(function GlobeMap({
   viewState,
   layerData,
+  colorRange,
   getHexagon,
   getFillColor,
   getElevation,
@@ -150,7 +153,8 @@ export const GlobeMap = memo(function GlobeMap({
           extruded,
           elevationScale,
           getHexagon: getHexagon as (d: unknown) => string,
-          getFillColor: getFillColor as (
+          getFillColor: ((d: unknown) =>
+            getFillColor(d as Record<string, unknown>, colorRange)) as (
             d: unknown
           ) => [number, number, number, number],
           getElevation:
@@ -163,7 +167,7 @@ export const GlobeMap = memo(function GlobeMap({
             shininess: 32,
           },
           updateTriggers: {
-            getFillColor: [getFillColor],
+            getFillColor: [getFillColor, colorRange.min, colorRange.max],
             getElevation: [getElevation],
           },
         })
@@ -173,6 +177,7 @@ export const GlobeMap = memo(function GlobeMap({
     return result;
   }, [
     layerData,
+    colorRange,
     getHexagon,
     getFillColor,
     getElevation,

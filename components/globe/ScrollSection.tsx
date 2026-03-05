@@ -9,6 +9,7 @@ interface ScrollSectionProps {
   isActive: boolean;
   sectionIndex: number;
   totalSections: number;
+  onSwipe?: (direction: -1 | 1) => void;
 }
 
 export const ScrollSection = memo(function ScrollSection({
@@ -16,6 +17,7 @@ export const ScrollSection = memo(function ScrollSection({
   isActive,
   sectionIndex,
   totalSections,
+  onSwipe,
 }: ScrollSectionProps) {
   return (
     <AnimatePresence mode="wait">
@@ -30,7 +32,17 @@ export const ScrollSection = memo(function ScrollSection({
           role="region"
           aria-label={`Section ${sectionIndex + 1} of ${totalSections}: ${section.title}`}
         >
-          <div className="pointer-events-auto mx-3 mb-3 max-w-none sm:mx-0 sm:mb-0 sm:ml-8 sm:max-w-sm">
+          <motion.div
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={(_, info) => {
+              if (Math.abs(info.offset.x) > 80 && onSwipe) {
+                onSwipe(info.offset.x < 0 ? 1 : -1);
+              }
+            }}
+            className="pointer-events-auto mx-3 mb-3 max-w-none sm:mx-0 sm:mb-0 sm:ml-8 sm:max-w-sm"
+          >
             <div className="rounded-2xl border border-black/5 bg-white/90 p-4 shadow-2xl sm:p-6 dark:border-white/10 dark:bg-black/70">
               {/* Section indicator */}
               <div
@@ -107,7 +119,7 @@ export const ScrollSection = memo(function ScrollSection({
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

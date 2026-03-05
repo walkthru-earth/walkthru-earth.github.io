@@ -26,6 +26,8 @@ export function useGlobeScroll(viewStates: ViewState[]) {
   const [viewState, setViewState] = useState<ViewState>(viewStates[0]);
   const rafRef = useRef<number>(0);
   const sectionTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const snapTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const isSnappingRef = useRef(false);
 
   const handleScroll = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
@@ -68,6 +70,28 @@ export function useGlobeScroll(viewStates: ViewState[]) {
       } else {
         setViewState(viewStates[sectionCount - 1]);
       }
+
+      // Snap to nearest section after 250ms of scroll idle
+      if (!isSnappingRef.current) {
+        clearTimeout(snapTimerRef.current);
+        snapTimerRef.current = setTimeout(() => {
+          const nearestSection = Math.round(sectionProgress);
+          const distToNearest = Math.abs(sectionProgress - nearestSection);
+          // Skip if already snapped (within 2% of a section boundary)
+          if (distToNearest < 0.02) return;
+          isSnappingRef.current = true;
+          const targetProgress = nearestSection / (sectionCount - 1);
+          const targetScroll = targetProgress * totalHeight;
+          window.scrollTo({
+            top: container.offsetTop + targetScroll,
+            behavior: 'smooth',
+          });
+          // Reset after smooth-scroll animation completes
+          setTimeout(() => {
+            isSnappingRef.current = false;
+          }, 800);
+        }, 250);
+      }
     });
   }, [viewStates]);
 
@@ -78,6 +102,7 @@ export function useGlobeScroll(viewStates: ViewState[]) {
       window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(rafRef.current);
       clearTimeout(sectionTimerRef.current);
+      clearTimeout(snapTimerRef.current);
     };
   }, [handleScroll]);
 
