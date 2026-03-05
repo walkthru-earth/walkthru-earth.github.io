@@ -82,6 +82,8 @@ interface GlobeMapProps {
   elevationScale?: number;
   /** Called when cursor enters/leaves the globe surface. */
   onCursorOverGlobe?: (isOver: boolean) => void;
+  /** Called with current zoom level as user interacts with the globe. */
+  onZoomChange?: (zoom: number) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -99,6 +101,7 @@ export const GlobeMap = memo(function GlobeMap({
   extruded,
   elevationScale = 1,
   onCursorOverGlobe,
+  onZoomChange,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
@@ -241,6 +244,15 @@ export const GlobeMap = memo(function GlobeMap({
     [onCursorOverGlobe]
   );
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const handleViewStateChange = useCallback(
+    ({ viewState }: any) => {
+      onZoomChange?.(viewState.zoom);
+    },
+    [onZoomChange]
+  );
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
   return (
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#eaf2f8_0%,_#b0cfe0_45%,_#8ab4d0_100%)] dark:bg-[radial-gradient(circle_at_center,_#1a1a2e_0%,_#0a0a18_45%,_#000_100%)]">
       <DeckGL
@@ -250,6 +262,7 @@ export const GlobeMap = memo(function GlobeMap({
         effects={effects}
         layers={layers}
         onHover={handleHover}
+        onViewStateChange={handleViewStateChange}
         getTooltip={handleTooltip}
         style={{ width: '100%', height: '100%' }}
       />

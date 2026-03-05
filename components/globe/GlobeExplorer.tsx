@@ -30,7 +30,20 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   const [rowCount, setRowCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [queryCtx, setQueryCtx] = useState<QueryContext | null>(null);
+  const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(sections[0]?.viewState.zoom ?? 1.5);
+
+  // Per-section h3Res overrides (sparse — only stores user changes)
+  const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
+    {}
+  );
+  const currentSection = sections[activeSection];
+  const h3Res = h3ResOverrides[activeSection] ?? currentSection.defaultH3Res;
+
+  const queryCtx = useMemo<QueryContext | null>(
+    () => (weatherPrefix ? { weatherPrefix, h3Res } : null),
+    [weatherPrefix, h3Res]
+  );
 
   // Ref tracks the active section so async callbacks can check without stale closures
   const activeSectionRef = useRef(0);
@@ -38,10 +51,10 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     activeSectionRef.current = activeSection;
   }, [activeSection]);
 
-  /** Promise-based cache to prevent duplicate loads. */
+  /** Promise-based cache keyed by "sectionIdx:h3Res" to prevent duplicate loads. */
   const cacheRef = useRef<
     Map<
-      number,
+      string,
       Promise<{
         rows: Record<string, unknown>[];
         duration: number;
@@ -50,22 +63,20 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     >
   >(new Map());
 
-  const currentSection = sections[activeSection];
-
   const handleCursorOverGlobe = useCallback((isOver: boolean) => {
     isOverGlobeRef.current = isOver;
   }, []);
 
   const resolvedQuery = useMemo(() => {
-    const ctx = queryCtx ?? { weatherPrefix: '...' };
+    const ctx = queryCtx ?? { weatherPrefix: '...', h3Res };
     return currentSection.buildQuery(ctx);
-  }, [queryCtx, currentSection]);
+  }, [queryCtx, currentSection, h3Res]);
 
   // Resolve weather prefix once on mount
   useEffect(() => {
     let cancelled = false;
     resolveWeatherPrefix().then((prefix) => {
-      if (!cancelled) setQueryCtx({ weatherPrefix: prefix });
+      if (!cancelled) setWeatherPrefix(prefix);
     });
     return () => {
       cancelled = true;
@@ -94,13 +105,13 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
    */
   const loadSection = useCallback(
     (sectionIdx: number, section: GlobeSection, ctx: QueryContext) => {
-      let loadPromise = cacheRef.current.get(sectionIdx);
+      const cacheKey = `${sectionIdx}:${ctx.h3Res}`;
+      let loadPromise = cacheRef.current.get(cacheKey);
 
       if (!loadPromise) {
         console.log(
-          `[Globe] Loading "${section.id}" (section ${sectionIdx})...`
+          `[Globe] Loading "${section.id}" h3_res=${ctx.h3Res} (section ${sectionIdx})...`
         );
-        // Defer setState to avoid synchronous setState in effect body
         Promise.resolve().then(() => {
           if (activeSectionRef.current !== sectionIdx) return;
           setIsLoading(true);
@@ -109,12 +120,8 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
         const start = performance.now();
 
-        // Progressive callback — updates layer as row groups stream in
         const onProgress = (partialRows: Record<string, unknown>[]) => {
           if (activeSectionRef.current !== sectionIdx) return;
-          console.log(
-            `[Globe] "${section.id}" chunk: ${partialRows.length} rows so far`
-          );
           setLayerData([...partialRows]);
           setRowCount(partialRows.length);
         };
@@ -127,10 +134,10 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           );
           return { rows, duration, range };
         });
-        cacheRef.current.set(sectionIdx, loadPromise);
-        loadPromise.catch(() => cacheRef.current.delete(sectionIdx));
+        cacheRef.current.set(cacheKey, loadPromise);
+        loadPromise.catch(() => cacheRef.current.delete(cacheKey));
       } else {
-        console.log(`[Globe] "${section.id}" cache hit`);
+        console.log(`[Globe] "${section.id}" h3_res=${ctx.h3Res} cache hit`);
       }
 
       loadPromise
@@ -160,25 +167,30 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   useEffect(() => {
     if (!queryCtx) return;
 
+    const cacheKey = `${activeSection}:${queryCtx.h3Res}`;
+
     // Load the active section
     loadSection(activeSection, currentSection, queryCtx);
 
     // Prefetch next section AFTER current finishes — avoid bandwidth competition
-    const currentPromise = cacheRef.current.get(activeSection);
+    const currentPromise = cacheRef.current.get(cacheKey);
     const nextIdx = activeSection + 1;
     if (currentPromise && nextIdx < sections.length) {
+      const next = sections[nextIdx];
+      const nextRes = h3ResOverrides[nextIdx] ?? next.defaultH3Res;
+      const nextCtx = { ...queryCtx, h3Res: nextRes };
+      const nextKey = `${nextIdx}:${nextRes}`;
       currentPromise.then(() => {
         if (activeSectionRef.current !== activeSection) return;
-        if (cacheRef.current.has(nextIdx)) return;
-        const next = sections[nextIdx];
+        if (cacheRef.current.has(nextKey)) return;
         const start = performance.now();
-        const prefetch = next.loadData(queryCtx).then((rows) => {
+        const prefetch = next.loadData(nextCtx).then((rows) => {
           const duration = performance.now() - start;
           const range = computeRange(rows, next.colorColumn);
           return { rows, duration, range };
         });
-        cacheRef.current.set(nextIdx, prefetch);
-        prefetch.catch(() => cacheRef.current.delete(nextIdx));
+        cacheRef.current.set(nextKey, prefetch);
+        prefetch.catch(() => cacheRef.current.delete(nextKey));
       });
     }
   }, [
@@ -186,9 +198,25 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     activeSection,
     currentSection,
     sections,
+    h3ResOverrides,
     loadSection,
     computeRange,
   ]);
+
+  const handleH3ResChange = useCallback(
+    (delta: number) => {
+      const [min, max] = currentSection.h3ResRange;
+      setH3ResOverrides((prev) => {
+        const cur = prev[activeSection] ?? currentSection.defaultH3Res;
+        const next = Math.max(min, Math.min(max, cur + delta));
+        if (next === cur) return prev;
+        return { ...prev, [activeSection]: next };
+      });
+    },
+    [activeSection, currentSection]
+  );
+
+  const handleZoomChange = useCallback((z: number) => setZoom(z), []);
 
   return (
     <div
@@ -206,6 +234,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         extruded={currentSection.extruded}
         elevationScale={currentSection.elevationScale}
         onCursorOverGlobe={handleCursorOverGlobe}
+        onZoomChange={handleZoomChange}
       />
 
       <ScrollSection
@@ -225,6 +254,71 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           />
         }
       />
+
+      {/* Zoom & H3 resolution control */}
+      <div className="absolute top-4 right-4 z-20 flex flex-col items-center gap-2 sm:top-6 sm:right-6">
+        {/* Zoom circle */}
+        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white/95 shadow-lg backdrop-blur-md sm:h-14 sm:w-14 dark:border-white/10 dark:bg-black/85">
+          <div className="text-center">
+            <div className="font-mono text-xs font-bold text-gray-900 tabular-nums dark:text-white">
+              {zoom.toFixed(1)}
+            </div>
+            <div className="text-[8px] font-medium text-gray-400 uppercase dark:text-white/40">
+              zoom
+            </div>
+          </div>
+        </div>
+
+        {/* H3 resolution stepper */}
+        <div className="flex items-center gap-0 rounded-full border border-black/10 bg-white/95 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-black/85">
+          <button
+            type="button"
+            onClick={() => handleH3ResChange(-1)}
+            disabled={h3Res <= currentSection.h3ResRange[0]}
+            className="flex h-8 w-8 items-center justify-center rounded-l-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 dark:text-white/60 dark:hover:bg-white/10"
+            aria-label="Decrease H3 resolution"
+          >
+            <svg
+              className="h-3 w-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5" />
+            </svg>
+          </button>
+          <div className="flex min-w-[2.5rem] flex-col items-center px-1">
+            <span className="font-mono text-xs font-bold text-gray-900 tabular-nums dark:text-white">
+              {h3Res}
+            </span>
+            <span className="text-[7px] font-medium text-gray-400 uppercase dark:text-white/40">
+              h3 res
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleH3ResChange(1)}
+            disabled={h3Res >= currentSection.h3ResRange[1]}
+            className="flex h-8 w-8 items-center justify-center rounded-r-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 dark:text-white/60 dark:hover:bg-white/10"
+            aria-label="Increase H3 resolution"
+          >
+            <svg
+              className="h-3 w-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 5v14M5 12h14"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
 
       {/* Desktop-only floating SQL panel */}
       <QueryPanel

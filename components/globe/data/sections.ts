@@ -19,6 +19,7 @@ export interface ViewState {
 /** Runtime context passed to buildQuery/loadData — values resolved at mount time. */
 export interface QueryContext {
   weatherPrefix: string;
+  h3Res: number;
 }
 
 export interface ColorRange {
@@ -52,6 +53,10 @@ export interface GlobeSection {
   colorLegend: { label: string; color: string }[];
   sourceCoopUrl: string;
   githubUrl: string;
+  /** Default H3 resolution for this section */
+  defaultH3Res: number;
+  /** Min/max H3 resolution the user can pick */
+  h3ResRange: [number, number];
 }
 
 /* ── Data source URLs ─────────────────────────────────────────────── */
@@ -118,6 +123,15 @@ const weatherParquet = (prefix: string, res: number) =>
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
+/** Convert h3_index to hex string for deck.gl H3HexagonLayer.
+ *  Handles both BigInt (v2 int64) and hex string (v1 weather). */
+const h3ToHex = (d: Record<string, unknown>): string => {
+  const v = d.h3_index;
+  if (typeof v === 'bigint') return v.toString(16);
+  if (typeof v === 'number') return BigInt(v).toString(16);
+  return String(v);
+};
+
 const fmt = (n: number) => Number(n).toLocaleString();
 
 /* ── Section definitions ──────────────────────────────────────────── */
@@ -137,7 +151,7 @@ export const SECTIONS: GlobeSection[] = [
     colorColumn: 'temperature_2m_C',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        weatherParquet(ctx.weatherPrefix, 1),
+        weatherParquet(ctx.weatherPrefix, ctx.h3Res),
         [
           'h3_index',
           'temperature_2m_C',
@@ -149,8 +163,8 @@ export const SECTIONS: GlobeSection[] = [
       ),
     buildQuery: (ctx) => `SELECT h3_index, temperature_2m_C,
        wind_speed_10m_ms, pressure_msl_hPa
-FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
-    getHexagon: (d) => String(d.h3_index),
+FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
+    getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const temp = Number(d.temperature_2m_C) || 15;
       return interpolateColor(
@@ -172,6 +186,8 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
     ],
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
+    defaultH3Res: 1,
+    h3ResRange: [1, 4],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -188,7 +204,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
     colorColumn: 'wind_speed_10m_ms',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        weatherParquet(ctx.weatherPrefix, 1),
+        weatherParquet(ctx.weatherPrefix, ctx.h3Res),
         [
           'h3_index',
           'wind_speed_10m_ms',
@@ -200,8 +216,8 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
       ),
     buildQuery: (ctx) => `SELECT h3_index, wind_speed_10m_ms,
        wind_direction_10m_deg, temperature_2m_C
-FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
-    getHexagon: (d) => String(d.h3_index),
+FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
+    getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const wind = Number(d.wind_speed_10m_ms) || 0;
       return interpolateColor(
@@ -223,6 +239,8 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
     ],
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
+    defaultH3Res: 1,
+    h3ResRange: [1, 4],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -237,16 +255,16 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
     stat: { label: 'Source Resolution', value: '30m' },
     viewState: { latitude: 28.5, longitude: 86.5, zoom: 3.5 },
     colorColumn: 'elev',
-    loadData: async (_ctx, onProgress) =>
+    loadData: async (ctx, onProgress) =>
       loadParquet(
-        `${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet`,
+        `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
         ['h3_index', 'elev', 'slope', 'aspect', 'tri'],
         undefined,
         onProgress
       ),
-    buildQuery: () => `SELECT h3_index, elev, slope, aspect, tri
-FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'`,
-    getHexagon: (d) => String(d.h3_index),
+    buildQuery: (ctx) => `SELECT h3_index, elev, slope, aspect, tri
+FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
+    getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const elev = Number(d.elev) || 0;
       return interpolateColor(
@@ -270,6 +288,8 @@ FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'`,
     ],
     sourceCoopUrl: 'https://source.coop/walkthru-earth/dem-terrain',
     githubUrl: 'https://github.com/walkthru-earth/dem-terrain',
+    defaultH3Res: 3,
+    h3ResRange: [1, 7],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -284,17 +304,20 @@ FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'`,
     stat: { label: 'Total Buildings', value: '2.75B' },
     viewState: { latitude: 30.0, longitude: 31.2, zoom: 4 },
     colorColumn: 'pop_2025',
-    loadData: async (_ctx, _onProgress) => {
+    loadData: async (ctx, _onProgress) => {
       const [buildings, population] = await Promise.all([
-        loadParquet(`${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`, [
-          'h3_index',
-          'building_count',
-          'building_density',
-          'avg_height_m',
-          'total_volume_m3',
-        ]),
         loadParquet(
-          `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
+          `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+          [
+            'h3_index',
+            'building_count',
+            'building_density',
+            'avg_height_m',
+            'total_volume_m3',
+          ]
+        ),
+        loadParquet(
+          `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
           ['h3_index', 'pop_2025', 'pop_2050']
         ),
       ]);
@@ -308,14 +331,14 @@ FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'`,
         };
       });
     },
-    buildQuery: () => `SELECT b.h3_index, b.building_count,
+    buildQuery: (ctx) => `SELECT b.h3_index, b.building_count,
        b.building_density, b.avg_height_m,
        b.total_volume_m3,
        p.pop_2025, p.pop_2050
-FROM '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet' b
-JOIN '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet' p
+FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet' b
+JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet' p
   ON b.h3_index = p.h3_index`,
-    getHexagon: (d) => String(d.h3_index),
+    getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const pop = Number(d.pop_2025) || 0;
       return interpolateColor(
@@ -340,6 +363,8 @@ JOIN '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet' p
     ],
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/building',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
+    defaultH3Res: 3,
+    h3ResRange: [1, 7],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -354,9 +379,9 @@ JOIN '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet' p
     stat: { label: 'Projection', value: 'SSP2' },
     viewState: { latitude: 5, longitude: 25, zoom: 3.5 },
     colorColumn: 'growth_ratio',
-    loadData: async (_ctx, _onProgress) => {
+    loadData: async (ctx, _onProgress) => {
       const rows = await loadParquet(
-        `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
+        `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
         ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100']
       );
       return rows.map((r) => ({
@@ -367,11 +392,11 @@ JOIN '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet' p
             : null,
       }));
     },
-    buildQuery: () => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
+    buildQuery: (ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
        (pop_2100 / NULLIF(pop_2025, 0))
          AS growth_ratio
-FROM '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'`,
-    getHexagon: (d) => String(d.h3_index),
+FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet'`,
+    getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const ratio = Number(d.growth_ratio) || 1;
       return interpolateColor(
@@ -395,6 +420,8 @@ FROM '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'`,
     ],
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/population',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-pop-index',
+    defaultH3Res: 3,
+    h3ResRange: [1, 7],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -409,9 +436,9 @@ FROM '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'`,
     stat: { label: 'Metro Population', value: '37M' },
     viewState: { latitude: 35.68, longitude: 139.76, zoom: 4 },
     colorColumn: 'avg_height_m',
-    loadData: async (_ctx, onProgress) =>
+    loadData: async (ctx, onProgress) =>
       loadParquet(
-        `${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`,
+        `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
         [
           'h3_index',
           'building_count',
@@ -423,11 +450,11 @@ FROM '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'`,
         undefined,
         onProgress
       ),
-    buildQuery: () => `SELECT h3_index, building_count,
+    buildQuery: (ctx) => `SELECT h3_index, building_count,
        building_density, avg_height_m,
        coverage_ratio, total_volume_m3
-FROM '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet'`,
-    getHexagon: (d) => String(d.h3_index),
+FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
+    getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const height = Number(d.avg_height_m) || 0;
       return interpolateColor(
@@ -452,5 +479,7 @@ FROM '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet'`,
     ],
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/building',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
+    defaultH3Res: 3,
+    h3ResRange: [1, 7],
   },
 ];
