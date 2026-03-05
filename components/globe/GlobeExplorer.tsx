@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { GlobeMap } from './GlobeMap';
 import { ScrollSection } from './ScrollSection';
-import { QueryPanel, QueryPanelInline } from './QueryPanel';
+import { QueryPanel, QueryPanelInline, ParquetInfoPanel } from './QueryPanel';
 import { useGlobeScroll } from './hooks/useGlobeScroll';
 import {
   SECTIONS,
@@ -11,6 +11,7 @@ import {
   type GlobeSection,
   type QueryContext,
   type ColorRange,
+  type ParquetInfo,
 } from './data/sections';
 
 interface GlobeExplorerProps {
@@ -30,6 +31,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   const [rowCount, setRowCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [parquetInfo, setParquetInfo] = useState<ParquetInfo | null>(null);
   const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
   const [zoom, setZoom] = useState(sections[0]?.viewState.zoom ?? 1.5);
 
@@ -59,6 +61,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         rows: Record<string, unknown>[];
         duration: number;
         range: ColorRange;
+        info: ParquetInfo | null;
       }>
     >
   >(new Map());
@@ -116,6 +119,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           if (activeSectionRef.current !== sectionIdx) return;
           setIsLoading(true);
           setError(null);
+          setParquetInfo(null);
         });
 
         const start = performance.now();
@@ -126,13 +130,13 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           setRowCount(partialRows.length);
         };
 
-        loadPromise = section.loadData(ctx, onProgress).then((rows) => {
+        loadPromise = section.loadData(ctx, onProgress).then((result) => {
           const duration = performance.now() - start;
-          const range = computeRange(rows, section.colorColumn);
+          const range = computeRange(result.rows, section.colorColumn);
           console.log(
-            `[Globe] "${section.id}" done: ${rows.length} rows in ${duration.toFixed(0)}ms`
+            `[Globe] "${section.id}" done: ${result.rows.length} rows in ${duration.toFixed(0)}ms`
           );
-          return { rows, duration, range };
+          return { rows: result.rows, duration, range, info: result.info };
         });
         cacheRef.current.set(cacheKey, loadPromise);
         loadPromise.catch(() => cacheRef.current.delete(cacheKey));
@@ -147,6 +151,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           setColorRange(result.range);
           setQueryDuration(result.duration);
           setRowCount(result.rows.length);
+          setParquetInfo(result.info);
           setIsLoading(false);
         })
         .catch((err) => {
@@ -157,6 +162,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           setLayerData([]);
           setQueryDuration(null);
           setRowCount(0);
+          setParquetInfo(null);
           setIsLoading(false);
         });
     },
@@ -184,10 +190,10 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         if (activeSectionRef.current !== activeSection) return;
         if (cacheRef.current.has(nextKey)) return;
         const start = performance.now();
-        const prefetch = next.loadData(nextCtx).then((rows) => {
+        const prefetch = next.loadData(nextCtx).then((result) => {
           const duration = performance.now() - start;
-          const range = computeRange(rows, next.colorColumn);
-          return { rows, duration, range };
+          const range = computeRange(result.rows, next.colorColumn);
+          return { rows: result.rows, duration, range, info: result.info };
         });
         cacheRef.current.set(nextKey, prefetch);
         prefetch.catch(() => cacheRef.current.delete(nextKey));
@@ -321,6 +327,9 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           </button>
         </div>
       </div>
+
+      {/* Parquet info panel (top-left) */}
+      <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />
 
       {/* Desktop-only floating SQL panel */}
       <QueryPanel

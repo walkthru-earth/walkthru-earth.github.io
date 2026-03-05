@@ -3,13 +3,24 @@
  * Supports progressive streaming — onChunk fires as each row group is parsed.
  */
 
-import type { WorkerRequest, WorkerResponse } from './parquet-worker';
+import type {
+  WorkerRequest,
+  WorkerResponse,
+  ParquetInfo,
+} from './parquet-worker';
+
+export type { ParquetInfo } from './parquet-worker';
 
 let worker: Worker | null = null;
 let nextId = 0;
 
+export interface LoadResult {
+  rows: Record<string, unknown>[];
+  info: ParquetInfo | null;
+}
+
 interface PendingRequest {
-  resolve: (rows: Record<string, unknown>[]) => void;
+  resolve: (result: LoadResult) => void;
   reject: (err: Error) => void;
   onChunk?: (rows: Record<string, unknown>[]) => void;
   accumulated: Record<string, unknown>[];
@@ -18,7 +29,7 @@ interface PendingRequest {
 const pending = new Map<number, PendingRequest>();
 
 /** File-level cache: same URL + columns → reuse previous result */
-const fileCache = new Map<string, Promise<Record<string, unknown>[]>>();
+const fileCache = new Map<string, Promise<LoadResult>>();
 
 function getWorker(): Worker {
   if (!worker) {
@@ -35,7 +46,7 @@ function getWorker(): Worker {
         p.onChunk?.(p.accumulated);
       } else if (msg.type === 'done') {
         pending.delete(msg.id);
-        p.resolve(p.accumulated);
+        p.resolve({ rows: p.accumulated, info: msg.info });
       } else if (msg.type === 'error') {
         pending.delete(msg.id);
         p.reject(new Error(msg.error));
@@ -50,20 +61,20 @@ export function loadParquet(
   columns?: string[],
   _filter?: unknown,
   onChunk?: (rows: Record<string, unknown>[]) => void
-): Promise<Record<string, unknown>[]> {
+): Promise<LoadResult> {
   const cacheKey = `${url}|${columns?.join(',') ?? '*'}`;
 
   // If we have a completed cache hit, return it immediately
   // but still fire onChunk so the caller gets data right away
   const cached = fileCache.get(cacheKey);
   if (cached && onChunk) {
-    cached.then((rows) => onChunk(rows));
+    cached.then(({ rows }) => onChunk(rows));
     return cached;
   }
   if (cached) return cached;
 
   const id = nextId++;
-  const promise = new Promise<Record<string, unknown>[]>((resolve, reject) => {
+  const promise = new Promise<LoadResult>((resolve, reject) => {
     pending.set(id, { resolve, reject, onChunk, accumulated: [] });
     getWorker().postMessage({ id, url, columns } as WorkerRequest);
   });

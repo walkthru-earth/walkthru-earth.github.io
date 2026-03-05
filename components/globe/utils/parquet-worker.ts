@@ -23,9 +23,23 @@ export interface WorkerRequest {
   columns?: string[];
 }
 
+/** Serializable subset of Parquet file metadata for the UI. */
+export interface ParquetInfo {
+  fileSize: number;
+  numRows: number;
+  numRowGroups: number;
+  columns: {
+    name: string;
+    type: string | undefined;
+    codec: string | undefined;
+  }[];
+  createdBy: string | undefined;
+  parquetVersion: number;
+}
+
 export type WorkerResponse =
   | { id: number; type: 'chunk'; rows: Record<string, unknown>[] }
-  | { id: number; type: 'done' }
+  | { id: number; type: 'done'; info: ParquetInfo }
   | { id: number; type: 'error'; error: string };
 
 /** Cache full-file ArrayBuffers so repeated loads are instant. */
@@ -99,6 +113,28 @@ function post(msg: WorkerResponse) {
   (self as unknown as Worker).postMessage(msg);
 }
 
+function extractInfo(metadata: FileMetaData, fileSize: number): ParquetInfo {
+  // Schema[0] is the root element; columns start at index 1
+  const columns = metadata.schema
+    .slice(1)
+    .filter((s) => s.type)
+    .map((s) => ({
+      name: s.name,
+      type: s.type,
+      codec: metadata.row_groups[0]?.columns.find(
+        (c) => c.meta_data?.path_in_schema.at(-1) === s.name
+      )?.meta_data?.codec,
+    }));
+  return {
+    fileSize,
+    numRows: Number(metadata.num_rows),
+    numRowGroups: metadata.row_groups.length,
+    columns,
+    createdBy: metadata.created_by,
+    parquetVersion: metadata.version,
+  };
+}
+
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const { id, url, columns } = e.data;
   const shortUrl = url.split('/').slice(-3).join('/');
@@ -119,8 +155,10 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         byteLength: buffer.byteLength,
         slice: (start: number, end: number) => buffer.slice(start, end),
       };
+      const metadata = (await parquetMetadataAsync(file)) as FileMetaData;
       const rows = (await parquetReadObjects({
         file,
+        metadata,
         compressors,
         columns,
       })) as Record<string, unknown>[];
@@ -128,7 +166,11 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         `[Worker] ${shortUrl}: ${rows.length} rows parsed in ${(performance.now() - t1).toFixed(0)}ms (total ${(performance.now() - t0).toFixed(0)}ms)`
       );
       post({ id, type: 'chunk', rows });
-      post({ id, type: 'done' });
+      post({
+        id,
+        type: 'done',
+        info: extractInfo(metadata, buffer.byteLength),
+      });
       return;
     }
 
@@ -141,6 +183,8 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       `[Worker] ${shortUrl}: ${(file.byteLength / 1024).toFixed(0)}KB, ${rowGroups.length} row groups → range requests`
     );
 
+    const info = extractInfo(metadata, file.byteLength);
+
     if (rowGroups.length <= 1) {
       const rows = (await parquetReadObjects({
         file,
@@ -150,7 +194,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       })) as Record<string, unknown>[];
       console.log(`[Worker] ${shortUrl}: ${rows.length} rows (single group)`);
       post({ id, type: 'chunk', rows });
-      post({ id, type: 'done' });
+      post({ id, type: 'done', info });
       return;
     }
 
@@ -185,7 +229,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
     console.log(
       `[Worker] ${shortUrl}: done, ${sentRows} rows in ${(performance.now() - t0).toFixed(0)}ms`
     );
-    post({ id, type: 'done' });
+    post({ id, type: 'done', info });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     post({ id, type: 'error', error });

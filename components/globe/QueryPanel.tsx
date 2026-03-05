@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useState } from 'react';
+import type { ParquetInfo } from './data/sections';
 
 interface QueryPanelProps {
   query: string;
@@ -33,6 +34,152 @@ function tokenizeSQL(sql: string): Token[] {
     tokens.push({ type: 'text', value: sql.slice(lastIndex) });
   }
   return tokens;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+/* ── Standalone Parquet info panel (top-left floating) ────────────── */
+
+export function ParquetInfoPanel({
+  info,
+  isLoading,
+}: {
+  info: ParquetInfo | null;
+  isLoading: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="absolute top-4 left-4 z-20 sm:top-6 sm:left-6">
+      {/* "i" toggle button */}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-label="Parquet file info"
+        aria-expanded={open}
+        className={`flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg backdrop-blur-md transition-all sm:h-14 sm:w-14 ${
+          open
+            ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-600 dark:border-emerald-400/50 dark:bg-emerald-400/15 dark:text-emerald-400'
+            : 'border-black/15 bg-white/95 text-gray-600 hover:border-black/25 hover:bg-white dark:border-white/15 dark:bg-black/85 dark:text-white/60 dark:hover:border-white/25 dark:hover:bg-black/90'
+        }`}
+      >
+        {isLoading ? (
+          <span className="h-3 w-3 animate-pulse rounded-full bg-amber-500" />
+        ) : (
+          <svg
+            className="h-6 w-6 sm:h-7 sm:w-7"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        )}
+      </button>
+
+      {/* Expanded panel */}
+      {open && info && (
+        <div className="mt-2 w-72 overflow-hidden rounded-xl border border-black/10 bg-white/95 shadow-xl backdrop-blur-md sm:w-80 dark:border-white/10 dark:bg-black/85">
+          {/* Header */}
+          <div className="flex items-center gap-2 border-b border-black/10 px-4 py-2.5 dark:border-white/10">
+            <svg
+              className="h-4 w-4 text-emerald-500 dark:text-emerald-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span className="font-mono text-sm font-bold text-gray-800 dark:text-white/90">
+              Parquet Metadata
+            </span>
+          </div>
+
+          {/* Summary stats */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 px-4 py-3 font-mono text-xs">
+            <div className="font-medium text-gray-500 dark:text-white/50">
+              File size
+            </div>
+            <div className="text-right font-bold text-gray-800 dark:text-white/90">
+              {formatBytes(info.fileSize)}
+            </div>
+            <div className="font-medium text-gray-500 dark:text-white/50">
+              Rows
+            </div>
+            <div className="text-right font-bold text-gray-800 dark:text-white/90">
+              {info.numRows.toLocaleString()}
+            </div>
+            <div className="font-medium text-gray-500 dark:text-white/50">
+              Row groups
+            </div>
+            <div className="text-right font-bold text-gray-800 dark:text-white/90">
+              {info.numRowGroups}
+            </div>
+            <div className="font-medium text-gray-500 dark:text-white/50">
+              Version
+            </div>
+            <div className="text-right font-bold text-gray-800 dark:text-white/90">
+              {info.parquetVersion}
+            </div>
+          </div>
+
+          {/* Schema table */}
+          <div className="border-t border-black/10 px-4 py-3 dark:border-white/10">
+            <div className="mb-2 text-[10px] font-bold tracking-wider text-gray-500 uppercase dark:text-white/50">
+              Schema
+            </div>
+            <table className="w-full font-mono text-xs">
+              <thead>
+                <tr className="text-gray-500 dark:text-white/50">
+                  <th className="pb-1.5 text-left font-semibold">Column</th>
+                  <th className="pb-1.5 text-left font-semibold">Type</th>
+                  <th className="pb-1.5 text-right font-semibold">Codec</th>
+                </tr>
+              </thead>
+              <tbody>
+                {info.columns.map((col) => (
+                  <tr key={col.name}>
+                    <td className="py-0.5 font-semibold text-gray-800 dark:text-white/85">
+                      {col.name}
+                    </td>
+                    <td className="py-0.5 text-gray-500 dark:text-white/50">
+                      {col.type ?? '?'}
+                    </td>
+                    <td className="py-0.5 text-right text-gray-400 dark:text-white/40">
+                      {col.codec ?? ''}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Created by */}
+          {info.createdBy && (
+            <div className="truncate border-t border-black/10 px-4 py-2.5 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/40">
+              {info.createdBy}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const TOKEN_CLASSES: Record<Token['type'], string> = {
@@ -143,12 +290,12 @@ export const QueryPanel = memo(function QueryPanel({
   if (!query) return null;
 
   return (
-    <div className="absolute bottom-4 left-8 z-20 hidden max-w-md flex-col sm:flex">
+    <div className="absolute bottom-4 left-8 z-20 hidden w-fit max-w-md flex-col sm:flex">
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        className="flex items-center gap-2 rounded-lg border border-black/10 bg-white/95 px-3 py-1.5 font-mono text-xs text-gray-800 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/85 dark:text-white/80 dark:hover:bg-black/90"
+        className="flex items-center gap-1.5 rounded-lg border border-black/10 bg-white/95 px-2 py-1 font-mono text-[11px] text-gray-800 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/85 dark:text-white/80 dark:hover:bg-black/90"
       >
         <span
           className={`inline-block h-2 w-2 rounded-full transition-colors ${

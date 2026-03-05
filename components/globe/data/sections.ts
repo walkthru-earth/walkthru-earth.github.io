@@ -8,7 +8,13 @@ import {
   WIND_SPEED_COLORS,
   POPULATION_DENSITY_COLORS,
 } from '../utils/color-scales';
-import { loadParquet } from '../utils/parquet-loader';
+import {
+  loadParquet,
+  type LoadResult,
+  type ParquetInfo,
+} from '../utils/parquet-loader';
+
+export type { ParquetInfo };
 
 export interface ViewState {
   latitude: number;
@@ -39,7 +45,7 @@ export interface GlobeSection {
   loadData: (
     ctx: QueryContext,
     onProgress?: (rows: Record<string, unknown>[]) => void
-  ) => Promise<Record<string, unknown>[]>;
+  ) => Promise<LoadResult>;
   buildQuery: (ctx: QueryContext) => string;
   getHexagon: (d: Record<string, unknown>) => string;
   getFillColor: (
@@ -305,7 +311,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     viewState: { latitude: 30.0, longitude: 31.2, zoom: 4 },
     colorColumn: 'pop_2025',
     loadData: async (ctx, _onProgress) => {
-      const [buildings, population] = await Promise.all([
+      const [bResult, pResult] = await Promise.all([
         loadParquet(
           `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
           [
@@ -321,8 +327,8 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
           ['h3_index', 'pop_2025', 'pop_2050']
         ),
       ]);
-      const popMap = new Map(population.map((p) => [String(p.h3_index), p]));
-      return buildings.map((b) => {
+      const popMap = new Map(pResult.rows.map((p) => [String(p.h3_index), p]));
+      const rows = bResult.rows.map((b) => {
         const p = popMap.get(String(b.h3_index));
         return {
           ...b,
@@ -330,6 +336,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
           pop_2050: p?.pop_2050 ?? 0,
         };
       });
+      return { rows, info: bResult.info };
     },
     buildQuery: (ctx) => `SELECT b.h3_index, b.building_count,
        b.building_density, b.avg_height_m,
@@ -380,17 +387,20 @@ JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
     viewState: { latitude: 5, longitude: 25, zoom: 3.5 },
     colorColumn: 'growth_ratio',
     loadData: async (ctx, _onProgress) => {
-      const rows = await loadParquet(
+      const result = await loadParquet(
         `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
         ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100']
       );
-      return rows.map((r) => ({
-        ...r,
-        growth_ratio:
-          Number(r.pop_2025) !== 0
-            ? Number(r.pop_2100) / Number(r.pop_2025)
-            : null,
-      }));
+      return {
+        rows: result.rows.map((r) => ({
+          ...r,
+          growth_ratio:
+            Number(r.pop_2025) !== 0
+              ? Number(r.pop_2100) / Number(r.pop_2025)
+              : null,
+        })),
+        info: result.info,
+      };
     },
     buildQuery: (ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
        (pop_2100 / NULLIF(pop_2025, 0))
