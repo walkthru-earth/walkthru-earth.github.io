@@ -19,7 +19,9 @@ interface GlobeExplorerProps {
 }
 
 export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
-  const { containerRef, activeSection } = useGlobeScroll(sections.length);
+  const { containerRef, activeSection, navigate } = useGlobeScroll(
+    sections.length
+  );
 
   const [layerData, setLayerData] = useState<Record<string, unknown>[]>([]);
   const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
@@ -83,7 +85,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   );
 
   /**
-   * Load data for a section. Called from the scroll effect.
+   * Load data for a section. Called when activeSection changes.
    * All setState calls happen inside async callbacks (satisfies lint rule).
    */
   const loadSection = useCallback(
@@ -154,7 +156,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     [computeRange]
   );
 
-  // Trigger load when section changes (progressive — one section at a time)
+  // Trigger load when section changes
   useEffect(() => {
     if (!queryCtx) return;
     if (activeSection === lastQueriedSection.current) return;
@@ -165,86 +167,38 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     return loadSection(activeSection, currentSection, queryCtx);
   }, [queryCtx, activeSection, currentSection, loadSection]);
 
-  /** Scroll the page to a given section index (used by swipe). */
-  const scrollToSection = useCallback(
-    (idx: number) => {
-      const container = containerRef.current;
-      if (!container) return;
-      const totalHeight = container.scrollHeight - window.innerHeight;
-      const progress = idx / (sections.length - 1);
-      window.scrollTo({
-        top: container.offsetTop + progress * totalHeight,
-        behavior: 'smooth',
-      });
-    },
-    [containerRef, sections.length]
-  );
-
-  const totalHeight = `${sections.length * 100}vh`;
-
   return (
     <div
       ref={containerRef}
-      style={{ height: totalHeight }}
-      className="relative"
+      className="relative h-screen w-full overflow-hidden"
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
-        <GlobeMap
-          targetViewState={currentSection.viewState}
-          layerData={layerData}
-          colorRange={colorRange}
-          getHexagon={currentSection.getHexagon}
-          getFillColor={currentSection.getFillColor}
-          getElevation={currentSection.getElevation}
-          formatTooltip={currentSection.formatTooltip}
-          extruded={currentSection.extruded}
-          elevationScale={currentSection.elevationScale}
-        />
+      <GlobeMap
+        targetViewState={currentSection.viewState}
+        layerData={layerData}
+        colorRange={colorRange}
+        getHexagon={currentSection.getHexagon}
+        getFillColor={currentSection.getFillColor}
+        getElevation={currentSection.getElevation}
+        formatTooltip={currentSection.formatTooltip}
+        extruded={currentSection.extruded}
+        elevationScale={currentSection.elevationScale}
+      />
 
-        <ScrollSection
-          section={currentSection}
-          isActive={true}
-          sectionIndex={activeSection}
-          totalSections={sections.length}
-          onSwipe={(dir) => {
-            const target = Math.max(
-              0,
-              Math.min(sections.length - 1, activeSection + dir)
-            );
-            scrollToSection(target);
-          }}
-        />
+      <ScrollSection
+        section={currentSection}
+        isActive={true}
+        sectionIndex={activeSection}
+        totalSections={sections.length}
+        onSwipe={(dir) => navigate(dir)}
+      />
 
-        <QueryPanel
-          query={resolvedQuery}
-          duration={queryDuration}
-          rowCount={rowCount}
-          isLoading={isLoading}
-          error={error}
-        />
-
-        {activeSection === 0 && (
-          <div className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 animate-bounce flex-col items-center gap-2 motion-reduce:animate-none">
-            <span className="text-muted-foreground/60 font-mono text-xs">
-              Scroll to explore
-            </span>
-            <svg
-              className="text-muted-foreground/40 h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
-          </div>
-        )}
-      </div>
+      <QueryPanel
+        query={resolvedQuery}
+        duration={queryDuration}
+        rowCount={rowCount}
+        isLoading={isLoading}
+        error={error}
+      />
     </div>
   );
 }

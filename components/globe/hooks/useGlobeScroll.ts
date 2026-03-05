@@ -3,44 +3,43 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 /**
- * Tracks which section the user has scrolled to.
- * No snap, no viewState lerp — just section tracking.
+ * Manages section navigation via wheel events.
+ * Each scroll gesture advances one section, then the user is free to interact.
  */
 export function useGlobeScroll(sectionCount: number) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
-  const rafRef = useRef<number>(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const cooldownRef = useRef(false);
 
-  const handleScroll = useCallback(() => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const totalHeight = container.scrollHeight - window.innerHeight;
-      const scrolled = -rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / totalHeight));
-      const newActive = Math.round(progress * (sectionCount - 1));
-
-      // Debounce section changes (150ms) to avoid rapid data loads
-      clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        setActiveSection((prev) => (prev !== newActive ? newActive : prev));
-      }, 150);
-    });
-  }, [sectionCount]);
+  const navigate = useCallback(
+    (direction: -1 | 1) => {
+      if (cooldownRef.current) return;
+      setActiveSection((prev) => {
+        const next = prev + direction;
+        if (next < 0 || next >= sectionCount) return prev;
+        cooldownRef.current = true;
+        setTimeout(() => {
+          cooldownRef.current = false;
+        }, 600);
+        return next;
+      });
+    },
+    [sectionCount]
+  );
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      cancelAnimationFrame(rafRef.current);
-      clearTimeout(timerRef.current);
-    };
-  }, [handleScroll]);
+    const container = containerRef.current;
+    if (!container) return;
 
-  return { containerRef, activeSection };
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const direction = e.deltaY > 0 ? 1 : -1;
+      navigate(direction);
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [navigate]);
+
+  return { containerRef, activeSection, navigate };
 }
