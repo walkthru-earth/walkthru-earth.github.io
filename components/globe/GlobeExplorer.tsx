@@ -160,19 +160,22 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     [computeRange]
   );
 
-  // Load current section + prefetch adjacent
+  // Load current section, then prefetch next after it completes
   useEffect(() => {
     if (!queryCtx) return;
 
     // Load the active section
     loadSection(activeSection, currentSection, queryCtx);
 
-    // Prefetch next section (don't apply results, just warm the cache)
+    // Prefetch next section AFTER current finishes — avoid bandwidth competition
+    const currentPromise = cacheRef.current.get(activeSection);
     const nextIdx = activeSection + 1;
-    if (nextIdx < sections.length) {
-      const next = sections[nextIdx];
-      const bbox = viewStateToBBox(next.viewState);
-      if (!cacheRef.current.has(nextIdx)) {
+    if (currentPromise && nextIdx < sections.length) {
+      currentPromise.then(() => {
+        if (activeSectionRef.current !== activeSection) return;
+        if (cacheRef.current.has(nextIdx)) return;
+        const next = sections[nextIdx];
+        const bbox = viewStateToBBox(next.viewState);
         const start = performance.now();
         const prefetch = next.loadData(bbox, queryCtx).then((rows) => {
           const duration = performance.now() - start;
@@ -181,7 +184,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         });
         cacheRef.current.set(nextIdx, prefetch);
         prefetch.catch(() => cacheRef.current.delete(nextIdx));
-      }
+      });
     }
   }, [
     queryCtx,
