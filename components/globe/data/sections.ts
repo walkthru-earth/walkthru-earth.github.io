@@ -86,9 +86,9 @@ const PROBE_BASE = 'https://data.source.coop/walkthru-earth';
 
 const WEATHER_BASE = `${S3_BASE}/indices/weather/model=GraphCast_GFS`;
 
-function recentDates(): string[] {
+function recentDates(count = 7): string[] {
   const dates: string[] = [];
-  for (let i = 0; i <= 2; i++) {
+  for (let i = 0; i < count; i++) {
     const d = new Date();
     d.setUTCDate(d.getUTCDate() - i);
     dates.push(d.toISOString().slice(0, 10));
@@ -121,8 +121,9 @@ export function resolveWeatherPrefix(): Promise<string> {
       if (result.status === 'fulfilled') return result.value;
     }
 
-    // Fallback
-    return `${WEATHER_BASE}/date=${recentDates()[1]}/hour=0`;
+    // All probes failed — fall back to the most recent candidate
+    console.warn('[Weather] All probes failed, using fallback');
+    return `${WEATHER_BASE}/date=${candidates[0].date}/hour=${candidates[0].hour}`;
   })();
 
   return _weatherPrefixPromise;
