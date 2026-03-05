@@ -3,6 +3,11 @@ const nextConfig = {
   // Static export for GitHub Pages
   output: 'export',
 
+  // Disable React Strict Mode — deck.gl/luma.gl WebGL device creation
+  // fails on double-invoked useEffect (maxTextureDimension2D error).
+  // Safe to disable: the error is dev-only but blocks WebGL rendering.
+  reactStrictMode: false,
+
   // Turbopack is default in Next.js 16
   turbopack: {
     root: '.',
