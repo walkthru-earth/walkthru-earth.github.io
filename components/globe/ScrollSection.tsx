@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GlobeSection } from './data/sections';
 
@@ -10,7 +11,7 @@ interface ScrollSectionProps {
   totalSections: number;
 }
 
-export function ScrollSection({
+export const ScrollSection = memo(function ScrollSection({
   section,
   isActive,
   sectionIndex,
@@ -30,7 +31,7 @@ export function ScrollSection({
           aria-label={`Section ${sectionIndex + 1} of ${totalSections}: ${section.title}`}
         >
           <div className="pointer-events-auto mx-3 mb-3 max-w-none sm:mx-0 sm:mb-0 sm:ml-8 sm:max-w-sm">
-            <div className="rounded-2xl border border-black/5 bg-white/80 p-4 shadow-2xl backdrop-blur-xl sm:p-6 dark:border-white/10 dark:bg-black/60">
+            <div className="rounded-2xl border border-black/5 bg-white/90 p-4 shadow-2xl sm:p-6 dark:border-white/10 dark:bg-black/70">
               {/* Section indicator */}
               <div
                 className="mb-4 flex items-center gap-2"
@@ -111,4 +112,4 @@ export function ScrollSection({
       )}
     </AnimatePresence>
   );
-}
+});

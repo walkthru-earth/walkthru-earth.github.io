@@ -9,6 +9,7 @@ import {
   PRECIPITATION_COLORS,
   POPULATION_DENSITY_COLORS,
 } from '../utils/color-scales';
+import { loadParquet } from '../utils/parquet-loader';
 
 export interface ViewState {
   latitude: number;
@@ -38,7 +39,7 @@ export function viewStateToBBox(vs: ViewState): BBox {
   };
 }
 
-/** Runtime context passed to buildQuery — values resolved at mount time. */
+/** Runtime context passed to buildQuery/loadData — values resolved at mount time. */
 export interface QueryContext {
   /** Resolved weather prefix (date + hour), e.g. `.../date=2026-03-05/hour=12` */
   weatherPrefix: string;
@@ -51,26 +52,26 @@ export interface GlobeSection {
   description: string;
   stat: { label: string; value: string };
   viewState: ViewState;
-  /** Builds the SQL query with a dynamic bounding box and optional runtime context. */
+  /** Load data via hyparquet. Returns rows for the H3 layer. */
+  loadData: (
+    bbox: BBox,
+    ctx: QueryContext
+  ) => Promise<Record<string, unknown>[]>;
+  /** Display SQL for the query panel (cosmetic — not executed). */
   buildQuery: (bbox: BBox, ctx: QueryContext) => string;
   getHexagon: (d: Record<string, unknown>) => string;
   getFillColor: (
     d: Record<string, unknown>
   ) => [number, number, number, number];
   getElevation?: (d: Record<string, unknown>) => number;
-  /** Format a data row for tooltip display. Return null to hide tooltip. */
   formatTooltip?: (d: Record<string, unknown>) => string | null;
   extruded: boolean;
   elevationScale?: number;
   colorLegend: { label: string; color: string }[];
 }
 
-/**
- * Direct S3 endpoint for Source Cooperative data.
- * Uses path-style S3 URL instead of the data.source.coop proxy,
- * which doesn't reliably support HTTP range requests needed by DuckDB-WASM.
- * Hive partition keys (key=value) must be URL-encoded (=) in S3 paths.
- */
+/* ── Data source URLs ─────────────────────────────────────────────── */
+
 const S3_BUCKET =
   'https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop';
 const S3_BASE = `${S3_BUCKET}/walkthru-earth`;
@@ -98,16 +99,13 @@ export async function resolveWeatherPrefix(): Promise<string> {
   console.log('[Weather] Probing for latest available forecast...');
   for (const date of recentDates()) {
     for (const hour of [12, 0]) {
-      // Probe via proxy (normal URLs), but return S3-style prefix for DuckDB queries
       const probeUrl = `${PROBE_BASE}/indices/weather/model=GraphCast_GFS/date=${date}/hour=${hour}/h3_res=2/data.parquet`;
-      const prefix = `${WEATHER_BASE}/date=${date}/hour=${hour}`;
-      const url = probeUrl;
       try {
-        const res = await fetch(url, { method: 'HEAD' });
+        const res = await fetch(probeUrl, { method: 'HEAD' });
         if (res.ok) {
           console.log(`[Weather] Found: date=${date} hour=${hour}`);
-          _weatherPrefix = prefix;
-          return prefix;
+          _weatherPrefix = `${WEATHER_BASE}/date=${date}/hour=${hour}`;
+          return _weatherPrefix;
         }
         console.log(`[Weather] Not found: date=${date} hour=${hour}`);
       } catch {
@@ -116,7 +114,6 @@ export async function resolveWeatherPrefix(): Promise<string> {
     }
   }
 
-  // Fallback: yesterday hour=0 (will 404 at query time with a clear error)
   const fallback = `${WEATHER_BASE}/date=${recentDates()[1]}/hour=0`;
   console.warn('[Weather] No forecast found, using fallback:', fallback);
   _weatherPrefix = fallback;
@@ -127,8 +124,24 @@ export async function resolveWeatherPrefix(): Promise<string> {
 const weatherParquet = (prefix: string, res: number) =>
   `${prefix}/h3_res=${res}/data.parquet`;
 
+/* ── Helpers ──────────────────────────────────────────────────────── */
+
 /** Format number with locale-aware separators */
 const fmt = (n: number) => Number(n).toLocaleString();
+
+/** Check if a row's lat/lon falls within a bounding box. */
+function inBBox(row: Record<string, unknown>, bbox: BBox): boolean {
+  const lat = Number(row.lat);
+  const lon = Number(row.lon);
+  return (
+    lat >= bbox.minLat &&
+    lat <= bbox.maxLat &&
+    lon >= bbox.minLon &&
+    lon <= bbox.maxLon
+  );
+}
+
+/* ── Section definitions ──────────────────────────────────────────── */
 
 export const SECTIONS: GlobeSection[] = [
   /* ────────────────────────────────────────────────────────────────
@@ -139,10 +152,11 @@ export const SECTIONS: GlobeSection[] = [
     title: "Earth's Living Indices",
     subtitle: 'Scroll to Explore',
     description:
-      'Four global datasets — terrain, population, buildings, and weather — indexed on a unified H3 hexagonal grid. Query them directly in your browser with DuckDB-WASM.',
+      'Four global datasets — terrain, population, buildings, and weather — indexed on a unified H3 hexagonal grid. Query them directly in your browser with hyparquet.',
     stat: { label: 'Total Cells', value: '10.5B+' },
     viewState: { latitude: 20, longitude: 30, zoom: 1.2 },
-    buildQuery: (_bbox, _ctx) => '',
+    loadData: async () => [],
+    buildQuery: () => '',
     getHexagon: () => '',
     getFillColor: () => [0, 0, 0, 0],
     extruded: false,
@@ -160,9 +174,16 @@ export const SECTIONS: GlobeSection[] = [
       "AI-powered weather from NOAA GraphCast, topographically corrected with our 30m terrain model. This is today's 2-meter air temperature — the thermal fingerprint of the entire planet in one query.",
     stat: { label: 'Forecast Horizon', value: '5 days' },
     viewState: { latitude: 20, longitude: 30, zoom: 1.5 },
+    loadData: async (_bbox, ctx) =>
+      loadParquet(weatherParquet(ctx.weatherPrefix, 1), [
+        'h3_index',
+        'temperature_2m_C',
+        'wind_speed_10m_ms',
+        'pressure_msl_hPa',
+      ]),
     buildQuery: (_bbox, ctx) => `SELECT h3_index, temperature_2m_C,
        wind_speed_10m_ms, pressure_msl_hPa
-FROM read_parquet('${weatherParquet(ctx.weatherPrefix, 1)}')`,
+FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
     getHexagon: (d) => String(d.h3_index),
     getFillColor: (d) => {
       const temp = Number(d.temperature_2m_C) || 15;
@@ -193,9 +214,16 @@ FROM read_parquet('${weatherParquet(ctx.weatherPrefix, 1)}')`,
       'Surface wind speeds at 10 meters above ground. Trade winds, westerlies, and storm systems become visible — each hexagon carries speed and direction vectors across 2 million cells.',
     stat: { label: 'Update Frequency', value: '12 hrs' },
     viewState: { latitude: 30, longitude: -30, zoom: 1.8 },
+    loadData: async (_bbox, ctx) =>
+      loadParquet(weatherParquet(ctx.weatherPrefix, 3), [
+        'h3_index',
+        'wind_speed_10m_ms',
+        'wind_direction_10m_deg',
+        'temperature_2m_C',
+      ]),
     buildQuery: (_bbox, ctx) => `SELECT h3_index, wind_speed_10m_ms,
        wind_direction_10m_deg, temperature_2m_C
-FROM read_parquet('${weatherParquet(ctx.weatherPrefix, 3)}')`,
+FROM '${weatherParquet(ctx.weatherPrefix, 3)}'`,
     getHexagon: (d) => String(d.h3_index),
     getFillColor: (d) => {
       const wind = Number(d.wind_speed_10m_ms) || 0;
@@ -226,9 +254,16 @@ FROM read_parquet('${weatherParquet(ctx.weatherPrefix, 3)}')`,
       'Six-hour precipitation accumulation from GraphCast. The tropical rain belt, monsoon systems, and mid-latitude fronts appear as bands of moisture wrapping the globe.',
     stat: { label: 'Resolution', value: 'H3 res 4' },
     viewState: { latitude: 10, longitude: 100, zoom: 2.5 },
+    loadData: async (_bbox, ctx) =>
+      loadParquet(weatherParquet(ctx.weatherPrefix, 4), [
+        'h3_index',
+        'precipitation_mm_6hr',
+        'specific_humidity_gkg',
+        'temperature_2m_C',
+      ]),
     buildQuery: (_bbox, ctx) => `SELECT h3_index, precipitation_mm_6hr,
        specific_humidity_gkg, temperature_2m_C
-FROM read_parquet('${weatherParquet(ctx.weatherPrefix, 4)}')`,
+FROM '${weatherParquet(ctx.weatherPrefix, 4)}'`,
     getHexagon: (d) => String(d.h3_index),
     getFillColor: (d) => {
       const precip = Math.max(0, Number(d.precipitation_mm_6hr) || 0);
@@ -259,10 +294,15 @@ FROM read_parquet('${weatherParquet(ctx.weatherPrefix, 4)}')`,
       'Elevation from the GEDTM-30m global terrain model. Each hexagon aggregates 30m resolution data — revealing slope, ruggedness, and topographic position across 10.5 billion cells worldwide.',
     stat: { label: 'Source Resolution', value: '30m' },
     viewState: { latitude: 28.5, longitude: 86.5, zoom: 3.5 },
-    buildQuery: (bbox, _ctx) => `SELECT h3_index, elev, slope, aspect, tri
-FROM read_parquet(
-  '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'
-)
+    loadData: async (bbox) => {
+      const rows = await loadParquet(
+        `${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet`,
+        ['h3_index', 'elev', 'slope', 'aspect', 'tri', 'lat', 'lon']
+      );
+      return rows.filter((r) => inBBox(r, bbox));
+    },
+    buildQuery: (bbox) => `SELECT h3_index, elev, slope, aspect, tri
+FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'
 WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   AND lon BETWEEN ${bbox.minLon.toFixed(1)} AND ${bbox.maxLon.toFixed(1)}`,
     getHexagon: (d) => String(d.h3_index),
@@ -297,16 +337,41 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
       "2.75 billion buildings from the Global Building Atlas, joined with population projections. The Nile Delta is one of Earth's most densely built regions — 100 million people in a narrow fertile strip.",
     stat: { label: 'Total Buildings', value: '2.75B' },
     viewState: { latitude: 30.0, longitude: 31.2, zoom: 4 },
-    buildQuery: (bbox, _ctx) => `SELECT b.h3_index, b.building_count,
+    loadData: async (bbox) => {
+      const [buildings, population] = await Promise.all([
+        loadParquet(`${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`, [
+          'h3_index',
+          'building_count',
+          'building_density',
+          'avg_height_m',
+          'total_volume_m3',
+          'lat',
+          'lon',
+        ]),
+        loadParquet(
+          `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
+          ['h3_index', 'pop_2025', 'pop_2050']
+        ),
+      ]);
+      const popMap = new Map(population.map((p) => [String(p.h3_index), p]));
+      return buildings
+        .filter((b) => inBBox(b, bbox))
+        .map((b) => {
+          const p = popMap.get(String(b.h3_index));
+          return {
+            ...b,
+            pop_2025: p?.pop_2025 ?? 0,
+            pop_2050: p?.pop_2050 ?? 0,
+          };
+        });
+    },
+    buildQuery: (bbox) => `SELECT b.h3_index, b.building_count,
        b.building_density, b.avg_height_m,
        b.total_volume_m3,
        p.pop_2025, p.pop_2050
-FROM read_parquet(
-  '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet'
-) b
-JOIN read_parquet(
-  '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'
-) p ON b.h3_index = p.h3_index
+FROM '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet' b
+JOIN '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet' p
+  ON b.h3_index = p.h3_index
 WHERE b.lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   AND b.lon BETWEEN ${bbox.minLon.toFixed(1)} AND ${bbox.maxLon.toFixed(1)}`,
     getHexagon: (d) => String(d.h3_index),
@@ -345,12 +410,25 @@ WHERE b.lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
       'Population projections under SSP2 from WorldPop. Sub-Saharan Africa shows the most dramatic projected growth — some hexagons tripling by 2100. Extruded by current population, colored by growth ratio.',
     stat: { label: 'Projection', value: 'SSP2' },
     viewState: { latitude: 5, longitude: 25, zoom: 3.5 },
-    buildQuery: (bbox, _ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
+    loadData: async (bbox) => {
+      const rows = await loadParquet(
+        `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
+        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100', 'lat', 'lon']
+      );
+      return rows
+        .filter((r) => inBBox(r, bbox))
+        .map((r) => ({
+          ...r,
+          growth_ratio:
+            Number(r.pop_2025) !== 0
+              ? Number(r.pop_2100) / Number(r.pop_2025)
+              : null,
+        }));
+    },
+    buildQuery: (bbox) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
        (pop_2100 / NULLIF(pop_2025, 0))
          AS growth_ratio
-FROM read_parquet(
-  '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'
-)
+FROM '${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet'
 WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   AND lon BETWEEN ${bbox.minLon.toFixed(1)} AND ${bbox.maxLon.toFixed(1)}`,
     getHexagon: (d) => String(d.h3_index),
@@ -388,12 +466,26 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
       "Tokyo-Yokohama, the world's largest metro — each hexagon reports building count, average height, and footprint coverage. Extruded by density, colored by average building height.",
     stat: { label: 'Metro Population', value: '37M' },
     viewState: { latitude: 35.68, longitude: 139.76, zoom: 4 },
-    buildQuery: (bbox, _ctx) => `SELECT h3_index, building_count,
+    loadData: async (bbox) => {
+      const rows = await loadParquet(
+        `${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`,
+        [
+          'h3_index',
+          'building_count',
+          'building_density',
+          'avg_height_m',
+          'coverage_ratio',
+          'total_volume_m3',
+          'lat',
+          'lon',
+        ]
+      );
+      return rows.filter((r) => inBBox(r, bbox));
+    },
+    buildQuery: (bbox) => `SELECT h3_index, building_count,
        building_density, avg_height_m,
        coverage_ratio, total_volume_m3
-FROM read_parquet(
-  '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet'
-)
+FROM '${S3_BASE}/indices/building/h3/h3_res=3/data.parquet'
 WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   AND lon BETWEEN ${bbox.minLon.toFixed(1)} AND ${bbox.maxLon.toFixed(1)}`,
     getHexagon: (d) => String(d.h3_index),

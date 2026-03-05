@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useTheme } from 'next-themes';
 import DeckGL from '@deck.gl/react';
 import {
@@ -26,13 +26,13 @@ const LAND_GEOJSON =
 const COUNTRY_BORDERS =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_admin_0_boundary_lines_land.geojson';
 
-const GLOBE_VIEW = new GlobeView({ id: 'globe', resolution: 10 });
+const GLOBE_VIEW = new GlobeView({ id: 'globe', resolution: 5 });
 
-/** Reusable sphere mesh for the earth background */
+/** Reusable sphere mesh for the earth background (low-poly for perf) */
 const SPHERE_MESH = new SphereGeometry({
   radius: EARTH_RADIUS_METERS,
-  nlat: 36,
-  nlong: 72,
+  nlat: 18,
+  nlong: 36,
 });
 
 /* Theme palettes — colors for globe rendering */
@@ -76,7 +76,7 @@ interface GlobeMapProps {
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function GlobeMap({
+export const GlobeMap = memo(function GlobeMap({
   viewState,
   layerData,
   getHexagon,
@@ -217,4 +217,4 @@ export function GlobeMap({
       />
     </div>
   );
-}
+});

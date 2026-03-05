@@ -25,9 +25,9 @@ export function useGlobeScroll(viewStates: ViewState[]) {
   const [activeSection, setActiveSection] = useState(0);
   const [viewState, setViewState] = useState<ViewState>(viewStates[0]);
   const rafRef = useRef<number>(0);
+  const sectionTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleScroll = useCallback(() => {
-    // Coalesce scroll events with requestAnimationFrame
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       const container = containerRef.current;
@@ -50,9 +50,13 @@ export function useGlobeScroll(viewStates: ViewState[]) {
           ? Math.min(nextSection, sectionCount - 1)
           : clampedSection;
 
-      setActiveSection((prev) => (prev !== newActive ? newActive : prev));
+      // Debounce section changes (150ms) so rapid scrolling doesn't
+      // trigger multiple data loads. View state updates are still instant.
+      clearTimeout(sectionTimerRef.current);
+      sectionTimerRef.current = setTimeout(() => {
+        setActiveSection((prev) => (prev !== newActive ? newActive : prev));
+      }, 150);
 
-      // Interpolate view states with easing
       if (clampedSection < sectionCount - 1) {
         setViewState(
           lerpViewState(
@@ -73,6 +77,7 @@ export function useGlobeScroll(viewStates: ViewState[]) {
     return () => {
       window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(rafRef.current);
+      clearTimeout(sectionTimerRef.current);
     };
   }, [handleScroll]);
 

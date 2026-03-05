@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface QueryPanelProps {
@@ -43,7 +43,7 @@ const TOKEN_CLASSES: Record<Token['type'], string> = {
   text: '',
 };
 
-export function QueryPanel({
+export const QueryPanel = memo(function QueryPanel({
   query,
   duration,
   rowCount,
@@ -60,7 +60,7 @@ export function QueryPanel({
       <button
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        className="text-foreground/80 flex items-center gap-2 rounded-lg border border-black/10 bg-white/80 px-3 py-1.5 font-mono text-xs backdrop-blur-md transition-colors hover:bg-white/90 dark:border-white/10 dark:bg-black/70 dark:hover:bg-black/80"
+        className="text-foreground/80 flex items-center gap-2 rounded-lg border border-black/10 bg-white/80 px-3 py-1.5 font-mono text-xs transition-colors hover:bg-white/90 dark:border-white/10 dark:bg-black/70 dark:hover:bg-black/80"
       >
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
         SQL
@@ -96,7 +96,7 @@ export function QueryPanel({
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: 8, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="mt-2 overflow-hidden rounded-lg border border-black/10 bg-white/90 backdrop-blur-md dark:border-white/10 dark:bg-black/80"
+            className="mt-2 overflow-hidden rounded-lg border border-black/10 bg-white/90 dark:border-white/10 dark:bg-black/80"
           >
             <pre className="text-foreground/90 overflow-x-auto p-4 font-mono text-xs leading-relaxed">
               <code>
@@ -119,7 +119,7 @@ export function QueryPanel({
                   )}
                   {duration !== null && <span>{duration.toFixed(0)}ms</span>}
                   <span className="ml-auto text-emerald-600/60 dark:text-emerald-400/60">
-                    DuckDB-WASM
+                    hyparquet
                   </span>
                 </>
               )}
@@ -129,4 +129,4 @@ export function QueryPanel({
       </AnimatePresence>
     </div>
   );
-}
+});

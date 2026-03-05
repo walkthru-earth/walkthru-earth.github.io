@@ -3,10 +3,10 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: "Earth's Living Indices | Walkthru",
   description:
-    'Explore global terrain, population, building density, and weather data on an interactive H3 hexagonal grid — powered by DuckDB-WASM and deck.gl.',
+    'Explore global terrain, population, building density, and weather data on an interactive H3 hexagonal grid — powered by hyparquet and deck.gl.',
   keywords: [
     'H3 hexagonal grid',
-    'DuckDB-WASM',
+    'hyparquet',
     'deck.gl',
     'geospatial',
     'terrain',
