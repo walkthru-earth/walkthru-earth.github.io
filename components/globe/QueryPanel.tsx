@@ -90,7 +90,10 @@ export function ParquetInfoPanel({
 
       {/* Expanded panel */}
       {open && info && (
-        <div className="mt-2 max-h-[60vh] w-72 overflow-y-auto rounded-xl border border-black/10 bg-white/95 shadow-xl backdrop-blur-md sm:w-80 dark:border-white/10 dark:bg-black/85">
+        <div
+          className="mt-2 max-h-[60vh] w-72 overflow-y-auto overscroll-contain rounded-xl border border-black/10 bg-white/95 shadow-xl backdrop-blur-md sm:w-80 dark:border-white/10 dark:bg-black/85"
+          onWheel={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex items-center gap-2 border-b border-black/10 px-4 py-2.5 dark:border-white/10">
             <svg
