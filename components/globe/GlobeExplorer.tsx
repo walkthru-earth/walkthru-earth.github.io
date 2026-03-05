@@ -6,7 +6,13 @@ import { ScrollSection } from './ScrollSection';
 import { QueryPanel } from './QueryPanel';
 import { useGlobeScroll } from './hooks/useGlobeScroll';
 import { useDuckDB } from './hooks/useDuckDB';
-import { SECTIONS, viewStateToBBox, type GlobeSection } from './data/sections';
+import {
+  SECTIONS,
+  viewStateToBBox,
+  resolveWeatherPrefix,
+  type GlobeSection,
+  type QueryContext,
+} from './data/sections';
 
 interface GlobeExplorerProps {
   /** Override default sections for reuse on other pages (e.g. /hormones-cities). */
@@ -25,6 +31,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
   const [rowCount, setRowCount] = useState(0);
   const [resolvedQuery, setResolvedQuery] = useState('');
+  const [queryCtx, setQueryCtx] = useState<QueryContext | null>(null);
   const lastQueriedSection = useRef<number>(-1);
 
   // Cache query results per section so scrolling back doesn't re-fetch
@@ -37,16 +44,31 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
   const currentSection = sections[activeSection];
 
+  // Resolve weather data prefix (date + hour) once on mount
+  useEffect(() => {
+    let cancelled = false;
+    resolveWeatherPrefix().then((prefix) => {
+      if (!cancelled) setQueryCtx({ weatherPrefix: prefix });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Execute query when active section changes
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || !queryCtx) return;
     if (activeSection === lastQueriedSection.current) return;
 
     lastQueriedSection.current = activeSection;
+    console.log(`[Globe] Section ${activeSection}: "${currentSection.id}"`);
 
     // Check cache first
     const cached = cacheRef.current.get(activeSection);
     if (cached) {
+      console.log(
+        `[Globe] Cache hit for "${currentSection.id}" (${cached.rows.length} rows)`
+      );
       setResolvedQuery(cached.query);
       setLayerData(cached.rows);
       setQueryDuration(cached.duration);
@@ -58,7 +80,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
     // Compute bbox from the section's target viewState
     const bbox = viewStateToBBox(currentSection.viewState);
-    const query = currentSection.buildQuery(bbox);
+    const query = currentSection.buildQuery(bbox, queryCtx);
 
     setResolvedQuery(query);
 
@@ -92,7 +114,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     return () => {
       cancelled = true;
     };
-  }, [isReady, activeSection, currentSection, executeQuery]);
+  }, [isReady, queryCtx, activeSection, currentSection, executeQuery]);
 
   // Height: each section gets 100vh
   const totalHeight = `${sections.length * 100}vh`;

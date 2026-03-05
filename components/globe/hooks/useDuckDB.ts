@@ -42,6 +42,8 @@ async function initDuckDB(): Promise<AnyDuckDB> {
   if (dbPromise) return dbPromise;
 
   dbPromise = (async () => {
+    console.log('[DuckDB] Initializing DuckDB-WASM...');
+    const start = performance.now();
     const duckdb = await import('@duckdb/duckdb-wasm');
 
     const bundle = await duckdb.selectBundle({
@@ -70,18 +72,23 @@ async function initDuckDB(): Promise<AnyDuckDB> {
       'DuckDB instantiation'
     );
 
-    // Configure httpfs for S3 access and load spatial extension
+    // Configure httpfs for remote Parquet range requests + load extensions
     const initConn = await db.connect();
     await initConn.query('SET builtin_httpfs = false');
     await initConn.query('LOAD httpfs');
-    await initConn.query("SET s3_region = 'us-west-2'");
+    console.log('[DuckDB] httpfs loaded');
+    await initConn.query('SET max_expression_depth TO 500');
     try {
       await initConn.query('LOAD spatial');
+      console.log('[DuckDB] Spatial extension loaded');
     } catch {
-      // spatial extension not available — non-critical for H3 queries
+      console.log('[DuckDB] Spatial extension not available (non-critical)');
     }
     await initConn.close();
 
+    console.log(
+      `[DuckDB] Ready in ${(performance.now() - start).toFixed(0)}ms`
+    );
     dbSingleton = db;
     return db;
   })();
@@ -169,14 +176,20 @@ export function useDuckDB() {
       setIsLoading(true);
       setError(null);
 
+      console.log(
+        '[DuckDB] Query:',
+        sql.slice(0, 120) + (sql.length > 120 ? '...' : '')
+      );
       const start = performance.now();
       try {
         const result = await connRef.current.query(sql);
         const duration = performance.now() - start;
         const rows = arrowToJS(result);
+        console.log(`[DuckDB] ${rows.length} rows in ${duration.toFixed(0)}ms`);
         return { rows, duration };
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
+        console.error('[DuckDB] Query failed:', msg);
         setError(msg);
         throw err;
       } finally {

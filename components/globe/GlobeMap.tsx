@@ -90,14 +90,15 @@ export function GlobeMap({
   const isDark = resolvedTheme !== 'light';
   const palette = isDark ? THEMES.dark : THEMES.light;
 
-  const lighting = useMemo(
-    () =>
+  const effects = useMemo(
+    () => [
       new LightingEffect({
         ambientLight: new AmbientLight({
           color: [255, 255, 255],
           intensity: palette.ambient,
         }),
       }),
+    ],
     [palette.ambient]
   );
 
@@ -114,20 +115,22 @@ export function GlobeMap({
         getColor: palette.sphere,
       }),
 
-      // 2. Land masses
+      // 2. Land masses (hidden when H3 data covers the globe)
       new GeoJsonLayer({
         id: 'earth-land',
         data: LAND_GEOJSON,
+        visible: layerData.length === 0,
         stroked: false,
         filled: true,
         opacity: palette.landOpacity,
         getFillColor: palette.land,
       }),
 
-      // 3. Country borders
+      // 3. Country borders (hidden when H3 data covers the globe)
       new GeoJsonLayer({
         id: 'country-borders',
         data: COUNTRY_BORDERS,
+        visible: layerData.length === 0,
         stroked: true,
         filled: false,
         lineWidthMinPixels: 0.5,
@@ -143,6 +146,7 @@ export function GlobeMap({
           data: layerData,
           pickable: true,
           filled: true,
+          highPrecision: true,
           extruded,
           elevationScale,
           getHexagon: getHexagon as (d: unknown) => string,
@@ -157,6 +161,10 @@ export function GlobeMap({
             ambient: 0.64,
             diffuse: 0.6,
             shininess: 32,
+          },
+          updateTriggers: {
+            getFillColor: [getFillColor],
+            getElevation: [getElevation],
           },
         })
       );
@@ -202,7 +210,7 @@ export function GlobeMap({
         views={GLOBE_VIEW}
         viewState={deckViewState}
         controller={false}
-        effects={[lighting]}
+        effects={effects}
         layers={layers}
         getTooltip={handleTooltip}
         style={{ width: '100%', height: '100%' }}
