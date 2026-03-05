@@ -20,8 +20,6 @@ export function useGlobeScroll(
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
   const cooldownRef = useRef(false);
-  const touchStartY = useRef(0);
-  const touchOverGlobe = useRef(false);
 
   const navigate = useCallback(
     (direction: -1 | 1) => {
@@ -51,31 +49,14 @@ export function useGlobeScroll(
       navigate(e.deltaY > 0 ? 1 : -1);
     };
 
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY;
-      // Snapshot globe-hover state at touch start
-      touchOverGlobe.current = isOverGlobeRef.current;
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      // Touch started on globe → let deck.gl handle it
-      if (touchOverGlobe.current) return;
-      const dy = touchStartY.current - e.changedTouches[0].clientY;
-      if (Math.abs(dy) > 40) {
-        navigate(dy > 0 ? 1 : -1);
-      }
-    };
+    // Touch-based section navigation is disabled — on mobile the globe
+    // covers the full viewport so all touches belong to deck.gl pan/zoom.
+    // Users navigate sections via arrow buttons in the drawer / bottom bar.
 
     container.addEventListener('wheel', handleWheel, { passive: false });
-    container.addEventListener('touchstart', handleTouchStart, {
-      passive: true,
-    });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchend', handleTouchEnd);
     };
   }, [navigate, isOverGlobeRef]);
 

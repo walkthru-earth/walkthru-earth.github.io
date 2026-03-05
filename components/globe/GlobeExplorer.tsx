@@ -126,7 +126,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
         const onProgress = (partialRows: Record<string, unknown>[]) => {
           if (activeSectionRef.current !== sectionIdx) return;
-          setLayerData([...partialRows]);
+          setLayerData(partialRows);
           setRowCount(partialRows.length);
         };
 

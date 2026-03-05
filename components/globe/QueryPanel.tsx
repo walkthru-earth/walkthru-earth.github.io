@@ -189,6 +189,101 @@ const TOKEN_CLASSES: Record<Token['type'], string> = {
   text: 'text-gray-800 dark:text-white/90',
 };
 
+/* ── Shared small components ─────────────────────────────────────── */
+
+function SQLToggleButton({
+  expanded,
+  onToggle,
+  isLoading,
+  rowCount,
+  duration,
+  className,
+}: {
+  expanded: boolean;
+  onToggle: () => void;
+  isLoading: boolean;
+  rowCount: number;
+  duration: number | null;
+  className?: string;
+}) {
+  return (
+    <button onClick={onToggle} aria-expanded={expanded} className={className}>
+      <span
+        className={`inline-block h-2 w-2 rounded-full transition-colors ${
+          isLoading
+            ? 'animate-pulse bg-amber-500'
+            : 'bg-emerald-500 dark:bg-emerald-400'
+        }`}
+      />
+      SQL
+      {isLoading && (
+        <span className="animate-pulse text-amber-600 dark:text-amber-300">
+          {rowCount > 0
+            ? `${rowCount.toLocaleString()} rows...`
+            : 'querying...'}
+        </span>
+      )}
+      {!isLoading && duration !== null && (
+        <span className="text-gray-400 dark:text-white/50">
+          {duration.toFixed(0)}ms
+        </span>
+      )}
+      <svg
+        className={`h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M5 15l7-7 7 7"
+        />
+      </svg>
+    </button>
+  );
+}
+
+function SQLCodeBlock({ query }: { query: string }) {
+  return (
+    <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed text-gray-800 sm:p-4 dark:text-white/90">
+      <code>
+        {tokenizeSQL(query).map((tok, i) => (
+          <span key={i} className={TOKEN_CLASSES[tok.type]}>
+            {tok.value}
+          </span>
+        ))}
+      </code>
+    </pre>
+  );
+}
+
+function SQLStatsBar({
+  error,
+  rowCount,
+  duration,
+}: {
+  error: string | null;
+  rowCount: number;
+  duration: number | null;
+}) {
+  if (!error && rowCount === 0 && duration === null) return null;
+  return (
+    <div className="flex items-center gap-3 border-t border-black/10 px-3 py-2 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/50">
+      {error ? (
+        <span className="text-red-500 dark:text-red-400">{error}</span>
+      ) : (
+        <>
+          {rowCount > 0 && <span>{rowCount.toLocaleString()} rows</span>}
+          {duration !== null && <span>{duration.toFixed(0)}ms</span>}
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ── Inline SQL block (used inside mobile drawer) ─────────────────── */
 
 export function QueryPanelInline({
@@ -204,79 +299,26 @@ export function QueryPanelInline({
 
   return (
     <div className="rounded-lg border border-black/10 dark:border-white/10">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        aria-expanded={expanded}
+      <SQLToggleButton
+        expanded={expanded}
+        onToggle={() => setExpanded(!expanded)}
+        isLoading={isLoading}
+        rowCount={rowCount}
+        duration={duration}
         className="flex w-full items-center gap-2 px-3 py-2 font-mono text-xs text-gray-800 dark:text-white/80"
-      >
-        <span
-          className={`inline-block h-2 w-2 rounded-full transition-colors ${
-            isLoading
-              ? 'animate-pulse bg-amber-500'
-              : 'bg-emerald-500 dark:bg-emerald-400'
-          }`}
-        />
-        SQL
-        {isLoading && (
-          <span className="animate-pulse text-amber-600 dark:text-amber-300">
-            {rowCount > 0
-              ? `${rowCount.toLocaleString()} rows...`
-              : 'querying...'}
-          </span>
-        )}
-        {!isLoading && duration !== null && (
-          <span className="text-gray-400 dark:text-white/50">
-            {duration.toFixed(0)}ms
-          </span>
-        )}
-        <svg
-          className={`ml-auto h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 15l7-7 7 7"
-          />
-        </svg>
-      </button>
+      />
 
       {expanded && (
         <div className="border-t border-black/10 dark:border-white/10">
-          <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed text-gray-800 dark:text-white/90">
-            <code>
-              {tokenizeSQL(query).map((tok, i) => (
-                <span key={i} className={TOKEN_CLASSES[tok.type]}>
-                  {tok.value}
-                </span>
-              ))}
-            </code>
-          </pre>
-          {(error || rowCount > 0 || duration !== null) && (
-            <div className="flex items-center gap-3 border-t border-black/10 px-3 py-2 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/50">
-              {error ? (
-                <span className="text-red-500 dark:text-red-400">{error}</span>
-              ) : (
-                <>
-                  {rowCount > 0 && (
-                    <span>{rowCount.toLocaleString()} rows</span>
-                  )}
-                  {duration !== null && <span>{duration.toFixed(0)}ms</span>}
-                </>
-              )}
-            </div>
-          )}
+          <SQLCodeBlock query={query} />
+          <SQLStatsBar error={error} rowCount={rowCount} duration={duration} />
         </div>
       )}
     </div>
   );
 }
 
-/* ── Desktop floating panel (top-left, below navbar) ──────────────── */
+/* ── Desktop floating panel (bottom-left) ─────────────────────────── */
 
 export const QueryPanel = memo(function QueryPanel({
   query,
@@ -291,47 +333,14 @@ export const QueryPanel = memo(function QueryPanel({
 
   return (
     <div className="absolute bottom-4 left-8 z-20 hidden w-fit max-w-md flex-col sm:flex">
-      {/* Toggle button */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        aria-expanded={expanded}
+      <SQLToggleButton
+        expanded={expanded}
+        onToggle={() => setExpanded(!expanded)}
+        isLoading={isLoading}
+        rowCount={rowCount}
+        duration={duration}
         className="flex items-center gap-1.5 rounded-lg border border-black/10 bg-white/95 px-2 py-1 font-mono text-[11px] text-gray-800 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/85 dark:text-white/80 dark:hover:bg-black/90"
-      >
-        <span
-          className={`inline-block h-2 w-2 rounded-full transition-colors ${
-            isLoading
-              ? 'animate-pulse bg-amber-500'
-              : 'bg-emerald-500 dark:bg-emerald-400'
-          }`}
-        />
-        SQL
-        {isLoading && (
-          <span className="animate-pulse text-amber-600 dark:text-amber-300">
-            {rowCount > 0
-              ? `${rowCount.toLocaleString()} rows...`
-              : 'querying...'}
-          </span>
-        )}
-        {!isLoading && duration !== null && (
-          <span className="text-gray-400 dark:text-white/50">
-            {duration.toFixed(0)}ms
-          </span>
-        )}
-        <svg
-          className={`h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 15l7-7 7 7"
-          />
-        </svg>
-      </button>
+      />
 
       {/* Expanded panel (opens upward) */}
       <div
@@ -341,27 +350,8 @@ export const QueryPanel = memo(function QueryPanel({
             : 'pointer-events-none max-h-0 border-transparent opacity-0'
         }`}
       >
-        <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed text-gray-800 dark:text-white/90">
-          <code>
-            {tokenizeSQL(query).map((tok, i) => (
-              <span key={i} className={TOKEN_CLASSES[tok.type]}>
-                {tok.value}
-              </span>
-            ))}
-          </code>
-        </pre>
-
-        {/* Stats bar */}
-        <div className="flex items-center gap-3 border-t border-black/10 px-4 py-2 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/50">
-          {error ? (
-            <span className="text-red-500 dark:text-red-400">{error}</span>
-          ) : (
-            <>
-              {rowCount > 0 && <span>{rowCount.toLocaleString()} rows</span>}
-              {duration !== null && <span>{duration.toFixed(0)}ms</span>}
-            </>
-          )}
-        </div>
+        <SQLCodeBlock query={query} />
+        <SQLStatsBar error={error} rowCount={rowCount} duration={duration} />
       </div>
     </div>
   );

@@ -7,7 +7,6 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-
 import Image from 'next/image';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import type { GlobeSection } from './data/sections';
@@ -22,6 +21,78 @@ interface ScrollSectionProps {
   rowCount?: number;
 }
 
+/* ── Shared small components ─────────────────────────────────────── */
+
+function SectionDots({
+  current,
+  total,
+  size = 'md',
+}: {
+  current: number;
+  total: number;
+  size?: 'sm' | 'md';
+}) {
+  const active =
+    size === 'sm'
+      ? 'w-3 bg-emerald-500'
+      : 'w-7 bg-emerald-500 dark:bg-emerald-400';
+  const past =
+    size === 'sm'
+      ? 'w-1 bg-black/15 dark:bg-white/20'
+      : 'w-2.5 bg-black/25 dark:bg-white/35';
+  const future =
+    size === 'sm'
+      ? 'w-1 bg-black/15 dark:bg-white/20'
+      : 'w-2.5 bg-black/10 dark:bg-white/10';
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          className={`${size === 'sm' ? 'h-1' : 'h-1.5'} rounded-full transition-all duration-500 ${
+            i === current ? active : i < current ? past : future
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function NavArrow({
+  direction,
+  disabled,
+  onClick,
+  size = 'md',
+}: {
+  direction: -1 | 1;
+  disabled: boolean;
+  onClick: () => void;
+  size?: 'sm' | 'md';
+}) {
+  const d = direction === -1 ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7';
+  const sz = size === 'sm' ? 'h-8 w-8' : 'h-9 w-9 sm:h-10 sm:w-10';
+  const ico = size === 'sm' ? 'h-4 w-4' : 'h-4 w-4 sm:h-5 sm:w-5';
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={direction === -1 ? 'Previous section' : 'Next section'}
+      className={`flex ${sz} items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 shadow-sm transition-all hover:bg-black/20 active:scale-95 disabled:opacity-20 dark:border-white/15 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20`}
+    >
+      <svg
+        className={ico}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2.5}
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d={d} />
+      </svg>
+    </button>
+  );
+}
+
 /* ── Shared content ───────────────────────────────────────────────── */
 
 function SectionContent({
@@ -33,46 +104,30 @@ function SectionContent({
 }: ScrollSectionProps) {
   return (
     <>
-      {/* Section indicator */}
       <div
-        className="mb-3 flex items-center gap-2"
+        className="mb-3"
         role="progressbar"
         aria-valuenow={sectionIndex + 1}
         aria-valuemin={1}
         aria-valuemax={totalSections}
       >
-        {Array.from({ length: totalSections }).map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 rounded-full transition-all duration-500 ${
-              i === sectionIndex
-                ? 'w-7 bg-emerald-500 dark:bg-emerald-400'
-                : i < sectionIndex
-                  ? 'w-2.5 bg-black/25 dark:bg-white/35'
-                  : 'w-2.5 bg-black/10 dark:bg-white/10'
-            }`}
-          />
-        ))}
+        <SectionDots current={sectionIndex} total={totalSections} />
       </div>
 
-      {/* Subtitle */}
       {section.subtitle && (
         <p className="mb-1 font-mono text-xs font-medium tracking-wider text-emerald-600 uppercase sm:text-sm dark:text-emerald-400">
           {section.subtitle}
         </p>
       )}
 
-      {/* Title */}
       <h2 className="mb-2 text-xl leading-tight font-bold text-gray-900 sm:mb-3 sm:text-3xl dark:text-white">
         {section.title}
       </h2>
 
-      {/* Description */}
       <p className="mb-3 text-sm leading-relaxed text-gray-700 sm:mb-4 sm:text-base dark:text-white/70">
         {section.description}
       </p>
 
-      {/* Stat */}
       {section.stat.value && (
         <div className="mb-3 flex items-baseline gap-2 sm:mb-4">
           <span className="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">
@@ -84,7 +139,6 @@ function SectionContent({
         </div>
       )}
 
-      {/* Color legend */}
       {section.colorLegend.length > 0 && (
         <div>
           <div
@@ -108,7 +162,6 @@ function SectionContent({
         </div>
       )}
 
-      {/* Action buttons */}
       <div className="mt-3 flex items-center gap-2 sm:mt-4">
         <a
           href={section.sourceCoopUrl}
@@ -151,58 +204,22 @@ function SectionContent({
         </a>
       </div>
 
-      {/* SQL query panel (mobile only — inside drawer) */}
       {queryPanel && <div className="mt-3 sm:hidden">{queryPanel}</div>}
 
-      {/* Navigation arrows */}
       <div className="mt-3 flex items-center justify-between sm:mt-4">
-        <button
-          type="button"
+        <NavArrow
+          direction={-1}
           disabled={sectionIndex === 0}
           onClick={() => onSwipe?.(-1)}
-          aria-label="Previous section"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 shadow-sm transition-all hover:bg-black/20 hover:shadow-md active:scale-95 disabled:opacity-20 sm:h-10 sm:w-10 dark:border-white/15 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20"
-        >
-          <svg
-            className="h-4 w-4 sm:h-5 sm:w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
+        />
         <span className="text-sm font-semibold text-gray-600 tabular-nums sm:text-base dark:text-white/60">
           {sectionIndex + 1} / {totalSections}
         </span>
-        <button
-          type="button"
+        <NavArrow
+          direction={1}
           disabled={sectionIndex === totalSections - 1}
           onClick={() => onSwipe?.(1)}
-          aria-label="Next section"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 shadow-sm transition-all hover:bg-black/20 hover:shadow-md active:scale-95 disabled:opacity-20 sm:h-10 sm:w-10 dark:border-white/15 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20"
-        >
-          <svg
-            className="h-4 w-4 sm:h-5 sm:w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
+        />
       </div>
     </>
   );
@@ -270,30 +287,13 @@ function MobileDrawer(props: ScrollSectionProps) {
           className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between border-t border-black/10 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
           style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
-          {/* Prev */}
-          <button
-            type="button"
+          <NavArrow
+            direction={-1}
             disabled={sectionIndex === 0}
             onClick={() => onSwipe?.(-1)}
-            aria-label="Previous section"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 transition-all active:scale-95 disabled:opacity-20 dark:border-white/15 dark:bg-white/10 dark:text-white/80"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
+            size="sm"
+          />
 
-          {/* Center — tap to reopen drawer */}
           <button
             type="button"
             onClick={() => setOpen(true)}
@@ -305,18 +305,11 @@ function MobileDrawer(props: ScrollSectionProps) {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
             )}
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalSections }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-1 rounded-full transition-all ${
-                    i === sectionIndex
-                      ? 'w-3 bg-emerald-500'
-                      : 'w-1 bg-black/15 dark:bg-white/20'
-                  }`}
-                />
-              ))}
-            </div>
+            <SectionDots
+              current={sectionIndex}
+              total={totalSections}
+              size="sm"
+            />
             <span className="text-xs font-medium text-gray-900 dark:text-white/90">
               {section.title}
             </span>
@@ -340,28 +333,12 @@ function MobileDrawer(props: ScrollSectionProps) {
             </svg>
           </button>
 
-          {/* Next */}
-          <button
-            type="button"
+          <NavArrow
+            direction={1}
             disabled={sectionIndex === totalSections - 1}
             onClick={() => onSwipe?.(1)}
-            aria-label="Next section"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 transition-all active:scale-95 disabled:opacity-20 dark:border-white/15 dark:bg-white/10 dark:text-white/80"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
+            size="sm"
+          />
         </div>
       )}
 
