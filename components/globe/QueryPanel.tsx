@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface QueryPanelProps {
   query: string;
@@ -62,18 +61,26 @@ export const QueryPanel = memo(function QueryPanel({
         aria-expanded={expanded}
         className="text-foreground/80 flex items-center gap-2 rounded-lg border border-black/10 bg-white/80 px-3 py-1.5 font-mono text-xs transition-colors hover:bg-white/90 dark:border-white/10 dark:bg-black/70 dark:hover:bg-black/80"
       >
-        <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+        <span
+          className={`inline-block h-2 w-2 rounded-full transition-colors ${
+            isLoading
+              ? 'animate-pulse bg-amber-500'
+              : 'bg-emerald-500 dark:bg-emerald-400'
+          }`}
+        />
         SQL
         {isLoading && (
           <span className="animate-pulse text-amber-600 dark:text-amber-300">
-            querying...
+            {rowCount > 0
+              ? `${rowCount.toLocaleString()} rows...`
+              : 'querying...'}
           </span>
         )}
         {!isLoading && duration !== null && (
           <span className="text-muted-foreground">{duration.toFixed(0)}ms</span>
         )}
         <svg
-          className={`h-3 w-3 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -89,44 +96,38 @@ export const QueryPanel = memo(function QueryPanel({
       </button>
 
       {/* Expanded panel */}
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: 8, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="mt-2 overflow-hidden rounded-lg border border-black/10 bg-white/90 dark:border-white/10 dark:bg-black/80"
-          >
-            <pre className="text-foreground/90 overflow-x-auto p-4 font-mono text-xs leading-relaxed">
-              <code>
-                {tokenizeSQL(query).map((tok, i) => (
-                  <span key={i} className={TOKEN_CLASSES[tok.type]}>
-                    {tok.value}
-                  </span>
-                ))}
-              </code>
-            </pre>
+      <div
+        className={`mt-2 overflow-hidden rounded-lg border border-black/10 bg-white/90 transition-all duration-200 dark:border-white/10 dark:bg-black/80 ${
+          expanded
+            ? 'max-h-96 opacity-100'
+            : 'pointer-events-none max-h-0 border-transparent opacity-0'
+        }`}
+      >
+        <pre className="text-foreground/90 overflow-x-auto p-4 font-mono text-xs leading-relaxed">
+          <code>
+            {tokenizeSQL(query).map((tok, i) => (
+              <span key={i} className={TOKEN_CLASSES[tok.type]}>
+                {tok.value}
+              </span>
+            ))}
+          </code>
+        </pre>
 
-            {/* Stats bar */}
-            <div className="text-muted-foreground flex items-center gap-3 border-t border-black/10 px-4 py-2 font-mono text-[10px] dark:border-white/10">
-              {error ? (
-                <span className="text-red-500 dark:text-red-400">{error}</span>
-              ) : (
-                <>
-                  {rowCount > 0 && (
-                    <span>{rowCount.toLocaleString()} rows</span>
-                  )}
-                  {duration !== null && <span>{duration.toFixed(0)}ms</span>}
-                  <span className="ml-auto text-emerald-600/60 dark:text-emerald-400/60">
-                    hyparquet
-                  </span>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Stats bar */}
+        <div className="text-muted-foreground flex items-center gap-3 border-t border-black/10 px-4 py-2 font-mono text-[10px] dark:border-white/10">
+          {error ? (
+            <span className="text-red-500 dark:text-red-400">{error}</span>
+          ) : (
+            <>
+              {rowCount > 0 && <span>{rowCount.toLocaleString()} rows</span>}
+              {duration !== null && <span>{duration.toFixed(0)}ms</span>}
+              <span className="ml-auto text-emerald-600/60 dark:text-emerald-400/60">
+                hyparquet
+              </span>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 });

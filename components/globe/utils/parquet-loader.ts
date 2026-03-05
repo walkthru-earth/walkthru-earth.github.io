@@ -1,21 +1,23 @@
 /**
  * Loads remote Parquet files via hyparquet in a Web Worker.
- * Main thread stays free for scroll/render — zero jank.
+ * Supports progressive streaming — onChunk fires as each row group is parsed.
  */
 
 import type { WorkerRequest, WorkerResponse } from './parquet-worker';
 
 let worker: Worker | null = null;
 let nextId = 0;
-const pending = new Map<
-  number,
-  {
-    resolve: (rows: Record<string, unknown>[]) => void;
-    reject: (err: Error) => void;
-  }
->();
 
-/** File-level cache: same URL + columns → reuse previous result */
+interface PendingRequest {
+  resolve: (rows: Record<string, unknown>[]) => void;
+  reject: (err: Error) => void;
+  onChunk?: (rows: Record<string, unknown>[]) => void;
+  accumulated: Record<string, unknown>[];
+}
+
+const pending = new Map<number, PendingRequest>();
+
+/** File-level cache: same URL + columns + filter → reuse previous result */
 const fileCache = new Map<string, Promise<Record<string, unknown>[]>>();
 
 function getWorker(): Worker {
@@ -24,14 +26,19 @@ function getWorker(): Worker {
       type: 'module',
     });
     worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
-      const { id, rows, error } = e.data;
-      const p = pending.get(id);
+      const msg = e.data;
+      const p = pending.get(msg.id);
       if (!p) return;
-      pending.delete(id);
-      if (error) {
-        p.reject(new Error(error));
-      } else {
-        p.resolve(rows!);
+
+      if (msg.type === 'chunk') {
+        p.accumulated.push(...msg.rows);
+        p.onChunk?.(p.accumulated);
+      } else if (msg.type === 'done') {
+        pending.delete(msg.id);
+        p.resolve(p.accumulated);
+      } else if (msg.type === 'error') {
+        pending.delete(msg.id);
+        p.reject(new Error(msg.error));
       }
     };
   }
@@ -40,34 +47,28 @@ function getWorker(): Worker {
 
 export function loadParquet(
   url: string,
-  columns?: string[]
+  columns?: string[],
+  filter?: Record<string, Record<string, unknown>>,
+  onChunk?: (rows: Record<string, unknown>[]) => void
 ): Promise<Record<string, unknown>[]> {
-  const cacheKey = `${url}|${columns?.join(',') ?? '*'}`;
+  const cacheKey = `${url}|${columns?.join(',') ?? '*'}|${filter ? JSON.stringify(filter) : ''}`;
+
+  // If we have a completed cache hit, return it immediately
+  // but still fire onChunk so the caller gets data right away
   const cached = fileCache.get(cacheKey);
-  if (cached) {
-    console.log(`[Parquet] Cache hit: ${url.split('/').slice(-3).join('/')}`);
+  if (cached && onChunk) {
+    cached.then((rows) => onChunk(rows));
     return cached;
   }
-
-  const start = performance.now();
-  const shortUrl = url.split('/').slice(-3).join('/');
-  console.log(
-    `[Parquet] Loading ${shortUrl}${columns ? ` (${columns.length} cols)` : ''}...`
-  );
+  if (cached) return cached;
 
   const id = nextId++;
   const promise = new Promise<Record<string, unknown>[]>((resolve, reject) => {
-    pending.set(id, { resolve, reject });
-    getWorker().postMessage({ id, url, columns } as WorkerRequest);
-  }).then((rows) => {
-    console.log(
-      `[Parquet] ${rows.length} rows in ${(performance.now() - start).toFixed(0)}ms`
-    );
-    return rows;
+    pending.set(id, { resolve, reject, onChunk, accumulated: [] });
+    getWorker().postMessage({ id, url, columns, filter } as WorkerRequest);
   });
 
   fileCache.set(cacheKey, promise);
-  // Remove from cache on error so it can be retried
   promise.catch(() => fileCache.delete(cacheKey));
 
   return promise;

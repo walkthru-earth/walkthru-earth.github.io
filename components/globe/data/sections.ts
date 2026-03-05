@@ -41,7 +41,6 @@ export function viewStateToBBox(vs: ViewState): BBox {
 
 /** Runtime context passed to buildQuery/loadData — values resolved at mount time. */
 export interface QueryContext {
-  /** Resolved weather prefix (date + hour), e.g. `.../date=2026-03-05/hour=12` */
   weatherPrefix: string;
 }
 
@@ -57,14 +56,13 @@ export interface GlobeSection {
   description: string;
   stat: { label: string; value: string };
   viewState: ViewState;
-  /** Column used for fill color — used to compute dynamic P5/P95 range. */
   colorColumn: string;
-  /** Load data via hyparquet. Returns rows for the H3 layer. */
+  /** Load data. onProgress fires as row groups stream in (partial results). */
   loadData: (
     bbox: BBox,
-    ctx: QueryContext
+    ctx: QueryContext,
+    onProgress?: (rows: Record<string, unknown>[]) => void
   ) => Promise<Record<string, unknown>[]>;
-  /** Display SQL for the query panel (cosmetic — not executed). */
   buildQuery: (bbox: BBox, ctx: QueryContext) => string;
   getHexagon: (d: Record<string, unknown>) => string;
   getFillColor: (
@@ -84,7 +82,6 @@ const S3_BUCKET =
   'https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop';
 const S3_BASE = `${S3_BUCKET}/walkthru-earth`;
 
-/** Proxy URL for HEAD probes (supports normal URLs, faster for availability checks). */
 const PROBE_BASE = 'https://data.source.coop/walkthru-earth';
 
 const WEATHER_BASE = `${S3_BASE}/indices/weather/model=GraphCast_GFS`;
@@ -99,81 +96,58 @@ function recentDates(): string[] {
   return dates;
 }
 
-/** Resolve the latest available weather date+hour. Cached after first call. */
-let _weatherPrefix: string | null = null;
-export async function resolveWeatherPrefix(): Promise<string> {
-  if (_weatherPrefix) return _weatherPrefix;
+let _weatherPrefixPromise: Promise<string> | null = null;
+export function resolveWeatherPrefix(): Promise<string> {
+  if (_weatherPrefixPromise) return _weatherPrefixPromise;
 
-  console.log('[Weather] Probing for latest available forecast...');
-  for (const date of recentDates()) {
-    for (const hour of [12, 0]) {
-      const probeUrl = `${PROBE_BASE}/indices/weather/model=GraphCast_GFS/date=${date}/hour=${hour}/h3_res=2/data.parquet`;
-      try {
+  _weatherPrefixPromise = (async () => {
+    // Build all candidate prefixes ordered by preference (newest first, hour=12 before hour=0)
+    const candidates = recentDates().flatMap((date) =>
+      [12, 0].map((hour) => ({ date, hour }))
+    );
+
+    // Probe all in parallel
+    const results = await Promise.allSettled(
+      candidates.map(async ({ date, hour }) => {
+        const probeUrl = `${PROBE_BASE}/indices/weather/model=GraphCast_GFS/date=${date}/hour=${hour}/h3_res=2/data.parquet`;
         const res = await fetch(probeUrl, { method: 'HEAD' });
-        if (res.ok) {
-          console.log(`[Weather] Found: date=${date} hour=${hour}`);
-          _weatherPrefix = `${WEATHER_BASE}/date=${date}/hour=${hour}`;
-          return _weatherPrefix;
-        }
-        console.log(`[Weather] Not found: date=${date} hour=${hour}`);
-      } catch {
-        console.log(`[Weather] Network error: date=${date} hour=${hour}`);
-      }
-    }
-  }
+        if (!res.ok) throw new Error(`${res.status}`);
+        return `${WEATHER_BASE}/date=${date}/hour=${hour}`;
+      })
+    );
 
-  const fallback = `${WEATHER_BASE}/date=${recentDates()[1]}/hour=0`;
-  console.warn('[Weather] No forecast found, using fallback:', fallback);
-  _weatherPrefix = fallback;
-  return fallback;
+    // Pick the first successful result (maintains preference order)
+    for (const result of results) {
+      if (result.status === 'fulfilled') return result.value;
+    }
+
+    // Fallback
+    return `${WEATHER_BASE}/date=${recentDates()[1]}/hour=0`;
+  })();
+
+  return _weatherPrefixPromise;
 }
 
-/** Weather parquet URL for a given H3 resolution (1–5). */
 const weatherParquet = (prefix: string, res: number) =>
   `${prefix}/h3_res=${res}/data.parquet`;
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
-/** Format number with locale-aware separators */
 const fmt = (n: number) => Number(n).toLocaleString();
 
-/** Check if a row's lat/lon falls within a bounding box. */
-function inBBox(row: Record<string, unknown>, bbox: BBox): boolean {
-  const lat = Number(row.lat);
-  const lon = Number(row.lon);
-  return (
-    lat >= bbox.minLat &&
-    lat <= bbox.maxLat &&
-    lon >= bbox.minLon &&
-    lon <= bbox.maxLon
-  );
+/** Build a hyparquet filter for bounding box on lat/lon columns. */
+function bboxFilter(bbox: BBox) {
+  return {
+    lat: { $gte: bbox.minLat, $lte: bbox.maxLat },
+    lon: { $gte: bbox.minLon, $lte: bbox.maxLon },
+  };
 }
 
 /* ── Section definitions ──────────────────────────────────────────── */
 
 export const SECTIONS: GlobeSection[] = [
   /* ────────────────────────────────────────────────────────────────
-   * Section 0: Opening — clean globe
-   * ──────────────────────────────────────────────────────────────── */
-  {
-    id: 'intro',
-    title: "Earth's Living Indices",
-    subtitle: 'Scroll to Explore',
-    description:
-      'Four global datasets — terrain, population, buildings, and weather — indexed on a unified H3 hexagonal grid. Query them directly in your browser with hyparquet.',
-    stat: { label: 'Total Cells', value: '10.5B+' },
-    viewState: { latitude: 20, longitude: 30, zoom: 1.2 },
-    colorColumn: '',
-    loadData: async () => [],
-    buildQuery: () => '',
-    getHexagon: () => '',
-    getFillColor: () => [0, 0, 0, 0],
-    extruded: false,
-    colorLegend: [],
-  },
-
-  /* ────────────────────────────────────────────────────────────────
-   * Section 1: Weather — Global Temperature (zoom ~1.5, full globe)
+   * Section 0: Weather — Global Temperature (zoom ~1.5, full globe)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'weather-temperature',
@@ -184,13 +158,18 @@ export const SECTIONS: GlobeSection[] = [
     stat: { label: 'Forecast Horizon', value: '5 days' },
     viewState: { latitude: 20, longitude: 30, zoom: 1.5 },
     colorColumn: 'temperature_2m_C',
-    loadData: async (_bbox, ctx) =>
-      loadParquet(weatherParquet(ctx.weatherPrefix, 1), [
-        'h3_index',
-        'temperature_2m_C',
-        'wind_speed_10m_ms',
-        'pressure_msl_hPa',
-      ]),
+    loadData: async (_bbox, ctx, onProgress) =>
+      loadParquet(
+        weatherParquet(ctx.weatherPrefix, 1),
+        [
+          'h3_index',
+          'temperature_2m_C',
+          'wind_speed_10m_ms',
+          'pressure_msl_hPa',
+        ],
+        undefined,
+        onProgress
+      ),
     buildQuery: (_bbox, ctx) => `SELECT h3_index, temperature_2m_C,
        wind_speed_10m_ms, pressure_msl_hPa
 FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
@@ -217,7 +196,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 2: Weather — Global Wind Speed (zoom ~1.8)
+   * Section 1: Weather — Global Wind Speed (zoom ~1.8)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'weather-wind',
@@ -228,13 +207,18 @@ FROM '${weatherParquet(ctx.weatherPrefix, 1)}'`,
     stat: { label: 'Update Frequency', value: '12 hrs' },
     viewState: { latitude: 30, longitude: -30, zoom: 1.8 },
     colorColumn: 'wind_speed_10m_ms',
-    loadData: async (_bbox, ctx) =>
-      loadParquet(weatherParquet(ctx.weatherPrefix, 3), [
-        'h3_index',
-        'wind_speed_10m_ms',
-        'wind_direction_10m_deg',
-        'temperature_2m_C',
-      ]),
+    loadData: async (_bbox, ctx, onProgress) =>
+      loadParquet(
+        weatherParquet(ctx.weatherPrefix, 3),
+        [
+          'h3_index',
+          'wind_speed_10m_ms',
+          'wind_direction_10m_deg',
+          'temperature_2m_C',
+        ],
+        undefined,
+        onProgress
+      ),
     buildQuery: (_bbox, ctx) => `SELECT h3_index, wind_speed_10m_ms,
        wind_direction_10m_deg, temperature_2m_C
 FROM '${weatherParquet(ctx.weatherPrefix, 3)}'`,
@@ -261,7 +245,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, 3)}'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 3: Weather — Precipitation (zoom ~2.5, tropical belt)
+   * Section 2: Weather — Precipitation (zoom ~2.5, tropical belt)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'weather-precipitation',
@@ -272,13 +256,18 @@ FROM '${weatherParquet(ctx.weatherPrefix, 3)}'`,
     stat: { label: 'Resolution', value: 'H3 res 4' },
     viewState: { latitude: 10, longitude: 100, zoom: 2.5 },
     colorColumn: 'precipitation_mm_6hr',
-    loadData: async (_bbox, ctx) =>
-      loadParquet(weatherParquet(ctx.weatherPrefix, 4), [
-        'h3_index',
-        'precipitation_mm_6hr',
-        'specific_humidity_gkg',
-        'temperature_2m_C',
-      ]),
+    loadData: async (_bbox, ctx, onProgress) =>
+      loadParquet(
+        weatherParquet(ctx.weatherPrefix, 4),
+        [
+          'h3_index',
+          'precipitation_mm_6hr',
+          'specific_humidity_gkg',
+          'temperature_2m_C',
+        ],
+        undefined,
+        onProgress
+      ),
     buildQuery: (_bbox, ctx) => `SELECT h3_index, precipitation_mm_6hr,
        specific_humidity_gkg, temperature_2m_C
 FROM '${weatherParquet(ctx.weatherPrefix, 4)}'`,
@@ -305,7 +294,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, 4)}'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 4: Terrain — Himalayas (zoom ~3.5, extruded)
+   * Section 3: Terrain — Himalayas (zoom ~3.5, extruded)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'terrain',
@@ -316,13 +305,13 @@ FROM '${weatherParquet(ctx.weatherPrefix, 4)}'`,
     stat: { label: 'Source Resolution', value: '30m' },
     viewState: { latitude: 28.5, longitude: 86.5, zoom: 3.5 },
     colorColumn: 'elev',
-    loadData: async (bbox) => {
-      const rows = await loadParquet(
+    loadData: async (bbox, _ctx, onProgress) =>
+      loadParquet(
         `${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet`,
-        ['h3_index', 'elev', 'slope', 'aspect', 'tri', 'lat', 'lon']
-      );
-      return rows.filter((r) => inBBox(r, bbox));
-    },
+        ['h3_index', 'elev', 'slope', 'aspect', 'tri', 'lat', 'lon'],
+        bboxFilter(bbox),
+        onProgress
+      ),
     buildQuery: (bbox) => `SELECT h3_index, elev, slope, aspect, tri
 FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'
 WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
@@ -352,7 +341,7 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 5: Buildings + Population — Nile Delta / Cairo (zoom ~4)
+   * Section 4: Buildings + Population — Nile Delta / Cairo (zoom ~4)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'buildings-nile',
@@ -363,33 +352,35 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
     stat: { label: 'Total Buildings', value: '2.75B' },
     viewState: { latitude: 30.0, longitude: 31.2, zoom: 4 },
     colorColumn: 'pop_2025',
-    loadData: async (bbox) => {
+    loadData: async (bbox, _ctx, _onProgress) => {
       const [buildings, population] = await Promise.all([
-        loadParquet(`${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`, [
-          'h3_index',
-          'building_count',
-          'building_density',
-          'avg_height_m',
-          'total_volume_m3',
-          'lat',
-          'lon',
-        ]),
+        loadParquet(
+          `${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`,
+          [
+            'h3_index',
+            'building_count',
+            'building_density',
+            'avg_height_m',
+            'total_volume_m3',
+            'lat',
+            'lon',
+          ],
+          bboxFilter(bbox)
+        ),
         loadParquet(
           `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
           ['h3_index', 'pop_2025', 'pop_2050']
         ),
       ]);
       const popMap = new Map(population.map((p) => [String(p.h3_index), p]));
-      return buildings
-        .filter((b) => inBBox(b, bbox))
-        .map((b) => {
-          const p = popMap.get(String(b.h3_index));
-          return {
-            ...b,
-            pop_2025: p?.pop_2025 ?? 0,
-            pop_2050: p?.pop_2050 ?? 0,
-          };
-        });
+      return buildings.map((b) => {
+        const p = popMap.get(String(b.h3_index));
+        return {
+          ...b,
+          pop_2025: p?.pop_2025 ?? 0,
+          pop_2050: p?.pop_2050 ?? 0,
+        };
+      });
     },
     buildQuery: (bbox) => `SELECT b.h3_index, b.building_count,
        b.building_density, b.avg_height_m,
@@ -426,7 +417,7 @@ WHERE b.lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 6: Population Growth — Sub-Saharan Africa (zoom ~3.5)
+   * Section 5: Population Growth — Sub-Saharan Africa (zoom ~3.5)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'population-growth',
@@ -437,20 +428,19 @@ WHERE b.lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
     stat: { label: 'Projection', value: 'SSP2' },
     viewState: { latitude: 5, longitude: 25, zoom: 3.5 },
     colorColumn: 'growth_ratio',
-    loadData: async (bbox) => {
+    loadData: async (bbox, _ctx, _onProgress) => {
       const rows = await loadParquet(
         `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
-        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100', 'lat', 'lon']
+        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100', 'lat', 'lon'],
+        bboxFilter(bbox)
       );
-      return rows
-        .filter((r) => inBBox(r, bbox))
-        .map((r) => ({
-          ...r,
-          growth_ratio:
-            Number(r.pop_2025) !== 0
-              ? Number(r.pop_2100) / Number(r.pop_2025)
-              : null,
-        }));
+      return rows.map((r) => ({
+        ...r,
+        growth_ratio:
+          Number(r.pop_2025) !== 0
+            ? Number(r.pop_2100) / Number(r.pop_2025)
+            : null,
+      }));
     },
     buildQuery: (bbox) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
        (pop_2100 / NULLIF(pop_2025, 0))
@@ -483,7 +473,7 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 7: Buildings — Tokyo (zoom ~4, building height)
+   * Section 6: Buildings — Tokyo (zoom ~4, building height)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'buildings-tokyo',
@@ -494,8 +484,8 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
     stat: { label: 'Metro Population', value: '37M' },
     viewState: { latitude: 35.68, longitude: 139.76, zoom: 4 },
     colorColumn: 'avg_height_m',
-    loadData: async (bbox) => {
-      const rows = await loadParquet(
+    loadData: async (bbox, _ctx, onProgress) =>
+      loadParquet(
         `${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`,
         [
           'h3_index',
@@ -506,10 +496,10 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
           'total_volume_m3',
           'lat',
           'lon',
-        ]
-      );
-      return rows.filter((r) => inBBox(r, bbox));
-    },
+        ],
+        bboxFilter(bbox),
+        onProgress
+      ),
     buildQuery: (bbox) => `SELECT h3_index, building_count,
        building_density, avg_height_m,
        coverage_ratio, total_volume_m3

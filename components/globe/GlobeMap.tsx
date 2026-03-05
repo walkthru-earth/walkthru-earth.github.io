@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import DeckGL from '@deck.gl/react';
 import {
@@ -80,6 +80,8 @@ interface GlobeMapProps {
   formatTooltip?: (d: Record<string, unknown>) => string | null;
   extruded: boolean;
   elevationScale?: number;
+  /** Called when cursor enters/leaves the globe surface. */
+  onCursorOverGlobe?: (isOver: boolean) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -96,22 +98,29 @@ export const GlobeMap = memo(function GlobeMap({
   formatTooltip,
   extruded,
   elevationScale = 1,
+  onCursorOverGlobe,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
   const palette = isDark ? THEMES.dark : THEMES.light;
 
   // deck.gl manages internal state — animates to new position on change
-  const initialViewState = useMemo(
-    () => ({
+  const initialViewState = useMemo(() => {
+    console.log(
+      `[DeckGL] View transition → lon=${targetViewState.longitude}, lat=${targetViewState.latitude}, zoom=${targetViewState.zoom}`
+    );
+    return {
       longitude: targetViewState.longitude,
       latitude: targetViewState.latitude,
       zoom: targetViewState.zoom,
       transitionDuration: 1500,
       transitionInterpolator: TRANSITION_INTERPOLATOR,
-    }),
-    [targetViewState.longitude, targetViewState.latitude, targetViewState.zoom]
-  );
+    };
+  }, [
+    targetViewState.longitude,
+    targetViewState.latitude,
+    targetViewState.zoom,
+  ]);
 
   const effects = useMemo(
     () => [
@@ -128,7 +137,7 @@ export const GlobeMap = memo(function GlobeMap({
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const layers = useMemo((): any[] => {
     const result: any[] = [
-      // 1. Earth sphere — ocean background
+      // 1. Earth sphere — ocean background (pickable for cursor detection)
       new SimpleMeshLayer({
         id: 'earth-sphere',
         data: [0],
@@ -136,6 +145,7 @@ export const GlobeMap = memo(function GlobeMap({
         coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
         getPosition: () => [0, 0, 0],
         getColor: palette.sphere,
+        pickable: true,
       }),
 
       // 2. Land masses (hidden when H3 data covers the globe)
@@ -163,6 +173,9 @@ export const GlobeMap = memo(function GlobeMap({
 
     // 4. H3 data layer
     if (layerData.length > 0) {
+      console.log(
+        `[DeckGL] Adding H3 layer: ${layerData.length} hexagons, extruded=${extruded}, elevationScale=${elevationScale}, colorRange=[${colorRange.min.toFixed(1)}, ${colorRange.max.toFixed(1)}]`
+      );
       result.push(
         new H3HexagonLayer({
           id: 'h3-layer',
@@ -194,6 +207,10 @@ export const GlobeMap = memo(function GlobeMap({
       );
     }
 
+    console.log(
+      `[DeckGL] Layers: ${result.map((l: { id: string }) => l.id).join(', ')} | land/borders visible=${layerData.length === 0}`
+    );
+
     return result;
   }, [
     layerData,
@@ -216,6 +233,14 @@ export const GlobeMap = memo(function GlobeMap({
     };
   }, [formatTooltip]);
 
+  // Detect whether cursor is over the globe surface (any layer picked = on globe)
+  const handleHover = useCallback(
+    (info: PickingInfo) => {
+      onCursorOverGlobe?.(info.coordinate != null);
+    },
+    [onCursorOverGlobe]
+  );
+
   return (
     <div
       style={{ position: 'absolute', inset: 0, background: palette.background }}
@@ -226,6 +251,7 @@ export const GlobeMap = memo(function GlobeMap({
         controller={true}
         effects={effects}
         layers={layers}
+        onHover={handleHover}
         getTooltip={handleTooltip}
         style={{ width: '100%', height: '100%' }}
       />

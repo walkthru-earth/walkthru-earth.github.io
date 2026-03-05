@@ -19,21 +19,27 @@ interface GlobeExplorerProps {
 }
 
 export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
+  const isOverGlobeRef = useRef(false);
   const { containerRef, activeSection, navigate } = useGlobeScroll(
-    sections.length
+    sections.length,
+    isOverGlobeRef
   );
 
   const [layerData, setLayerData] = useState<Record<string, unknown>[]>([]);
   const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
   const [rowCount, setRowCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [queryCtx, setQueryCtx] = useState<QueryContext | null>(null);
 
-  const lastQueriedSection = useRef(-1);
+  // Ref tracks the active section so async callbacks can check without stale closures
+  const activeSectionRef = useRef(0);
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
 
-  /** Promise-based cache — stores in-flight promises to prevent duplicate loads. */
+  /** Promise-based cache to prevent duplicate loads. */
   const cacheRef = useRef<
     Map<
       number,
@@ -47,11 +53,14 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
   const currentSection = sections[activeSection];
 
-  // Derive display query (no effect or setState needed)
+  const handleCursorOverGlobe = useCallback((isOver: boolean) => {
+    isOverGlobeRef.current = isOver;
+  }, []);
+
   const resolvedQuery = useMemo(() => {
-    if (!queryCtx) return '';
     const bbox = viewStateToBBox(currentSection.viewState);
-    return currentSection.buildQuery(bbox, queryCtx);
+    const ctx = queryCtx ?? { weatherPrefix: '...' };
+    return currentSection.buildQuery(bbox, ctx);
   }, [queryCtx, currentSection]);
 
   // Resolve weather prefix once on mount
@@ -65,9 +74,6 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     };
   }, []);
 
-  /**
-   * Compute P5/P95 percentile range from loaded rows for dynamic color scaling.
-   */
   const computeRange = useCallback(
     (rows: Record<string, unknown>[], column: string): ColorRange => {
       if (!column || rows.length === 0) return { min: 0, max: 1 };
@@ -85,53 +91,55 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   );
 
   /**
-   * Load data for a section. Called when activeSection changes.
-   * All setState calls happen inside async callbacks (satisfies lint rule).
+   * Load data for a section. Uses activeSectionRef to check if the section
+   * is still current. Supports progressive rendering via onProgress.
    */
   const loadSection = useCallback(
     (sectionIdx: number, section: GlobeSection, ctx: QueryContext) => {
       const bbox = viewStateToBBox(section.viewState);
 
       let loadPromise = cacheRef.current.get(sectionIdx);
-      const isNewLoad = !loadPromise;
 
       if (!loadPromise) {
+        console.log(
+          `[Globe] Loading "${section.id}" (section ${sectionIdx})...`
+        );
+        // Defer setState to avoid synchronous setState in effect body
+        Promise.resolve().then(() => {
+          if (activeSectionRef.current !== sectionIdx) return;
+          setIsLoading(true);
+          setError(null);
+        });
+
         const start = performance.now();
-        loadPromise = section.loadData(bbox, ctx).then((rows) => {
+
+        // Progressive callback — updates layer as row groups stream in
+        const onProgress = (partialRows: Record<string, unknown>[]) => {
+          if (activeSectionRef.current !== sectionIdx) return;
+          console.log(
+            `[Globe] "${section.id}" chunk: ${partialRows.length} rows so far`
+          );
+          setLayerData([...partialRows]);
+          setRowCount(partialRows.length);
+        };
+
+        loadPromise = section.loadData(bbox, ctx, onProgress).then((rows) => {
           const duration = performance.now() - start;
           const range = computeRange(rows, section.colorColumn);
           console.log(
-            `[Globe] Loaded "${section.id}": ${rows.length} rows in ${duration.toFixed(0)}ms`
+            `[Globe] "${section.id}" done: ${rows.length} rows in ${duration.toFixed(0)}ms`
           );
-          console.log(`[Globe] colorRange:`, range);
-          if (rows.length > 0) {
-            console.log(
-              '[Globe] Sample row:',
-              JSON.stringify(rows[0]).slice(0, 200)
-            );
-          }
           return { rows, duration, range };
         });
         cacheRef.current.set(sectionIdx, loadPromise);
         loadPromise.catch(() => cacheRef.current.delete(sectionIdx));
-      }
-
-      // Track cancellation for this specific load
-      let cancelled = false;
-
-      if (isNewLoad) {
-        // Set loading state via promise callback (async — satisfies lint rule)
-        Promise.resolve().then(() => {
-          if (!cancelled) {
-            setIsLoading(true);
-            setError(null);
-          }
-        });
+      } else {
+        console.log(`[Globe] "${section.id}" cache hit`);
       }
 
       loadPromise
         .then((result) => {
-          if (cancelled) return;
+          if (activeSectionRef.current !== sectionIdx) return;
           setLayerData(result.rows);
           setColorRange(result.range);
           setQueryDuration(result.duration);
@@ -139,7 +147,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           setIsLoading(false);
         })
         .catch((err) => {
-          if (cancelled) return;
+          if (activeSectionRef.current !== sectionIdx) return;
           const msg = err instanceof Error ? err.message : String(err);
           console.error(`[Globe] Load failed for "${section.id}":`, msg);
           setError(msg);
@@ -148,24 +156,41 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           setRowCount(0);
           setIsLoading(false);
         });
-
-      return () => {
-        cancelled = true;
-      };
     },
     [computeRange]
   );
 
-  // Trigger load when section changes
+  // Load current section + prefetch adjacent
   useEffect(() => {
     if (!queryCtx) return;
-    if (activeSection === lastQueriedSection.current) return;
 
-    lastQueriedSection.current = activeSection;
-    console.log(`[Globe] Section ${activeSection}: "${currentSection.id}"`);
+    // Load the active section
+    loadSection(activeSection, currentSection, queryCtx);
 
-    return loadSection(activeSection, currentSection, queryCtx);
-  }, [queryCtx, activeSection, currentSection, loadSection]);
+    // Prefetch next section (don't apply results, just warm the cache)
+    const nextIdx = activeSection + 1;
+    if (nextIdx < sections.length) {
+      const next = sections[nextIdx];
+      const bbox = viewStateToBBox(next.viewState);
+      if (!cacheRef.current.has(nextIdx)) {
+        const start = performance.now();
+        const prefetch = next.loadData(bbox, queryCtx).then((rows) => {
+          const duration = performance.now() - start;
+          const range = computeRange(rows, next.colorColumn);
+          return { rows, duration, range };
+        });
+        cacheRef.current.set(nextIdx, prefetch);
+        prefetch.catch(() => cacheRef.current.delete(nextIdx));
+      }
+    }
+  }, [
+    queryCtx,
+    activeSection,
+    currentSection,
+    sections,
+    loadSection,
+    computeRange,
+  ]);
 
   return (
     <div
@@ -182,11 +207,11 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         formatTooltip={currentSection.formatTooltip}
         extruded={currentSection.extruded}
         elevationScale={currentSection.elevationScale}
+        onCursorOverGlobe={handleCursorOverGlobe}
       />
 
       <ScrollSection
         section={currentSection}
-        isActive={true}
         sectionIndex={activeSection}
         totalSections={sections.length}
         onSwipe={(dir) => navigate(dir)}
