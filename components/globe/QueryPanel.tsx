@@ -165,25 +165,31 @@ export function ParquetInfoPanel({
               </svg>
             </button>
             {schemaOpen && (
-              <div className="px-4 pb-3">
-                <table className="w-full font-mono text-xs">
+              <div className="overflow-hidden px-4 pb-3">
+                <table className="w-full table-fixed font-mono text-[10px]">
                   <thead>
                     <tr className="text-gray-500 dark:text-white/50">
-                      <th className="pb-1.5 text-left font-semibold">Column</th>
-                      <th className="pb-1.5 text-left font-semibold">Type</th>
-                      <th className="pb-1.5 text-right font-semibold">Codec</th>
+                      <th className="w-[55%] pb-1.5 text-left font-semibold">
+                        Column
+                      </th>
+                      <th className="w-[25%] pb-1.5 text-left font-semibold">
+                        Type
+                      </th>
+                      <th className="w-[20%] pb-1.5 text-right font-semibold">
+                        Codec
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {info.columns.map((col) => (
                       <tr key={col.name}>
-                        <td className="py-0.5 font-semibold text-gray-800 dark:text-white/85">
+                        <td className="truncate py-0.5 font-semibold text-gray-800 dark:text-white/85">
                           {col.name}
                         </td>
-                        <td className="py-0.5 text-gray-500 dark:text-white/50">
+                        <td className="truncate py-0.5 text-gray-500 dark:text-white/50">
                           {col.type ?? '?'}
                         </td>
-                        <td className="py-0.5 text-right text-gray-400 dark:text-white/40">
+                        <td className="truncate py-0.5 text-right text-gray-400 dark:text-white/40">
                           {col.codec ?? ''}
                         </td>
                       </tr>
