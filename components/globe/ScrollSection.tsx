@@ -4,6 +4,7 @@ import {
   memo,
   useRef,
   useCallback,
+  useEffect,
   useState,
   useSyncExternalStore,
 } from 'react';
@@ -253,6 +254,13 @@ function MobileDrawer(props: ScrollSectionProps) {
   const [open, setOpen] = useState(true);
   const { section, sectionIndex, totalSections, isLoading, rowCount, onSwipe } =
     props;
+
+  // Close drawer when globe is tapped (custom event from GlobeExplorer)
+  useEffect(() => {
+    const handler = () => setOpen(false);
+    window.addEventListener('globe:tap', handler);
+    return () => window.removeEventListener('globe:tap', handler);
+  }, []);
   const swipeRef = useRef<{ x: number; y: number; swiped: boolean }>({
     x: 0,
     y: 0,
@@ -350,22 +358,13 @@ function MobileDrawer(props: ScrollSectionProps) {
         </div>
       )}
 
-      {/* Tap-outside overlay to collapse drawer */}
-      {open && (
-        <div
-          className="fixed inset-0 z-20"
-          onClick={() => setOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
       <Drawer
         open={open}
         onOpenChange={setOpen}
         shouldScaleBackground={false}
         modal={false}
       >
-        <DrawerContent className="z-30 max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
+        <DrawerContent className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
           <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
           <div
             className="touch-pan-y overflow-y-auto px-4 pt-1 pb-6"

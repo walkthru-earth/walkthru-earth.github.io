@@ -82,7 +82,7 @@ function usePlayback(
       }
       const next = indexRef.current + 1;
       if (next >= lengthRef.current) {
-        setPlaying(false);
+        onChange(0); // loop back to start
       } else {
         onChange(next);
       }
@@ -91,14 +91,8 @@ function usePlayback(
   }, [playing, length, onChange, intervalMs]);
 
   const toggle = useCallback(() => {
-    setPlaying((p) => {
-      // If at the end, restart from beginning
-      if (!p && indexRef.current >= length - 1) {
-        onChange(0);
-      }
-      return !p;
-    });
-  }, [length, onChange]);
+    setPlaying((p) => !p);
+  }, []);
 
   return { playing, toggle };
 }

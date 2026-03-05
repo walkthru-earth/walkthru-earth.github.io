@@ -84,6 +84,8 @@ interface GlobeMapProps {
   onCursorOverGlobe?: (isOver: boolean) => void;
   /** Called with current zoom level as user interacts with the globe. */
   onZoomChange?: (zoom: number) => void;
+  /** Called when the globe canvas is clicked/tapped. */
+  onClick?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -102,6 +104,7 @@ export const GlobeMap = memo(function GlobeMap({
   elevationScale = 1,
   onCursorOverGlobe,
   onZoomChange,
+  onClick,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
@@ -262,6 +265,7 @@ export const GlobeMap = memo(function GlobeMap({
         effects={effects}
         layers={layers}
         onHover={handleHover}
+        onClick={onClick}
         onViewStateChange={handleViewStateChange}
         getTooltip={handleTooltip}
         style={{ width: '100%', height: '100%' }}

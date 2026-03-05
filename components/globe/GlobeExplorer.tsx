@@ -44,6 +44,9 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
   const [zoom, setZoom] = useState(sections[0]?.viewState.zoom ?? 1.5);
   const [timeStepIndex, setTimeStepIndex] = useState(0);
+  const handleGlobeTap = useCallback(() => {
+    window.dispatchEvent(new Event('globe:tap'));
+  }, []);
 
   // Per-section h3Res overrides (sparse — only stores user changes)
   const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
@@ -273,6 +276,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         elevationScale={currentSection.elevationScale}
         onCursorOverGlobe={handleCursorOverGlobe}
         onZoomChange={handleZoomChange}
+        onClick={handleGlobeTap}
       />
 
       <ScrollSection
