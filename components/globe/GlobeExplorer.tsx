@@ -7,7 +7,6 @@ import { QueryPanel } from './QueryPanel';
 import { useGlobeScroll } from './hooks/useGlobeScroll';
 import {
   SECTIONS,
-  viewStateToBBox,
   resolveWeatherPrefix,
   type GlobeSection,
   type QueryContext,
@@ -58,9 +57,8 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   }, []);
 
   const resolvedQuery = useMemo(() => {
-    const bbox = viewStateToBBox(currentSection.viewState);
     const ctx = queryCtx ?? { weatherPrefix: '...' };
-    return currentSection.buildQuery(bbox, ctx);
+    return currentSection.buildQuery(ctx);
   }, [queryCtx, currentSection]);
 
   // Resolve weather prefix once on mount
@@ -96,8 +94,6 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
    */
   const loadSection = useCallback(
     (sectionIdx: number, section: GlobeSection, ctx: QueryContext) => {
-      const bbox = viewStateToBBox(section.viewState);
-
       let loadPromise = cacheRef.current.get(sectionIdx);
 
       if (!loadPromise) {
@@ -123,7 +119,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           setRowCount(partialRows.length);
         };
 
-        loadPromise = section.loadData(bbox, ctx, onProgress).then((rows) => {
+        loadPromise = section.loadData(ctx, onProgress).then((rows) => {
           const duration = performance.now() - start;
           const range = computeRange(rows, section.colorColumn);
           console.log(
@@ -175,9 +171,8 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         if (activeSectionRef.current !== activeSection) return;
         if (cacheRef.current.has(nextIdx)) return;
         const next = sections[nextIdx];
-        const bbox = viewStateToBBox(next.viewState);
         const start = performance.now();
-        const prefetch = next.loadData(bbox, queryCtx).then((rows) => {
+        const prefetch = next.loadData(queryCtx).then((rows) => {
           const duration = performance.now() - start;
           const range = computeRange(rows, next.colorColumn);
           return { rows, duration, range };
