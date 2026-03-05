@@ -23,7 +23,8 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     () => sections.map((s) => s.viewState),
     [sections]
   );
-  const { containerRef, activeSection, viewState } = useGlobeScroll(viewStates);
+  const { containerRef, activeSection, viewState, scrollToSection } =
+    useGlobeScroll(viewStates);
 
   const [layerData, setLayerData] = useState<Record<string, unknown>[]>([]);
   const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
@@ -168,20 +169,6 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
     return loadSection(activeSection, currentSection, queryCtx);
   }, [queryCtx, activeSection, currentSection, loadSection]);
-
-  const scrollToSection = useCallback(
-    (idx: number) => {
-      const container = containerRef.current;
-      if (!container) return;
-      const totalScrollHeight = container.scrollHeight - window.innerHeight;
-      const progress = idx / (sections.length - 1);
-      window.scrollTo({
-        top: container.offsetTop + progress * totalScrollHeight,
-        behavior: 'smooth',
-      });
-    },
-    [containerRef, sections.length]
-  );
 
   const totalHeight = `${sections.length * 100}vh`;
 

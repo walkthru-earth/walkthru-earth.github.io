@@ -29,6 +29,36 @@ export function useGlobeScroll(viewStates: ViewState[]) {
   const snapTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const isSnappingRef = useRef(false);
 
+  /** Scroll to a specific section index, setting the active section immediately. */
+  const scrollToSection = useCallback(
+    (idx: number) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const sectionCount = viewStates.length;
+      const clamped = Math.max(0, Math.min(sectionCount - 1, idx));
+
+      // Set active section immediately — no debounce delay
+      setActiveSection(clamped);
+      setViewState(viewStates[clamped]);
+
+      isSnappingRef.current = true;
+      clearTimeout(snapTimerRef.current);
+      clearTimeout(sectionTimerRef.current);
+
+      const totalHeight = container.scrollHeight - window.innerHeight;
+      const targetProgress = clamped / (sectionCount - 1);
+      window.scrollTo({
+        top: container.offsetTop + targetProgress * totalHeight,
+        behavior: 'smooth',
+      });
+
+      setTimeout(() => {
+        isSnappingRef.current = false;
+      }, 800);
+    },
+    [viewStates]
+  );
+
   const handleScroll = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
@@ -47,18 +77,7 @@ export function useGlobeScroll(viewStates: ViewState[]) {
       const clampedSection = Math.min(currentSection, sectionCount - 2);
       const nextSection = clampedSection + 1;
 
-      const newActive =
-        sectionT > 0.5
-          ? Math.min(nextSection, sectionCount - 1)
-          : clampedSection;
-
-      // Debounce section changes (150ms) so rapid scrolling doesn't
-      // trigger multiple data loads. View state updates are still instant.
-      clearTimeout(sectionTimerRef.current);
-      sectionTimerRef.current = setTimeout(() => {
-        setActiveSection((prev) => (prev !== newActive ? newActive : prev));
-      }, 150);
-
+      // Update view state (globe lerp) on every scroll — even during snap
       if (clampedSection < sectionCount - 1) {
         setViewState(
           lerpViewState(
@@ -71,29 +90,33 @@ export function useGlobeScroll(viewStates: ViewState[]) {
         setViewState(viewStates[sectionCount - 1]);
       }
 
+      // During programmatic snap/swipe, skip section debounce and snap timer
+      // (active section was already set immediately)
+      if (isSnappingRef.current) return;
+
+      const newActive =
+        sectionT > 0.5
+          ? Math.min(nextSection, sectionCount - 1)
+          : clampedSection;
+
+      // Debounce section changes (150ms) so rapid scrolling doesn't
+      // trigger multiple data loads.
+      clearTimeout(sectionTimerRef.current);
+      sectionTimerRef.current = setTimeout(() => {
+        setActiveSection((prev) => (prev !== newActive ? newActive : prev));
+      }, 150);
+
       // Snap to nearest section after 250ms of scroll idle
-      if (!isSnappingRef.current) {
-        clearTimeout(snapTimerRef.current);
-        snapTimerRef.current = setTimeout(() => {
-          const nearestSection = Math.round(sectionProgress);
-          const distToNearest = Math.abs(sectionProgress - nearestSection);
-          // Skip if already snapped (within 2% of a section boundary)
-          if (distToNearest < 0.02) return;
-          isSnappingRef.current = true;
-          const targetProgress = nearestSection / (sectionCount - 1);
-          const targetScroll = targetProgress * totalHeight;
-          window.scrollTo({
-            top: container.offsetTop + targetScroll,
-            behavior: 'smooth',
-          });
-          // Reset after smooth-scroll animation completes
-          setTimeout(() => {
-            isSnappingRef.current = false;
-          }, 800);
-        }, 250);
-      }
+      clearTimeout(snapTimerRef.current);
+      snapTimerRef.current = setTimeout(() => {
+        const nearestSection = Math.round(sectionProgress);
+        const distToNearest = Math.abs(sectionProgress - nearestSection);
+        // Skip if already snapped (within 2% of a section boundary)
+        if (distToNearest < 0.02) return;
+        scrollToSection(nearestSection);
+      }, 250);
     });
-  }, [viewStates]);
+  }, [viewStates, scrollToSection]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -106,5 +129,5 @@ export function useGlobeScroll(viewStates: ViewState[]) {
     };
   }, [handleScroll]);
 
-  return { containerRef, activeSection, viewState };
+  return { containerRef, activeSection, viewState, scrollToSection };
 }
