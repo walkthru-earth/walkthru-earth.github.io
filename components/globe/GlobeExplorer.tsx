@@ -213,6 +213,8 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         sectionIndex={activeSection}
         totalSections={sections.length}
         onSwipe={(dir) => navigate(dir)}
+        isLoading={isLoading}
+        rowCount={rowCount}
         queryPanel={
           <QueryPanelInline
             query={resolvedQuery}
