@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { GlobeMap } from './GlobeMap';
 import { ScrollSection } from './ScrollSection';
-import { QueryPanel } from './QueryPanel';
+import { QueryPanel, QueryPanelInline } from './QueryPanel';
 import { useGlobeScroll } from './hooks/useGlobeScroll';
 import {
   SECTIONS,
@@ -213,8 +213,18 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         sectionIndex={activeSection}
         totalSections={sections.length}
         onSwipe={(dir) => navigate(dir)}
+        queryPanel={
+          <QueryPanelInline
+            query={resolvedQuery}
+            duration={queryDuration}
+            rowCount={rowCount}
+            isLoading={isLoading}
+            error={error}
+          />
+        }
       />
 
+      {/* Desktop-only floating SQL panel */}
       <QueryPanel
         query={resolvedQuery}
         duration={queryDuration}

@@ -42,6 +42,93 @@ const TOKEN_CLASSES: Record<Token['type'], string> = {
   text: '',
 };
 
+/* ── Inline SQL block (used inside mobile drawer) ─────────────────── */
+
+export function QueryPanelInline({
+  query,
+  duration,
+  rowCount,
+  isLoading,
+  error,
+}: QueryPanelProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!query) return null;
+
+  return (
+    <div className="rounded-lg border border-black/10 dark:border-white/10">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        className="text-foreground/80 flex w-full items-center gap-2 px-3 py-2 font-mono text-xs"
+      >
+        <span
+          className={`inline-block h-2 w-2 rounded-full transition-colors ${
+            isLoading
+              ? 'animate-pulse bg-amber-500'
+              : 'bg-emerald-500 dark:bg-emerald-400'
+          }`}
+        />
+        SQL
+        {isLoading && (
+          <span className="animate-pulse text-amber-600 dark:text-amber-300">
+            {rowCount > 0
+              ? `${rowCount.toLocaleString()} rows...`
+              : 'querying...'}
+          </span>
+        )}
+        {!isLoading && duration !== null && (
+          <span className="text-muted-foreground">{duration.toFixed(0)}ms</span>
+        )}
+        <svg
+          className={`ml-auto h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 15l7-7 7 7"
+          />
+        </svg>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-black/10 dark:border-white/10">
+          <pre className="text-foreground/90 overflow-x-auto p-3 font-mono text-xs leading-relaxed">
+            <code>
+              {tokenizeSQL(query).map((tok, i) => (
+                <span key={i} className={TOKEN_CLASSES[tok.type]}>
+                  {tok.value}
+                </span>
+              ))}
+            </code>
+          </pre>
+          {(error || rowCount > 0 || duration !== null) && (
+            <div className="text-muted-foreground flex items-center gap-3 border-t border-black/10 px-3 py-2 font-mono text-[10px] dark:border-white/10">
+              {error ? (
+                <span className="text-red-500 dark:text-red-400">{error}</span>
+              ) : (
+                <>
+                  {rowCount > 0 && (
+                    <span>{rowCount.toLocaleString()} rows</span>
+                  )}
+                  {duration !== null && <span>{duration.toFixed(0)}ms</span>}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Desktop floating panel (top-left, below navbar) ──────────────── */
+
 export const QueryPanel = memo(function QueryPanel({
   query,
   duration,
@@ -54,7 +141,7 @@ export const QueryPanel = memo(function QueryPanel({
   if (!query) return null;
 
   return (
-    <div className="absolute right-2 bottom-2 z-20 max-w-[calc(100vw-1rem)] sm:right-4 sm:bottom-4 sm:max-w-md">
+    <div className="absolute top-4 right-4 z-20 hidden max-w-md sm:block">
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
