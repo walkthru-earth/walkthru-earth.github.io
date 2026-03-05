@@ -136,12 +136,18 @@ const weatherParquet = (prefix: string, res: number) =>
 
 const fmt = (n: number) => Number(n).toLocaleString();
 
-/** Build a hyparquet filter for bounding box on lat/lon columns. */
-function bboxFilter(bbox: BBox) {
-  return {
-    lat: { $gte: bbox.minLat, $lte: bbox.maxLat },
-    lon: { $gte: bbox.minLon, $lte: bbox.maxLon },
-  };
+/** Client-side bbox filter — faster than hyparquet row-group filtering for small files. */
+function filterBBox(rows: Record<string, unknown>[], bbox: BBox) {
+  return rows.filter((r) => {
+    const lat = Number(r.lat);
+    const lon = Number(r.lon);
+    return (
+      lat >= bbox.minLat &&
+      lat <= bbox.maxLat &&
+      lon >= bbox.minLon &&
+      lon <= bbox.maxLon
+    );
+  });
 }
 
 /* ── Section definitions ──────────────────────────────────────────── */
@@ -306,13 +312,15 @@ FROM '${weatherParquet(ctx.weatherPrefix, 4)}'`,
     stat: { label: 'Source Resolution', value: '30m' },
     viewState: { latitude: 28.5, longitude: 86.5, zoom: 3.5 },
     colorColumn: 'elev',
-    loadData: async (bbox, _ctx, onProgress) =>
-      loadParquet(
+    loadData: async (bbox, _ctx, onProgress) => {
+      const rows = await loadParquet(
         `${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet`,
         ['h3_index', 'elev', 'slope', 'aspect', 'tri', 'lat', 'lon'],
-        bboxFilter(bbox),
+        undefined,
         onProgress
-      ),
+      );
+      return filterBBox(rows, bbox);
+    },
     buildQuery: (bbox) => `SELECT h3_index, elev, slope, aspect, tri
 FROM '${S3_BASE}/dem-terrain/h3/h3_res=3/data.parquet'
 WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
@@ -355,26 +363,23 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
     colorColumn: 'pop_2025',
     loadData: async (bbox, _ctx, _onProgress) => {
       const [buildings, population] = await Promise.all([
-        loadParquet(
-          `${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`,
-          [
-            'h3_index',
-            'building_count',
-            'building_density',
-            'avg_height_m',
-            'total_volume_m3',
-            'lat',
-            'lon',
-          ],
-          bboxFilter(bbox)
-        ),
+        loadParquet(`${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`, [
+          'h3_index',
+          'building_count',
+          'building_density',
+          'avg_height_m',
+          'total_volume_m3',
+          'lat',
+          'lon',
+        ]),
         loadParquet(
           `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
           ['h3_index', 'pop_2025', 'pop_2050']
         ),
       ]);
+      const filtered = filterBBox(buildings, bbox);
       const popMap = new Map(population.map((p) => [String(p.h3_index), p]));
-      return buildings.map((b) => {
+      return filtered.map((b) => {
         const p = popMap.get(String(b.h3_index));
         return {
           ...b,
@@ -432,10 +437,9 @@ WHERE b.lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
     loadData: async (bbox, _ctx, _onProgress) => {
       const rows = await loadParquet(
         `${S3_BASE}/indices/population/scenario=SSP2/h3_res=3/data.parquet`,
-        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100', 'lat', 'lon'],
-        bboxFilter(bbox)
+        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100', 'lat', 'lon']
       );
-      return rows.map((r) => ({
+      return filterBBox(rows, bbox).map((r) => ({
         ...r,
         growth_ratio:
           Number(r.pop_2025) !== 0
@@ -485,8 +489,8 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
     stat: { label: 'Metro Population', value: '37M' },
     viewState: { latitude: 35.68, longitude: 139.76, zoom: 4 },
     colorColumn: 'avg_height_m',
-    loadData: async (bbox, _ctx, onProgress) =>
-      loadParquet(
+    loadData: async (bbox, _ctx, onProgress) => {
+      const rows = await loadParquet(
         `${S3_BASE}/indices/building/h3/h3_res=3/data.parquet`,
         [
           'h3_index',
@@ -498,9 +502,11 @@ WHERE lat BETWEEN ${bbox.minLat.toFixed(1)} AND ${bbox.maxLat.toFixed(1)}
           'lat',
           'lon',
         ],
-        bboxFilter(bbox),
+        undefined,
         onProgress
-      ),
+      );
+      return filterBBox(rows, bbox);
+    },
     buildQuery: (bbox) => `SELECT h3_index, building_count,
        building_density, avg_height_m,
        coverage_ratio, total_volume_m3

@@ -17,7 +17,7 @@ interface PendingRequest {
 
 const pending = new Map<number, PendingRequest>();
 
-/** File-level cache: same URL + columns + filter → reuse previous result */
+/** File-level cache: same URL + columns → reuse previous result */
 const fileCache = new Map<string, Promise<Record<string, unknown>[]>>();
 
 function getWorker(): Worker {
@@ -48,10 +48,10 @@ function getWorker(): Worker {
 export function loadParquet(
   url: string,
   columns?: string[],
-  filter?: Record<string, Record<string, unknown>>,
+  _filter?: unknown,
   onChunk?: (rows: Record<string, unknown>[]) => void
 ): Promise<Record<string, unknown>[]> {
-  const cacheKey = `${url}|${columns?.join(',') ?? '*'}|${filter ? JSON.stringify(filter) : ''}`;
+  const cacheKey = `${url}|${columns?.join(',') ?? '*'}`;
 
   // If we have a completed cache hit, return it immediately
   // but still fire onChunk so the caller gets data right away
@@ -65,7 +65,7 @@ export function loadParquet(
   const id = nextId++;
   const promise = new Promise<Record<string, unknown>[]>((resolve, reject) => {
     pending.set(id, { resolve, reject, onChunk, accumulated: [] });
-    getWorker().postMessage({ id, url, columns, filter } as WorkerRequest);
+    getWorker().postMessage({ id, url, columns } as WorkerRequest);
   });
 
   fileCache.set(cacheKey, promise);

@@ -17,7 +17,6 @@ export interface WorkerRequest {
   id: number;
   url: string;
   columns?: string[];
-  filter?: Record<string, Record<string, unknown>>;
 }
 
 export type WorkerResponse =
@@ -56,7 +55,7 @@ function post(msg: WorkerResponse) {
 }
 
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
-  const { id, url, columns, filter } = e.data;
+  const { id, url, columns } = e.data;
   try {
     const file = await getCachedBuffer(url);
     const metadata = await getCachedMetadata(file, url);
@@ -75,7 +74,6 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         metadata,
         columns,
         compressors,
-        ...(filter ? { filter } : {}),
       })) as Record<string, unknown>[];
       console.log(`[Worker] ${shortUrl}: single group → ${rows.length} rows`);
       post({ id, type: 'chunk', rows });
@@ -98,7 +96,6 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         compressors,
         rowStart,
         rowEnd,
-        ...(filter ? { filter } : {}),
       })) as Record<string, unknown>[];
 
       if (rows.length > 0) {
