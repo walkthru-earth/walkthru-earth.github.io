@@ -138,20 +138,22 @@ export const GlobeMap = memo(function GlobeMap({
         getColor: palette.sphere,
       }),
 
-      // 2. Land masses
+      // 2. Land masses (hidden when H3 data covers the globe)
       new GeoJsonLayer({
         id: 'earth-land',
         data: LAND_GEOJSON,
+        visible: layerData.length === 0,
         stroked: false,
         filled: true,
         opacity: palette.landOpacity,
         getFillColor: palette.land,
       }),
 
-      // 3. Country borders
+      // 3. Country borders (hidden when H3 data covers the globe)
       new GeoJsonLayer({
         id: 'country-borders',
         data: COUNTRY_BORDERS,
+        visible: layerData.length === 0,
         stroked: true,
         filled: false,
         lineWidthMinPixels: 0.5,
