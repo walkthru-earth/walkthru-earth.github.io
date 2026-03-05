@@ -72,6 +72,7 @@ interface GlobeMapProps {
   formatTooltip?: (d: Record<string, unknown>) => string | null;
   extruded: boolean;
   elevationScale?: number;
+  layerOpacity?: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -88,6 +89,7 @@ export const GlobeMap = memo(function GlobeMap({
   formatTooltip,
   extruded,
   elevationScale = 1,
+  layerOpacity = 0.85,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
@@ -118,24 +120,26 @@ export const GlobeMap = memo(function GlobeMap({
         getColor: palette.sphere,
       }),
 
-      // 2. Land masses (hidden when H3 data covers the globe)
+      // 2. Land masses — fade in as H3 layer fades out during transitions
       new GeoJsonLayer({
         id: 'earth-land',
         data: LAND_GEOJSON,
-        visible: layerData.length === 0,
         stroked: false,
         filled: true,
-        opacity: palette.landOpacity,
+        opacity:
+          layerData.length === 0
+            ? palette.landOpacity
+            : palette.landOpacity * (1 - layerOpacity),
         getFillColor: palette.land,
       }),
 
-      // 3. Country borders (hidden when H3 data covers the globe)
+      // 3. Country borders — same crossfade
       new GeoJsonLayer({
         id: 'country-borders',
         data: COUNTRY_BORDERS,
-        visible: layerData.length === 0,
         stroked: true,
         filled: false,
+        opacity: layerData.length === 0 ? 1 : 1 - layerOpacity,
         lineWidthMinPixels: 0.5,
         getLineColor: palette.borders,
       }),
@@ -159,7 +163,7 @@ export const GlobeMap = memo(function GlobeMap({
           ) => [number, number, number, number],
           getElevation:
             (getElevation as ((d: unknown) => number) | undefined) ?? (() => 0),
-          opacity: 0.85,
+          opacity: layerOpacity,
           coverage: 0.92,
           material: {
             ambient: 0.64,
@@ -183,6 +187,7 @@ export const GlobeMap = memo(function GlobeMap({
     getElevation,
     extruded,
     elevationScale,
+    layerOpacity,
     palette,
   ]);
   /* eslint-enable @typescript-eslint/no-explicit-any */

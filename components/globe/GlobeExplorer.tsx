@@ -23,8 +23,13 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     () => sections.map((s) => s.viewState),
     [sections]
   );
-  const { containerRef, activeSection, viewState, scrollToSection } =
-    useGlobeScroll(viewStates);
+  const {
+    containerRef,
+    activeSection,
+    viewState,
+    layerOpacity,
+    scrollToSection,
+  } = useGlobeScroll(viewStates);
 
   const [layerData, setLayerData] = useState<Record<string, unknown>[]>([]);
   const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
@@ -189,6 +194,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           formatTooltip={currentSection.formatTooltip}
           extruded={currentSection.extruded}
           elevationScale={currentSection.elevationScale}
+          layerOpacity={layerOpacity}
         />
 
         <ScrollSection

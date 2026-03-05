@@ -24,6 +24,7 @@ export function useGlobeScroll(viewStates: ViewState[]) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
   const [viewState, setViewState] = useState<ViewState>(viewStates[0]);
+  const [layerOpacity, setLayerOpacity] = useState(1);
   const rafRef = useRef<number>(0);
   const sectionTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const snapTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -40,6 +41,7 @@ export function useGlobeScroll(viewStates: ViewState[]) {
       // Set active section immediately — no debounce delay
       setActiveSection(clamped);
       setViewState(viewStates[clamped]);
+      setLayerOpacity(1);
 
       isSnappingRef.current = true;
       clearTimeout(snapTimerRef.current);
@@ -76,6 +78,14 @@ export function useGlobeScroll(viewStates: ViewState[]) {
       const sectionT = sectionProgress - currentSection;
       const clampedSection = Math.min(currentSection, sectionCount - 2);
       const nextSection = clampedSection + 1;
+
+      // Layer opacity: full at section center, fades during transitions
+      // fractional 0 or 1 = at section center, 0.5 = between sections
+      const fractional = sectionProgress - Math.round(sectionProgress);
+      const dist = Math.abs(fractional); // 0 = centered, 0.5 = midpoint
+      // Smooth fade: full opacity in center 60%, fade in outer 40%
+      const opacity = dist < 0.2 ? 1 : 1 - (dist - 0.2) / 0.3;
+      setLayerOpacity(Math.max(0.1, Math.min(1, opacity)));
 
       // Update view state (globe lerp) on every scroll — even during snap
       if (clampedSection < sectionCount - 1) {
@@ -129,5 +139,11 @@ export function useGlobeScroll(viewStates: ViewState[]) {
     };
   }, [handleScroll]);
 
-  return { containerRef, activeSection, viewState, scrollToSection };
+  return {
+    containerRef,
+    activeSection,
+    viewState,
+    layerOpacity,
+    scrollToSection,
+  };
 }
