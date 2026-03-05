@@ -17,6 +17,7 @@ interface ScrollSectionProps {
   totalSections: number;
   onSwipe?: (direction: -1 | 1) => void;
   queryPanel?: React.ReactNode;
+  timeControls?: React.ReactNode;
   isLoading?: boolean;
   rowCount?: number;
 }
@@ -284,61 +285,68 @@ function MobileDrawer(props: ScrollSectionProps) {
       {/* Floating bottom bar — always visible when drawer is closed */}
       {!open && (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between border-t border-black/10 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
+          className="fixed inset-x-0 bottom-0 z-30 flex flex-col border-t border-black/10 bg-white/90 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
           style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
-          <NavArrow
-            direction={-1}
-            disabled={sectionIndex === 0}
-            onClick={() => onSwipe?.(-1)}
-            size="sm"
-          />
-
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="flex items-center gap-2"
-          >
-            {isLoading && (
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-            )}
-            <SectionDots
-              current={sectionIndex}
-              total={totalSections}
+          {props.timeControls && (
+            <div className="flex justify-center border-b border-black/5 px-3 py-1.5 dark:border-white/5">
+              {props.timeControls}
+            </div>
+          )}
+          <div className="flex items-center justify-between px-3 py-2">
+            <NavArrow
+              direction={-1}
+              disabled={sectionIndex === 0}
+              onClick={() => onSwipe?.(-1)}
               size="sm"
             />
-            <span className="text-xs font-medium text-gray-900 dark:text-white/90">
-              {section.title}
-            </span>
-            {isLoading && rowCount !== undefined && rowCount > 0 && (
-              <span className="animate-pulse text-[10px] text-amber-600 dark:text-amber-400">
-                {rowCount.toLocaleString()}
-              </span>
-            )}
-            <svg
-              className="h-3 w-3 text-gray-400 dark:text-white/50"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 15l7-7 7 7"
-              />
-            </svg>
-          </button>
 
-          <NavArrow
-            direction={1}
-            disabled={sectionIndex === totalSections - 1}
-            onClick={() => onSwipe?.(1)}
-            size="sm"
-          />
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="flex items-center gap-2"
+            >
+              {isLoading && (
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+              )}
+              <SectionDots
+                current={sectionIndex}
+                total={totalSections}
+                size="sm"
+              />
+              <span className="text-xs font-medium text-gray-900 dark:text-white/90">
+                {section.title}
+              </span>
+              {isLoading && rowCount !== undefined && rowCount > 0 && (
+                <span className="animate-pulse text-[10px] text-amber-600 dark:text-amber-400">
+                  {rowCount.toLocaleString()}
+                </span>
+              )}
+              <svg
+                className="h-3 w-3 text-gray-400 dark:text-white/50"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 15l7-7 7 7"
+                />
+              </svg>
+            </button>
+
+            <NavArrow
+              direction={1}
+              disabled={sectionIndex === totalSections - 1}
+              onClick={() => onSwipe?.(1)}
+              size="sm"
+            />
+          </div>
         </div>
       )}
 

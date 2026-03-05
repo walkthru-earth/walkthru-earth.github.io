@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { GlobeMap } from './GlobeMap';
 import { ScrollSection } from './ScrollSection';
 import { QueryPanel, QueryPanelInline, ParquetInfoPanel } from './QueryPanel';
+import { TimeSlider, MobileTimeControls } from './TimeSlider';
 import { useGlobeScroll } from './hooks/useGlobeScroll';
 import {
   SECTIONS,
@@ -13,6 +14,14 @@ import {
   type ColorRange,
   type ParquetInfo,
 } from './data/sections';
+
+/** Convert hyparquet timestamp (BigInt µs, Date, or number) to epoch ms. */
+function tsToMs(v: unknown): number {
+  if (typeof v === 'bigint') return Number(v / 1000n);
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
+  return 0;
+}
 
 interface GlobeExplorerProps {
   sections?: GlobeSection[];
@@ -25,7 +34,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     isOverGlobeRef
   );
 
-  const [layerData, setLayerData] = useState<Record<string, unknown>[]>([]);
+  const [allRows, setAllRows] = useState<Record<string, unknown>[]>([]);
   const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
   const [rowCount, setRowCount] = useState(0);
@@ -34,6 +43,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   const [parquetInfo, setParquetInfo] = useState<ParquetInfo | null>(null);
   const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
   const [zoom, setZoom] = useState(sections[0]?.viewState.zoom ?? 1.5);
+  const [timeStepIndex, setTimeStepIndex] = useState(0);
 
   // Per-section h3Res overrides (sparse — only stores user changes)
   const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
@@ -46,6 +56,26 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     () => (weatherPrefix ? { weatherPrefix, h3Res } : null),
     [weatherPrefix, h3Res]
   );
+
+  // Extract sorted unique timestamps (ms) from loaded rows
+  const timestamps = useMemo(() => {
+    if (allRows.length === 0) return [];
+    const first = allRows[0];
+    if (!first || !('timestamp' in first)) return [];
+    const set = new Set<number>();
+    for (const row of allRows) {
+      const ms = tsToMs(row.timestamp);
+      if (ms > 0) set.add(ms);
+    }
+    return Array.from(set).sort((a, b) => a - b);
+  }, [allRows]);
+
+  // Filter rows by selected timestamp
+  const layerData = useMemo(() => {
+    if (timestamps.length <= 1) return allRows;
+    const targetMs = timestamps[timeStepIndex] ?? timestamps[0];
+    return allRows.filter((r) => tsToMs(r.timestamp) === targetMs);
+  }, [allRows, timestamps, timeStepIndex]);
 
   // Ref tracks the active section so async callbacks can check without stale closures
   const activeSectionRef = useRef(0);
@@ -126,7 +156,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
         const onProgress = (partialRows: Record<string, unknown>[]) => {
           if (activeSectionRef.current !== sectionIdx) return;
-          setLayerData(partialRows);
+          setAllRows(partialRows);
           setRowCount(partialRows.length);
         };
 
@@ -147,7 +177,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
       loadPromise
         .then((result) => {
           if (activeSectionRef.current !== sectionIdx) return;
-          setLayerData(result.rows);
+          setAllRows(result.rows);
           setColorRange(result.range);
           setQueryDuration(result.duration);
           setRowCount(result.rows.length);
@@ -159,7 +189,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
           const msg = err instanceof Error ? err.message : String(err);
           console.error(`[Globe] Load failed for "${section.id}":`, msg);
           setError(msg);
-          setLayerData([]);
+          setAllRows([]);
           setQueryDuration(null);
           setRowCount(0);
           setParquetInfo(null);
@@ -249,17 +279,38 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
         section={currentSection}
         sectionIndex={activeSection}
         totalSections={sections.length}
-        onSwipe={(dir) => navigate(dir)}
+        onSwipe={(dir) => {
+          navigate(dir);
+          setTimeStepIndex(0);
+        }}
         isLoading={isLoading}
         rowCount={rowCount}
         queryPanel={
-          <QueryPanelInline
-            query={resolvedQuery}
-            duration={queryDuration}
-            rowCount={rowCount}
-            isLoading={isLoading}
-            error={error}
-          />
+          <>
+            {timestamps.length > 1 && (
+              <MobileTimeControls
+                timestamps={timestamps}
+                selectedIndex={timeStepIndex}
+                onChange={setTimeStepIndex}
+              />
+            )}
+            <QueryPanelInline
+              query={resolvedQuery}
+              duration={queryDuration}
+              rowCount={rowCount}
+              isLoading={isLoading}
+              error={error}
+            />
+          </>
+        }
+        timeControls={
+          timestamps.length > 1 ? (
+            <MobileTimeControls
+              timestamps={timestamps}
+              selectedIndex={timeStepIndex}
+              onChange={setTimeStepIndex}
+            />
+          ) : undefined
         }
       />
 
@@ -330,6 +381,14 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
       {/* Parquet info panel (top-left) */}
       <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />
+
+      {/* Desktop time slider */}
+      <TimeSlider
+        timestamps={timestamps}
+        selectedIndex={timeStepIndex}
+        onChange={setTimeStepIndex}
+        isLoading={isLoading}
+      />
 
       {/* Desktop-only floating SQL panel */}
       <QueryPanel

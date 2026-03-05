@@ -160,6 +160,7 @@ export const SECTIONS: GlobeSection[] = [
         weatherParquet(ctx.weatherPrefix, ctx.h3Res),
         [
           'h3_index',
+          'timestamp',
           'temperature_2m_C',
           'wind_speed_10m_ms',
           'pressure_msl_hPa',
@@ -213,6 +214,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
         weatherParquet(ctx.weatherPrefix, ctx.h3Res),
         [
           'h3_index',
+          'timestamp',
           'wind_speed_10m_ms',
           'wind_direction_10m_deg',
           'temperature_2m_C',
