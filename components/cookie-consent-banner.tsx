@@ -82,7 +82,7 @@ export function CookieConsentBanner() {
       <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-50 border-t shadow-lg backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-3 md:px-12 lg:px-24">
           <Cookie className="text-primary hidden h-5 w-5 flex-shrink-0 sm:block" />
-          <p className="text-muted-foreground min-w-0 flex-1 text-xs leading-snug">
+          <p className="text-muted-foreground min-w-0 flex-1 text-sm leading-snug">
             We use analytics cookies to understand how you use our site.{' '}
             <button
               type="button"
@@ -97,14 +97,14 @@ export function CookieConsentBanner() {
               variant="ghost"
               size="sm"
               onClick={handleRejectAll}
-              className="text-muted-foreground h-8 px-3 text-xs"
+              className="text-muted-foreground h-8 px-3 text-sm"
             >
               Reject
             </Button>
             <Button
               size="sm"
               onClick={handleAcceptAll}
-              className="h-8 px-4 text-xs"
+              className="h-8 px-4 text-sm"
             >
               Accept
             </Button>
@@ -130,7 +130,7 @@ export function CookieConsentBanner() {
                 <Label htmlFor="essential" className="text-sm font-medium">
                   Essential Cookies
                 </Label>
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="text-muted-foreground mt-1 text-sm">
                   Required for the website to function properly. These cannot be
                   disabled.
                 </p>
@@ -149,7 +149,7 @@ export function CookieConsentBanner() {
                 <Label htmlFor="analytics" className="text-sm font-medium">
                   Analytics Cookies
                 </Label>
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="text-muted-foreground mt-1 text-sm">
                   Help us understand how visitors interact with our website by
                   collecting anonymous information.
                 </p>

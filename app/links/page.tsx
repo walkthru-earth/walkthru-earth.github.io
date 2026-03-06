@@ -69,32 +69,31 @@ const socialLinks = [
     title: 'GitHub',
     url: 'https://github.com/walkthru-earth',
     icon: Github,
-    hoverColor:
-      'hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-gray-900',
+    hoverColor: 'hover:bg-foreground hover:text-background',
   },
   {
     title: 'LinkedIn',
     url: 'https://www.linkedin.com/company/walkthru-earth/',
     icon: Linkedin,
-    hoverColor: 'hover:bg-blue-600 hover:text-white',
+    hoverColor: 'hover:bg-blue-600 hover:text-primary-foreground',
   },
   {
     title: 'YouTube',
     url: 'https://www.youtube.com/@walkthru-earth/',
     icon: Youtube,
-    hoverColor: 'hover:bg-red-600 hover:text-white',
+    hoverColor: 'hover:bg-red-600 hover:text-primary-foreground',
   },
   {
     title: 'Instagram',
     url: 'https://www.instagram.com/walkthru.earth',
     icon: Instagram,
-    hoverColor: 'hover:bg-pink-600 hover:text-white',
+    hoverColor: 'hover:bg-pink-600 hover:text-primary-foreground',
   },
   {
     title: 'Facebook',
     url: 'https://www.facebook.com/walkthru.earth',
     icon: Facebook,
-    hoverColor: 'hover:bg-blue-500 hover:text-white',
+    hoverColor: 'hover:bg-blue-500 hover:text-primary-foreground',
   },
   {
     title: 'X (Twitter)',
@@ -104,8 +103,7 @@ const socialLinks = [
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
       </svg>
     ),
-    hoverColor:
-      'hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-gray-900',
+    hoverColor: 'hover:bg-foreground hover:text-background',
   },
   {
     title: 'Bluesky',
@@ -115,7 +113,7 @@ const socialLinks = [
         <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z" />
       </svg>
     ),
-    hoverColor: 'hover:bg-blue-400 hover:text-white',
+    hoverColor: 'hover:bg-blue-400 hover:text-primary-foreground',
   },
   {
     title: 'TikTok',
@@ -125,8 +123,7 @@ const socialLinks = [
         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
       </svg>
     ),
-    hoverColor:
-      'hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-gray-900',
+    hoverColor: 'hover:bg-foreground hover:text-background',
   },
 ];
 
@@ -150,7 +147,7 @@ export default function LinksPage() {
               className="mx-auto mb-4"
             />
           </Link>
-          <h1 className="text-2xl font-bold">walkthru.earth</h1>
+          <h1 className="text-3xl font-bold">walkthru.earth</h1>
           <p className="text-muted-foreground mt-2">
             People-first urban intelligence
           </p>
@@ -174,7 +171,7 @@ export default function LinksPage() {
                 ) : null}
                 <div className="flex-1">
                   <div className="font-semibold">{link.title}</div>
-                  <div className="text-sm opacity-80">{link.description}</div>
+                  <div className="text-base opacity-80">{link.description}</div>
                 </div>
                 {!link.internal && (
                   <ExternalLink className="h-4 w-4 opacity-50" />
@@ -214,7 +211,7 @@ export default function LinksPage() {
 
         {/* Social Links */}
         <div className="mb-8">
-          <p className="text-muted-foreground mb-4 text-center text-sm">
+          <p className="text-muted-foreground mb-4 text-center text-base">
             Follow us
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -225,7 +222,7 @@ export default function LinksPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title={link.title}
-                className={`bg-card text-muted-foreground flex h-12 w-12 items-center justify-center rounded-full border transition-all ${link.hoverColor}`}
+                className={`bg-card text-muted-foreground border-border flex h-12 w-12 items-center justify-center rounded-full border transition-all ${link.hoverColor}`}
               >
                 {link.icon ? <link.icon className="h-5 w-5" /> : link.iconPath}
               </a>
@@ -234,7 +231,7 @@ export default function LinksPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-muted-foreground text-center text-sm">
+        <div className="text-muted-foreground text-center text-base">
           <p>Cities built for people</p>
           <p className="mt-1 opacity-60">
             © {new Date().getFullYear()} walkthru.earth

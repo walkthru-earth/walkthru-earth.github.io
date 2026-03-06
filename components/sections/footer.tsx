@@ -77,7 +77,7 @@ export function Footer() {
             {/* Brand */}
             <div className="max-w-sm">
               <h3 className="mb-3 text-xl font-semibold">walkthru.earth</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p className="text-muted-foreground text-base leading-relaxed">
                 Open data and tools for understanding how cities shape the
                 people who live in them.
               </p>
@@ -86,12 +86,12 @@ export function Footer() {
             {/* Links */}
             <div className="flex gap-16">
               <div>
-                <h4 className="mb-3 text-sm font-semibold">Product</h4>
+                <h4 className="mb-3 text-base font-semibold">Product</h4>
                 <ul className="space-y-2">
                   <li>
                     <Link
                       href="/indices"
-                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                      className="text-muted-foreground hover:text-foreground text-base transition-colors"
                     >
                       Globe Explorer
                     </Link>
@@ -99,7 +99,7 @@ export function Footer() {
                   <li>
                     <Link
                       href="/opensensor"
-                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                      className="text-muted-foreground hover:text-foreground text-base transition-colors"
                     >
                       OpenSensor
                     </Link>
@@ -107,7 +107,7 @@ export function Footer() {
                   <li>
                     <Link
                       href="/software"
-                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                      className="text-muted-foreground hover:text-foreground text-base transition-colors"
                     >
                       Software
                     </Link>
@@ -115,12 +115,12 @@ export function Footer() {
                 </ul>
               </div>
               <div>
-                <h4 className="mb-3 text-sm font-semibold">Company</h4>
+                <h4 className="mb-3 text-base font-semibold">Company</h4>
                 <ul className="space-y-2">
                   <li>
                     <Link
                       href="/about"
-                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                      className="text-muted-foreground hover:text-foreground text-base transition-colors"
                     >
                       About
                     </Link>
@@ -128,7 +128,7 @@ export function Footer() {
                   <li>
                     <Link
                       href="/privacy"
-                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                      className="text-muted-foreground hover:text-foreground text-base transition-colors"
                     >
                       Privacy
                     </Link>
@@ -136,7 +136,7 @@ export function Footer() {
                   <li>
                     <Link
                       href="/links"
-                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                      className="text-muted-foreground hover:text-foreground text-base transition-colors"
                     >
                       All links
                     </Link>
@@ -147,10 +147,10 @@ export function Footer() {
 
             {/* Connect */}
             <div>
-              <h4 className="mb-3 text-sm font-semibold">Connect</h4>
+              <h4 className="mb-3 text-base font-semibold">Connect</h4>
               <a
                 href="mailto:hi@walkthru.earth"
-                className="text-muted-foreground hover:text-foreground mb-3 flex items-center gap-2 text-sm transition-colors"
+                className="text-muted-foreground hover:text-foreground mb-3 flex items-center gap-2 text-base transition-colors"
               >
                 <Mail className="h-4 w-4" />
                 hi@walkthru.earth
@@ -172,7 +172,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="text-muted-foreground mt-10 border-t pt-6 text-center text-xs">
+          <div className="text-muted-foreground mt-10 border-t pt-6 text-center text-sm">
             © {new Date().getFullYear()} walkthru.earth · CC BY 4.0
           </div>
         </div>

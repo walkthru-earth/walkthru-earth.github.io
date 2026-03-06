@@ -45,12 +45,12 @@ export function Navbar() {
             <div className="hidden items-center gap-6 md:flex">
               <Link
                 href="/indices"
-                className="hover:text-primary text-sm font-medium transition-colors"
+                className="hover:text-primary text-base font-medium transition-colors"
               >
                 Globe Explorer
               </Link>
               <DropdownMenu>
-                <DropdownMenuTrigger className="hover:text-primary flex items-center gap-1 text-sm font-medium transition-colors">
+                <DropdownMenuTrigger className="hover:text-primary flex items-center gap-1 text-base font-medium transition-colors">
                   More
                   <ChevronDown className="h-3.5 w-3.5" />
                 </DropdownMenuTrigger>
@@ -63,7 +63,7 @@ export function Navbar() {
                       <Cloud className="text-primary h-4 w-4" />
                       <div>
                         <div className="font-medium">OpenSensor.Space</div>
-                        <div className="text-muted-foreground text-xs">
+                        <div className="text-muted-foreground text-sm">
                           Weather stations
                         </div>
                       </div>
@@ -77,7 +77,7 @@ export function Navbar() {
                       <Heart className="text-secondary h-4 w-4" />
                       <div>
                         <div className="font-medium">Hormones & Cities</div>
-                        <div className="text-muted-foreground text-xs">
+                        <div className="text-muted-foreground text-sm">
                           Urban wellbeing
                         </div>
                       </div>
@@ -91,7 +91,7 @@ export function Navbar() {
                       <Download className="text-primary h-4 w-4" />
                       <div>
                         <div className="font-medium">Software</div>
-                        <div className="text-muted-foreground text-xs">
+                        <div className="text-muted-foreground text-sm">
                           Tools & apps
                         </div>
                       </div>
@@ -101,7 +101,7 @@ export function Navbar() {
               </DropdownMenu>
               <Link
                 href="/about"
-                className="hover:text-primary text-sm font-medium transition-colors"
+                className="hover:text-primary text-base font-medium transition-colors"
               >
                 About
               </Link>

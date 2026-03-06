@@ -122,7 +122,7 @@ export default function SoftwarePage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="text-muted-foreground mt-12 flex items-center justify-center gap-8 text-sm"
+                className="text-muted-foreground mt-12 flex items-center justify-center gap-8 text-base"
               >
                 <div>
                   <div className="text-foreground text-2xl font-semibold">
@@ -201,14 +201,14 @@ export default function SoftwarePage() {
                                 <Badge
                                   key={highlight}
                                   variant="outline"
-                                  className="text-xs"
+                                  className="text-sm"
                                 >
                                   {highlight}
                                 </Badge>
                               ))}
                             </div>
 
-                            <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                            <div className="text-muted-foreground flex items-center gap-2 text-base">
                               <span>Available for:</span>
                               {app.platforms.map((platform, idx) => (
                                 <span key={platform}>

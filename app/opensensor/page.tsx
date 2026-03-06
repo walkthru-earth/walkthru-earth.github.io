@@ -130,7 +130,7 @@ export default function OpenSensorPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 1 }}
-                className="text-muted-foreground mt-16 flex items-center gap-8 text-sm"
+                className="text-muted-foreground mt-16 flex items-center gap-8 text-base"
               >
                 <div>
                   <div className="text-foreground text-2xl font-semibold">
@@ -167,7 +167,7 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="mb-16 text-center"
             >
-              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+              <h2 className="text-3xl font-light tracking-tight md:text-4xl lg:text-5xl">
                 Platform{' '}
                 <span className="text-primary font-medium">Benefits</span>
               </h2>
@@ -244,7 +244,7 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="mb-16 text-center"
             >
-              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+              <h2 className="text-3xl font-light tracking-tight md:text-4xl lg:text-5xl">
                 Supported{' '}
                 <span className="text-primary font-medium">Sensors</span>
               </h2>
@@ -326,7 +326,7 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="mb-16 text-center"
             >
-              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+              <h2 className="text-3xl font-light tracking-tight md:text-4xl lg:text-5xl">
                 Cloud-Native{' '}
                 <span className="text-primary font-medium">Architecture</span>
               </h2>
@@ -399,7 +399,7 @@ export default function OpenSensorPage() {
                       <div className="bg-primary/20 mt-1 rounded-full p-1">
                         <div className="bg-primary h-2 w-2 rounded-full" />
                       </div>
-                      <span className="text-muted-foreground text-sm">
+                      <span className="text-muted-foreground text-base">
                         {benefit}
                       </span>
                     </div>
@@ -420,7 +420,7 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="mb-16 text-center"
             >
-              <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+              <h2 className="text-3xl font-light tracking-tight md:text-4xl lg:text-5xl">
                 Supported{' '}
                 <span className="text-primary font-medium">Devices</span>
               </h2>
@@ -484,7 +484,7 @@ export default function OpenSensorPage() {
                               duration: 1.5,
                               delay: 0.5 + index * 0.1,
                             }}
-                            className="rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+                            className="text-primary-foreground rounded-full px-2.5 py-0.5 text-sm font-semibold"
                           >
                             {item.badge}
                           </motion.div>
@@ -511,7 +511,7 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="text-center"
             >
-              <p className="text-muted-foreground mb-8 text-sm font-medium tracking-wider uppercase">
+              <p className="text-muted-foreground mb-8 text-base font-medium tracking-wider uppercase">
                 Powered by
               </p>
               <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
@@ -602,7 +602,7 @@ export default function OpenSensorPage() {
               transition={{ duration: 0.6 }}
               className="mx-auto max-w-3xl text-center"
             >
-              <h2 className="mb-6 text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
+              <h2 className="mb-6 text-3xl font-light tracking-tight md:text-4xl lg:text-5xl">
                 Connect Your{' '}
                 <GradientText className="font-semibold">
                   Sensors to the Cloud
@@ -645,10 +645,10 @@ export default function OpenSensorPage() {
                       <div className="bg-primary h-2 w-2 rounded-full" />
                     </div>
                     <div>
-                      <div className="mb-1 text-sm font-medium">
+                      <div className="mb-1 text-base font-medium">
                         Deploy Edge Software
                       </div>
-                      <div className="text-muted-foreground text-sm">
+                      <div className="text-muted-foreground text-base">
                         Install the edge client on your IoT device
                       </div>
                     </div>
@@ -658,10 +658,10 @@ export default function OpenSensorPage() {
                       <div className="bg-primary h-2 w-2 rounded-full" />
                     </div>
                     <div>
-                      <div className="mb-1 text-sm font-medium">
+                      <div className="mb-1 text-base font-medium">
                         Configure Storage
                       </div>
-                      <div className="text-muted-foreground text-sm">
+                      <div className="text-muted-foreground text-base">
                         Use Source Cooperative or your own S3-compatible storage
                       </div>
                     </div>
@@ -671,10 +671,10 @@ export default function OpenSensorPage() {
                       <div className="bg-primary h-2 w-2 rounded-full" />
                     </div>
                     <div>
-                      <div className="mb-1 text-sm font-medium">
+                      <div className="mb-1 text-base font-medium">
                         Register Your Station
                       </div>
-                      <div className="text-muted-foreground text-sm">
+                      <div className="text-muted-foreground text-base">
                         Submit a PR with your station ID and location
                       </div>
                     </div>
@@ -684,10 +684,10 @@ export default function OpenSensorPage() {
                       <div className="bg-primary h-2 w-2 rounded-full" />
                     </div>
                     <div>
-                      <div className="mb-1 text-sm font-medium">
+                      <div className="mb-1 text-base font-medium">
                         Start Streaming
                       </div>
-                      <div className="text-muted-foreground text-sm">
+                      <div className="text-muted-foreground text-base">
                         Your data appears on the public dashboard automatically
                       </div>
                     </div>

@@ -265,14 +265,14 @@ export default function PrivacyPage() {
                 <div className="mt-4 space-y-4">
                   <div className="bg-muted/30 rounded-lg p-4">
                     <h4 className="font-semibold">Essential Cookies</h4>
-                    <p className="text-muted-foreground mt-1 text-sm">
+                    <p className="text-muted-foreground mt-1 text-base">
                       Required for basic website functionality. These cannot be
                       disabled and do not track personal information.
                     </p>
                   </div>
                   <div className="bg-muted/30 rounded-lg p-4">
                     <h4 className="font-semibold">Analytics Cookies</h4>
-                    <p className="text-muted-foreground mt-1 text-sm">
+                    <p className="text-muted-foreground mt-1 text-base">
                       Help us understand visitor interactions through PostHog
                       and Google Analytics. Only active with your consent.
                     </p>

@@ -155,19 +155,19 @@ function FlowNode({
       />
       <div className="min-w-0">
         <div
-          className={`${mobile ? 'text-sm' : 'text-base'} leading-tight font-bold`}
+          className={`${mobile ? 'text-base' : 'text-lg'} leading-tight font-bold`}
         >
           {node.label}
         </div>
         <div
-          className={`text-muted-foreground ${mobile ? 'text-xs' : 'text-sm'} leading-tight`}
+          className={`text-muted-foreground ${mobile ? 'text-sm' : 'text-base'} leading-tight`}
         >
           {node.sublabel}
         </div>
       </div>
       {node.stat && (
         <span
-          className={`ml-auto ${mobile ? 'text-xs' : 'text-sm'} font-bold whitespace-nowrap ${
+          className={`ml-auto ${mobile ? 'text-sm' : 'text-base'} font-bold whitespace-nowrap ${
             node.kind === 'ours' ? 'text-secondary' : 'text-primary'
           }`}
         >
