@@ -253,23 +253,29 @@ function useIsMobile() {
   );
 }
 
-function MobileDrawer(props: ScrollSectionProps) {
-  const isMobile = useIsMobile();
-  const [open, setOpen] = useState(true);
-  const { section, sectionIndex, totalSections, isLoading, rowCount, onSwipe } =
-    props;
-
-  // Close drawer when globe is tapped (custom event from GlobeExplorer)
+/**
+ * Attaches gesture detection to a scrollable drawer element:
+ * - Horizontal swipe → navigate sections
+ * - Vertical swipe down (when scrolled to top) → close drawer
+ * - Vertical scroll when content overflows → native scroll (no interference)
+ * Uses a callback ref so it works inside portals.
+ */
+function useDrawerGestures(
+  onSwipe?: (direction: -1 | 1) => void,
+  onClose?: () => void
+) {
+  const onSwipeRef = useRef(onSwipe);
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    const handler = () => setOpen(false);
-    window.addEventListener('globe:tap', handler);
-    return () => window.removeEventListener('globe:tap', handler);
-  }, []);
+    onSwipeRef.current = onSwipe;
+    onCloseRef.current = onClose;
+  }, [onSwipe, onClose]);
 
-  // Horizontal swipe on drawer to navigate sections
-  const drawerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = drawerRef.current;
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  const attachGestures = useCallback((el: HTMLElement | null) => {
+    cleanupRef.current?.();
+    cleanupRef.current = null;
     if (!el) return;
 
     let startX = 0;
@@ -291,28 +297,61 @@ function MobileDrawer(props: ScrollSectionProps) {
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
 
-      // Lock direction after 10px
       if (!locked && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
         locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
       }
 
-      // Horizontal: prevent Vaul from capturing, fire navigation
       if (locked === 'h') {
         e.preventDefault();
         if (Math.abs(dx) > 60) {
           fired = true;
-          onSwipe?.(dx < 0 ? 1 : -1);
+          onSwipeRef.current?.(dx < 0 ? 1 : -1);
+        }
+      }
+
+      if (locked === 'v' && dy > 0) {
+        // Swiping down — block pull-to-refresh when at top
+        const atTop = el.scrollTop <= 0;
+        if (atTop) {
+          e.preventDefault();
+          if (dy > 80) {
+            fired = true;
+            onCloseRef.current?.();
+          }
         }
       }
     };
 
     el.addEventListener('touchstart', onStart, { passive: true });
     el.addEventListener('touchmove', onMove, { passive: false });
-    return () => {
+
+    cleanupRef.current = () => {
       el.removeEventListener('touchstart', onStart);
       el.removeEventListener('touchmove', onMove);
     };
-  }, [onSwipe]);
+  }, []);
+
+  useEffect(() => () => cleanupRef.current?.(), []);
+
+  return attachGestures;
+}
+
+function MobileDrawer(props: ScrollSectionProps) {
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(true);
+  const { section, sectionIndex, totalSections, isLoading, rowCount, onSwipe } =
+    props;
+
+  // Close drawer when globe is tapped (custom event from GlobeExplorer)
+  useEffect(() => {
+    const handler = () => setOpen(false);
+    window.addEventListener('globe:tap', handler);
+    return () => window.removeEventListener('globe:tap', handler);
+  }, []);
+
+  // Drawer gestures: horizontal swipe → navigate, swipe down → close
+  const closeDrawer = useCallback(() => setOpen(false), []);
+  const attachGestures = useDrawerGestures(onSwipe, closeDrawer);
 
   if (!isMobile) return null;
 
@@ -392,12 +431,10 @@ function MobileDrawer(props: ScrollSectionProps) {
         shouldScaleBackground={false}
         modal={false}
       >
-        <DrawerContent
-          ref={drawerRef}
-          className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
-        >
+        <DrawerContent className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
           <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
           <div
+            ref={attachGestures}
             className="overflow-y-auto px-4 pt-1 pb-6"
             style={{
               paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
