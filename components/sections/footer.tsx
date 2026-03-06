@@ -3,16 +3,24 @@ import Link from 'next/link';
 import {
   Github,
   Linkedin,
-  Mail,
   Youtube,
   Instagram,
   Facebook,
+  Mail,
 } from 'lucide-react';
 
 function XIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor">
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function BlueskyIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z" />
     </svg>
   );
 }
@@ -25,185 +33,147 @@ function TikTokIcon({ className }: { className?: string }) {
   );
 }
 
-function BlueskyIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 600 530"
-      className={className}
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="m135.72 44.03c66.496 49.921 138.02 151.14 164.28 205.46 26.262-54.316 97.782-155.54 164.28-205.46 47.98-36.021 125.72-63.892 125.72 24.795 0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.59-175.91-31.511-189.63-71.766-2.514-7.3797-3.6904-10.832-3.7077-7.8964-0.0174-2.9357-1.1937 0.51669-3.7077 7.8964-13.714 40.255-67.233 197.36-189.63 71.766-64.444-66.128-34.605-132.26 82.697-152.22-67.108 11.421-142.55-7.4491-163.25-81.433-5.9562-21.282-16.111-152.36-16.111-170.07 0-88.687 77.742-60.816 125.72-24.795z" />
-    </svg>
-  );
-}
+const socials = [
+  { href: 'https://github.com/walkthru-earth', icon: Github, label: 'GitHub' },
+  {
+    href: 'https://www.linkedin.com/company/walkthru-earth/',
+    icon: Linkedin,
+    label: 'LinkedIn',
+  },
+  { href: 'https://x.com/walkthru_earth', icon: XIcon, label: 'X' },
+  {
+    href: 'https://www.youtube.com/@walkthru-earth/',
+    icon: Youtube,
+    label: 'YouTube',
+  },
+  {
+    href: 'https://www.instagram.com/walkthru.earth',
+    icon: Instagram,
+    label: 'Instagram',
+  },
+  {
+    href: 'https://www.facebook.com/walkthru.earth',
+    icon: Facebook,
+    label: 'Facebook',
+  },
+  {
+    href: 'https://bsky.app/profile/walkthru.earth',
+    icon: BlueskyIcon,
+    label: 'Bluesky',
+  },
+  {
+    href: 'https://www.tiktok.com/@walkthru.earth',
+    icon: TikTokIcon,
+    label: 'TikTok',
+  },
+];
 
 export function Footer() {
   return (
     <footer className="bg-muted/50 border-t">
       <Container>
-        <div className="py-16 md:py-20">
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-4">
+        <div className="py-12 md:py-16">
+          <div className="flex flex-col gap-10 md:flex-row md:justify-between">
             {/* Brand */}
-            <div className="md:col-span-2">
-              <h3 className="mb-6 text-3xl font-semibold md:text-4xl">
-                walkthru.earth
-              </h3>
-              <p className="text-muted-foreground max-w-md text-lg leading-relaxed">
-                Building people-first solutions from hidden patterns of daily
-                life to improve wellbeing in cities worldwide.
+            <div className="max-w-sm">
+              <h3 className="mb-3 text-xl font-semibold">walkthru.earth</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Open data and tools for understanding how cities shape the
+                people who live in them.
               </p>
             </div>
 
-            {/* Quick Links */}
-            <div>
-              <h4 className="mb-6 text-xl font-semibold">Quick Links</h4>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/#patterns"
-                    className="text-muted-foreground hover:text-primary text-lg transition-colors"
-                  >
-                    Patterns
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/opensensor"
-                    className="text-muted-foreground hover:text-primary text-lg transition-colors"
-                  >
-                    OpenSensor
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/hormones-cities"
-                    className="text-muted-foreground hover:text-primary text-lg transition-colors"
-                  >
-                    Hormones & Cities
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/software"
-                    className="text-muted-foreground hover:text-primary text-lg transition-colors"
-                  >
-                    Software
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/#vision"
-                    className="text-muted-foreground hover:text-primary text-lg transition-colors"
-                  >
-                    Vision
-                  </Link>
-                </li>
-              </ul>
+            {/* Links */}
+            <div className="flex gap-16">
+              <div>
+                <h4 className="mb-3 text-sm font-semibold">Product</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <Link
+                      href="/indices"
+                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                    >
+                      Globe Explorer
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/opensensor"
+                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                    >
+                      OpenSensor
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/software"
+                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                    >
+                      Software
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="mb-3 text-sm font-semibold">Company</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <Link
+                      href="/about"
+                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                    >
+                      About
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/privacy"
+                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                    >
+                      Privacy
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/links"
+                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                    >
+                      All links
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
 
-            {/* Social */}
+            {/* Connect */}
             <div>
-              <h4 className="mb-6 text-xl font-semibold">Connect</h4>
-              <div className="space-y-4">
-                <a
-                  href="mailto:hi@walkthru.earth"
-                  className="text-muted-foreground hover:text-primary flex items-center gap-3 text-lg transition-colors"
-                >
-                  <Mail className="h-6 w-6" />
-                  <span>hi@walkthru.earth</span>
-                </a>
-                <div className="flex flex-wrap gap-6">
+              <h4 className="mb-3 text-sm font-semibold">Connect</h4>
+              <a
+                href="mailto:hi@walkthru.earth"
+                className="text-muted-foreground hover:text-foreground mb-3 flex items-center gap-2 text-sm transition-colors"
+              >
+                <Mail className="h-4 w-4" />
+                hi@walkthru.earth
+              </a>
+              <div className="flex flex-wrap gap-3">
+                {socials.map((s) => (
                   <a
-                    href="https://github.com/walkthru-earth"
+                    key={s.label}
+                    href={s.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <Github className="h-7 w-7" />
-                    <span className="sr-only">GitHub</span>
+                    <s.icon className="h-5 w-5" />
+                    <span className="sr-only">{s.label}</span>
                   </a>
-                  <a
-                    href="https://www.linkedin.com/company/walkthru-earth/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Linkedin className="h-7 w-7" />
-                    <span className="sr-only">LinkedIn</span>
-                  </a>
-                  <a
-                    href="https://www.youtube.com/@walkthru-earth/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Youtube className="h-7 w-7" />
-                    <span className="sr-only">YouTube</span>
-                  </a>
-                  <a
-                    href="https://www.instagram.com/walkthru.earth"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Instagram className="h-7 w-7" />
-                    <span className="sr-only">Instagram</span>
-                  </a>
-                  <a
-                    href="https://www.facebook.com/walkthru.earth"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Facebook className="h-7 w-7" />
-                    <span className="sr-only">Facebook</span>
-                  </a>
-                  <a
-                    href="https://x.com/walkthru_earth"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <XIcon className="h-7 w-7" />
-                    <span className="sr-only">X (Twitter)</span>
-                  </a>
-                  <a
-                    href="https://bsky.app/profile/walkthru.earth"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <BlueskyIcon className="h-7 w-7" />
-                    <span className="sr-only">Bluesky</span>
-                  </a>
-                  <a
-                    href="https://www.tiktok.com/@walkthru.earth"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <TikTokIcon className="h-7 w-7" />
-                    <span className="sr-only">TikTok</span>
-                  </a>
-                </div>
+                ))}
               </div>
             </div>
           </div>
 
-          <div className="text-muted-foreground mt-12 border-t pt-8 text-center text-base">
-            <p>
-              © {new Date().getFullYear()} walkthru.earth. Licensed under CC BY
-              4.0.
-            </p>
-            <p className="mt-2">
-              <Link
-                href="/privacy"
-                className="hover:text-primary transition-colors"
-              >
-                Privacy Policy
-              </Link>
-            </p>
+          <div className="text-muted-foreground mt-10 border-t pt-6 text-center text-xs">
+            © {new Date().getFullYear()} walkthru.earth · CC BY 4.0
           </div>
         </div>
       </Container>

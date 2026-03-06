@@ -43,11 +43,14 @@ function tsToMs(v: unknown): number {
 interface GlobeExplorerProps {
   sections?: GlobeSection[];
   initialSection?: number;
+  /** Hide all UI overlays — used when embedding the globe (e.g. homepage hero). */
+  embed?: boolean;
 }
 
 export function GlobeExplorer({
   sections = SECTIONS,
   initialSection = 0,
+  embed = false,
 }: GlobeExplorerProps) {
   const isOverGlobeRef = useRef(false);
   const { containerRef, activeSection, navigate } = useGlobeScroll(
@@ -324,174 +327,184 @@ export function GlobeExplorer({
         onTap={handleGlobeTap}
       />
 
-      <ScrollSection
-        section={currentSection}
-        resolvedDescription={resolvedDescription}
-        sectionIndex={activeSection}
-        totalSections={sections.length}
-        onSwipe={(dir) => {
-          navigate(dir);
-          setTimeStepIndex(0);
-        }}
-        isLoading={isLoading}
-        rowCount={rowCount}
-        queryPanel={
-          <>
-            <QueryPanelInline
-              query={resolvedQuery}
-              duration={queryDuration}
-              rowCount={rowCount}
-              isLoading={isLoading}
-              error={error}
-            />
-            <ParquetInfoInline info={parquetInfo} isLoading={isLoading} />
-          </>
-        }
-        timeControls={
-          timestamps.length > 1 ? (
-            <MobileTimeControls
-              timestamps={timestamps}
-              selectedIndex={timeStepIndex}
-              onChange={setTimeStepIndex}
-            />
-          ) : undefined
-        }
-      />
-
-      {/* Zoom & H3 resolution control — merged pill */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-0 rounded-full border border-black/10 bg-white/95 shadow-lg backdrop-blur-md sm:top-6 sm:right-6 dark:border-white/10 dark:bg-black/85">
-        <button
-          type="button"
-          onClick={() => handleH3ResChange(-1)}
-          disabled={h3Res <= currentSection.h3ResRange[0]}
-          className="flex h-9 w-9 items-center justify-center rounded-l-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 sm:h-10 sm:w-10 dark:text-white/60 dark:hover:bg-white/10"
-          aria-label="Decrease H3 resolution"
-        >
-          <svg
-            className="h-3.5 w-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5" />
-          </svg>
-        </button>
-        <div className="flex items-center gap-1.5 px-1">
-          <div className="text-center">
-            <div className="font-mono text-sm font-extrabold text-gray-900 tabular-nums dark:text-white">
-              {zoom.toFixed(1)}
-            </div>
-            <div className="text-[8px] font-semibold text-gray-400 uppercase dark:text-white/40">
-              zoom
-            </div>
-          </div>
-          <div className="h-6 w-px bg-gray-300 dark:bg-white/20" />
-          <div className="text-center">
-            <div className="font-mono text-sm font-extrabold text-gray-900 tabular-nums dark:text-white">
-              {h3Res}
-            </div>
-            <div className="text-[8px] font-semibold text-gray-400 uppercase dark:text-white/40">
-              h3 res
-            </div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => handleH3ResChange(1)}
-          disabled={h3Res >= currentSection.h3ResRange[1]}
-          className="flex h-9 w-9 items-center justify-center rounded-r-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 sm:h-10 sm:w-10 dark:text-white/60 dark:hover:bg-white/10"
-          aria-label="Increase H3 resolution"
-        >
-          <svg
-            className="h-3.5 w-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 5v14M5 12h14"
-            />
-          </svg>
-        </button>
-      </div>
-
-      {/* Parquet info panel (top-left) */}
-      <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />
-
-      {/* Desktop time slider */}
-      <TimeSlider
-        timestamps={timestamps}
-        selectedIndex={timeStepIndex}
-        onChange={setTimeStepIndex}
-        isLoading={isLoading}
-      />
-
-      {/* Desktop-only floating SQL panel */}
-      <QueryPanel
-        query={resolvedQuery}
-        duration={queryDuration}
-        rowCount={rowCount}
-        isLoading={isLoading}
-        error={error}
-      />
-
-      {/* Branding — top-left on mobile, bottom-right on desktop */}
-      <Link
-        href="/links"
-        className="absolute top-4 left-4 z-20 flex flex-col items-center gap-0.5 transition-opacity hover:opacity-70 sm:top-auto sm:right-6 sm:bottom-6 sm:left-auto sm:gap-1"
-      >
-        <Image
-          src="/icon.svg"
-          alt="walkthru.earth logo"
-          width={28}
-          height={28}
-          className="sm:h-9 sm:w-9 dark:invert"
+      {!embed && (
+        <ScrollSection
+          section={currentSection}
+          resolvedDescription={resolvedDescription}
+          sectionIndex={activeSection}
+          totalSections={sections.length}
+          onSwipe={(dir) => {
+            navigate(dir);
+            setTimeStepIndex(0);
+          }}
+          isLoading={isLoading}
+          rowCount={rowCount}
+          queryPanel={
+            <>
+              <QueryPanelInline
+                query={resolvedQuery}
+                duration={queryDuration}
+                rowCount={rowCount}
+                isLoading={isLoading}
+                error={error}
+              />
+              <ParquetInfoInline info={parquetInfo} isLoading={isLoading} />
+            </>
+          }
+          timeControls={
+            timestamps.length > 1 ? (
+              <MobileTimeControls
+                timestamps={timestamps}
+                selectedIndex={timeStepIndex}
+                onChange={setTimeStepIndex}
+              />
+            ) : undefined
+          }
         />
-        <span className="text-[8px] font-semibold tracking-tight text-gray-700 sm:text-[10px] dark:text-white/70">
-          walkthru.earth
-        </span>
-      </Link>
+      )}
 
-      {/* H3 high-res warning */}
-      <AlertDialog
-        open={pendingH3Res !== null}
-        onOpenChange={(open) => {
-          if (!open) setPendingH3Res(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Increase to H3 resolution {pendingH3Res}?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Higher resolutions load significantly more data and may slow down
-              or crash your browser depending on your device&apos;s GPU and
-              available memory.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pendingH3Res !== null) {
-                  setH3ResOverrides((prev) => ({
-                    ...prev,
-                    [activeSection]: pendingH3Res,
-                  }));
-                }
-                setPendingH3Res(null);
-              }}
+      {!embed && (
+        <>
+          {/* Zoom & H3 resolution control — merged pill */}
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-0 rounded-full border border-black/10 bg-white/95 shadow-lg backdrop-blur-md sm:top-6 sm:right-6 dark:border-white/10 dark:bg-black/85">
+            <button
+              type="button"
+              onClick={() => handleH3ResChange(-1)}
+              disabled={h3Res <= currentSection.h3ResRange[0]}
+              className="flex h-9 w-9 items-center justify-center rounded-l-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 sm:h-10 sm:w-10 dark:text-white/60 dark:hover:bg-white/10"
+              aria-label="Decrease H3 resolution"
             >
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 12H5"
+                />
+              </svg>
+            </button>
+            <div className="flex items-center gap-1.5 px-1">
+              <div className="text-center">
+                <div className="font-mono text-sm font-extrabold text-gray-900 tabular-nums dark:text-white">
+                  {zoom.toFixed(1)}
+                </div>
+                <div className="text-[8px] font-semibold text-gray-400 uppercase dark:text-white/40">
+                  zoom
+                </div>
+              </div>
+              <div className="h-6 w-px bg-gray-300 dark:bg-white/20" />
+              <div className="text-center">
+                <div className="font-mono text-sm font-extrabold text-gray-900 tabular-nums dark:text-white">
+                  {h3Res}
+                </div>
+                <div className="text-[8px] font-semibold text-gray-400 uppercase dark:text-white/40">
+                  h3 res
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleH3ResChange(1)}
+              disabled={h3Res >= currentSection.h3ResRange[1]}
+              className="flex h-9 w-9 items-center justify-center rounded-r-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 sm:h-10 sm:w-10 dark:text-white/60 dark:hover:bg-white/10"
+              aria-label="Increase H3 resolution"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 5v14M5 12h14"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Parquet info panel (top-left) */}
+          <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />
+
+          {/* Desktop time slider */}
+          <TimeSlider
+            timestamps={timestamps}
+            selectedIndex={timeStepIndex}
+            onChange={setTimeStepIndex}
+            isLoading={isLoading}
+          />
+
+          {/* Desktop-only floating SQL panel */}
+          <QueryPanel
+            query={resolvedQuery}
+            duration={queryDuration}
+            rowCount={rowCount}
+            isLoading={isLoading}
+            error={error}
+          />
+
+          {/* Branding — top-left on mobile, bottom-right on desktop */}
+          <Link
+            href="/links"
+            className="absolute top-4 left-4 z-20 flex flex-col items-center gap-0.5 transition-opacity hover:opacity-70 sm:top-auto sm:right-6 sm:bottom-6 sm:left-auto sm:gap-1"
+          >
+            <Image
+              src="/icon.svg"
+              alt="walkthru.earth logo"
+              width={28}
+              height={28}
+              className="sm:h-9 sm:w-9 dark:invert"
+            />
+            <span className="text-[8px] font-semibold tracking-tight text-gray-700 sm:text-[10px] dark:text-white/70">
+              walkthru.earth
+            </span>
+          </Link>
+
+          {/* H3 high-res warning */}
+          <AlertDialog
+            open={pendingH3Res !== null}
+            onOpenChange={(open) => {
+              if (!open) setPendingH3Res(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Increase to H3 resolution {pendingH3Res}?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Higher resolutions load significantly more data and may slow
+                  down or crash your browser depending on your device&apos;s GPU
+                  and available memory.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    if (pendingH3Res !== null) {
+                      setH3ResOverrides((prev) => ({
+                        ...prev,
+                        [activeSection]: pendingH3Res,
+                      }));
+                    }
+                    setPendingH3Res(null);
+                  }}
+                >
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </div>
   );
 }

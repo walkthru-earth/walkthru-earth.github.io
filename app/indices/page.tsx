@@ -12,7 +12,7 @@ const GlobeExplorer = dynamic(
     loading: () => (
       <div className="bg-background flex h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-400/30 border-t-emerald-400" />
+          <div className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-2" />
           <p className="text-muted-foreground font-mono text-sm">
             Loading Globe Explorer...
           </p>
@@ -41,7 +41,7 @@ export default function IndicesPage() {
       fallback={
         <div className="bg-background flex h-screen items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-400/30 border-t-emerald-400" />
+            <div className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-2" />
             <p className="text-muted-foreground font-mono text-sm">
               Loading Globe Explorer...
             </p>

@@ -79,43 +79,34 @@ export function CookieConsentBanner() {
   return (
     <>
       {/* Cookie Banner */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-50 border-t p-4 shadow-lg backdrop-blur">
-        <div className="container flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 gap-3">
-            <Cookie className="text-primary mt-0.5 h-5 w-5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium">We use cookies</p>
-              <p className="text-muted-foreground mt-1 text-xs">
-                We use analytics cookies to help us improve our website by
-                collecting and reporting information on how you use it. These
-                cookies help us understand visitor interactions.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-            <Button
-              variant="outline"
-              size="sm"
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-50 border-t shadow-lg backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-3 md:px-12 lg:px-24">
+          <Cookie className="text-primary hidden h-5 w-5 flex-shrink-0 sm:block" />
+          <p className="text-muted-foreground min-w-0 flex-1 text-xs leading-snug">
+            We use analytics cookies to understand how you use our site.{' '}
+            <button
+              type="button"
               onClick={() => setShowSettings(true)}
-              className="whitespace-nowrap"
+              className="text-foreground underline underline-offset-2"
             >
               Settings
-            </Button>
+            </button>
+          </p>
+          <div className="flex flex-shrink-0 gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handleRejectAll}
-              className="whitespace-nowrap"
+              className="text-muted-foreground h-8 px-3 text-xs"
             >
-              Reject All
+              Reject
             </Button>
             <Button
               size="sm"
               onClick={handleAcceptAll}
-              className="whitespace-nowrap"
+              className="h-8 px-4 text-xs"
             >
-              Accept All
+              Accept
             </Button>
           </div>
         </div>
