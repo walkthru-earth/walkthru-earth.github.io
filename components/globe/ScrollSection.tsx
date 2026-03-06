@@ -386,19 +386,88 @@ function MobileDrawer(props: ScrollSectionProps) {
   );
 }
 
-/* ── Desktop card ─────────────────────────────────────────────────── */
+/* ── Desktop card (draggable) ─────────────────────────────────────── */
 
 function DesktopCard(props: ScrollSectionProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef<{
+    startX: number;
+    startY: number;
+    origX: number;
+    origY: number;
+  } | null>(null);
+  const [pos, setPos] = useState({ x: 32, y: 0 });
+  const [centered, setCentered] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
+  // Center vertically once on mount
+  useEffect(() => {
+    if (centered || !cardRef.current) return;
+    const h = cardRef.current.offsetHeight;
+    const wh = window.innerHeight;
+    setPos((p) => ({ ...p, y: Math.max(16, (wh - h) / 2) }));
+    setCentered(true);
+  }, [centered]);
+
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      // Only drag from the card header area (not buttons/links/inputs)
+      const tag = (e.target as HTMLElement).tagName.toLowerCase();
+      if (
+        tag === 'button' ||
+        tag === 'a' ||
+        tag === 'input' ||
+        tag === 'svg' ||
+        tag === 'path'
+      )
+        return;
+      e.preventDefault();
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      dragState.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        origX: pos.x,
+        origY: pos.y,
+      };
+      setDragging(true);
+    },
+    [pos]
+  );
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragState.current) return;
+    const dx = e.clientX - dragState.current.startX;
+    const dy = e.clientY - dragState.current.startY;
+    setPos({
+      x: dragState.current.origX + dx,
+      y: dragState.current.origY + dy,
+    });
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    dragState.current = null;
+    setDragging(false);
+  }, []);
+
   return (
     <div
-      className="pointer-events-none absolute top-0 left-0 z-10 hidden h-full items-center sm:flex"
+      ref={cardRef}
+      className="pointer-events-auto absolute z-10 hidden max-w-sm sm:block"
+      style={{
+        left: pos.x,
+        top: pos.y,
+        cursor: dragging ? 'grabbing' : 'grab',
+      }}
       role="region"
       aria-label={`Section ${props.sectionIndex + 1} of ${props.totalSections}: ${props.section.title}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
     >
-      <div className="pointer-events-auto ml-8 max-w-sm">
-        <div className="rounded-2xl border border-black/5 bg-white/95 p-6 shadow-2xl backdrop-blur-md dark:border-white/10 dark:bg-black/85">
-          <SectionContent {...props} />
-        </div>
+      <div
+        className={`rounded-2xl border border-black/5 bg-white/95 p-6 shadow-2xl backdrop-blur-md select-none dark:border-white/10 dark:bg-black/85 ${dragging ? 'opacity-90' : ''}`}
+      >
+        <SectionContent {...props} />
       </div>
     </div>
   );
