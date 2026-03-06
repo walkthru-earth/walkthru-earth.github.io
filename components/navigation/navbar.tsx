@@ -51,7 +51,7 @@ export function Navbar() {
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger className="hover:text-primary flex items-center gap-1 text-base font-medium transition-colors">
-                  More
+                  Projects
                   <ChevronDown className="h-3.5 w-3.5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -78,7 +78,7 @@ export function Navbar() {
                       <div>
                         <div className="font-medium">Hormones & Cities</div>
                         <div className="text-muted-foreground text-sm">
-                          Urban wellbeing
+                          Neighborhood health insights
                         </div>
                       </div>
                     </Link>

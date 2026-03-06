@@ -1,0 +1,44 @@
+# walkthru.earth
+
+> People-first urban intelligence. Detecting hidden patterns of daily life and turning them into solutions that support wellbeing in cities globally.
+
+## About
+
+walkthru.earth builds open infrastructure and tools to understand and improve urban life. We combine IoT sensor data, open geospatial datasets, and anonymous community wellbeing data to create neighborhood-level health and livability insights.
+
+## Projects
+
+### Globe Explorer
+Interactive 3D globe for exploring terrain, population, buildings, weather, and 50+ livability indices worldwide. Built on cloud-optimized geospatial formats (GeoParquet, COG, PMTiles).
+URL: https://walkthru.earth/indices
+
+### OpenSensor.Space
+DIY weather station network measuring air quality, noise, temperature, humidity, and light in real time. Open hardware, open data.
+URL: https://walkthru.earth/opensensor
+
+### Hormones & Cities
+Mobile app (coming mid-2026) for sharing anonymous wellbeing and mobility data. Offline-first, privacy by design. Data is aggregated to H3 hexagonal cells (~500m) and shared back as neighborhood health insights.
+URL: https://walkthru.earth/hormones-cities
+
+### Software
+Desktop and mobile tools for geospatial data processing, including Objex (3D model optimization) and Imagery Desktop (aerial/satellite image management).
+URL: https://walkthru.earth/software
+
+## Data
+
+All datasets are published as open data on Source Cooperative:
+https://source.coop/walkthru-earth
+
+Formats: GeoParquet, Cloud-Optimized GeoTIFF (COG), PMTiles, FlatGeobuf
+
+## Links
+
+- Website: https://walkthru.earth
+- GitHub: https://github.com/walkthru-earth
+- LinkedIn: https://www.linkedin.com/company/walkthru-earth/
+- Bluesky: https://bsky.app/profile/walkthru-earth.bsky.social
+- Source Cooperative: https://source.coop/walkthru-earth
+
+## Contact
+
+General inquiries: https://walkthru.earth/about

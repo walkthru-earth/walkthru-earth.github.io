@@ -79,15 +79,17 @@ export default function HormonesCitiesPage() {
                   </h1>
 
                   <p className="text-muted-foreground mt-4 max-w-md text-lg leading-relaxed">
-                    Your city shapes your stress, mood, and hormones every day —
-                    but nobody measures it. We do, and the data is free for
-                    everyone.
+                    Share how you feel, anonymously from your phone. Get back
+                    health insights for your neighborhood — powered by what
+                    everyone around you shares too. The more people contribute,
+                    the smarter the picture gets.
                   </p>
 
                   <div className="mt-6 flex flex-wrap items-center gap-2 text-sm">
+                    <Badge variant="outline">Offline-first</Badge>
                     <Badge variant="outline">Anonymous</Badge>
                     <Badge variant="outline">Open data</Badge>
-                    <Badge variant="outline">Privacy-first</Badge>
+                    <Badge variant="outline">Privacy by design</Badge>
                   </div>
 
                   <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -120,24 +122,23 @@ export default function HormonesCitiesPage() {
           <Container>
             <FadeIn className="mx-auto max-w-2xl">
               <h2 className="mb-4 text-2xl font-semibold tracking-tight md:text-3xl">
-                Cities are measured by spreadsheets,{' '}
-                <span className="text-secondary">not feelings</span>
+                Your city affects your health,{' '}
+                <span className="text-secondary">but who measures it?</span>
               </h2>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                We track GDP and traffic flow, but nothing tells us if a child
-                is thriving, a resident is chronically stressed, or a
-                neighborhood is truly livable. Meanwhile, noise and pollution
-                keep our bodies in survival mode — cortisol up, nervous system
-                on edge.
+                We track GDP and traffic, but nothing tells you if your
+                neighborhood is actually healthy to live in. Air, noise, green
+                space, stress — these shape how you feel every day, yet nobody
+                connects the dots for the people who live there.
               </p>
               <div className="border-primary/20 bg-primary/5 rounded-xl border p-5">
                 <p className="text-foreground text-center text-base leading-relaxed font-medium md:text-lg">
-                  Think of it as a{' '}
+                  You share a little about how you feel.{' '}
                   <strong className="text-primary">
-                    fitness tracker for the whole city
+                    Everyone&apos;s data comes back as health insights
                   </strong>{' '}
-                  — checking its heart rate and stress levels so it can actually
-                  help people get healthy.
+                  for your neighborhood — the more people contribute, the
+                  clearer the picture gets.
                 </p>
               </div>
             </FadeIn>
@@ -152,9 +153,9 @@ export default function HormonesCitiesPage() {
                 How it <span className="text-secondary">works</span>
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                Three data sources, processed privately on your device,
-                aggregated into a hexagonal grid, and shared with everyone who
-                can make cities better.
+                Your data stays on your phone. Only anonymous summaries are
+                shared — joined with others in your area to give everyone richer
+                health insights about their neighborhood.
               </p>
             </FadeIn>
 
@@ -170,8 +171,8 @@ export default function HormonesCitiesPage() {
                 50+ living <span className="text-secondary">indices</span>
               </h2>
               <p className="text-muted-foreground mb-5 leading-relaxed">
-                From water quality to happiness — every metric that matters for
-                a neighborhood you&apos;d want to live in.
+                From water quality to happiness — real insights about your
+                surroundings, built from what people around you share.
               </p>
               <div className="flex flex-wrap gap-2">
                 {allMetrics.map((m) => (
@@ -194,13 +195,9 @@ export default function HormonesCitiesPage() {
                 <span className="text-secondary">cities should be</span>
               </h2>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                All code on GitHub. Any researcher can reproduce our findings. A
-                community in Dhaka gets the same tools as Dubai — no paywalls,
-                no gatekeepers.
-              </p>
-              <p className="text-muted-foreground mb-8 text-sm italic">
-                &ldquo;Closed data creates closed cities.&rdquo; We&apos;re
-                building the opposite.
+                All code on GitHub. A community in Dhaka gets the same insights
+                as Dubai — no paywalls, no gatekeepers. The more open the data,
+                the healthier cities can become.
               </p>
 
               <div className="border-t pt-8">

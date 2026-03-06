@@ -331,11 +331,12 @@ export default function HomePage() {
                         Hormones & Cities
                       </CardTitle>
                       <CardDescription className="text-base font-medium">
-                        Anonymous urban wellbeing survey
+                        Neighborhood health insights
                       </CardDescription>
                       <p className="text-muted-foreground mt-3 mb-3 text-base leading-relaxed">
-                        How do cities shape how we feel? Anonymous surveys to
-                        detect patterns and build happier communities.
+                        Share anonymous wellbeing and mobility data, get back
+                        analyzed health insights for your surroundings.
+                        Offline-first, privacy by design.
                       </p>
                       <span className="text-secondary inline-flex items-center gap-1 text-base font-medium">
                         Learn more

@@ -71,7 +71,7 @@ const sources: FlowNode[] = [
   },
   {
     label: 'Hormones & Cities',
-    sublabel: 'Anonymous wellbeing surveys',
+    sublabel: 'Wellbeing + mobility, offline-first',
     Icon: Heart,
     kind: 'ours',
     loop: true,
@@ -99,8 +99,8 @@ const outputs: FlowNode[] = [
     kind: 'ours',
   },
   {
-    label: 'Researchers',
-    sublabel: 'SQL joins across indices',
+    label: 'AI-Ready Data',
+    sublabel: 'Parquet, open formats',
     Icon: FlaskConical,
     kind: 'open',
   },
@@ -112,7 +112,7 @@ const outputs: FlowNode[] = [
   },
   {
     label: 'Hormones & Cities',
-    sublabel: 'Aggregated back to H3',
+    sublabel: 'Neighborhood insights back to you',
     Icon: RefreshCw,
     kind: 'ours',
     loop: true,
@@ -155,7 +155,7 @@ function FlowNode({
       />
       <div className="min-w-0">
         <div
-          className={`${mobile ? 'text-base' : 'text-lg'} leading-tight font-bold`}
+          className={`${mobile ? 'text-base' : 'text-lg'} leading-tight font-bold whitespace-nowrap`}
         >
           {node.label}
         </div>
@@ -252,9 +252,9 @@ function LoopBack({ delay, className }: { delay: number; className?: string }) {
     >
       <CornerDownLeft className="text-secondary/60 h-5 w-5" />
       <span className="text-secondary/70 text-sm font-medium">
-        Closed loop: anonymous surveys aggregated to H3, joined into indices,
-        served back to your phone for personalized health and environment
-        insights
+        Closed loop: anonymous wellbeing + mobility data aggregated to H3,
+        joined with indices, analyzed insights served back to your phone for
+        your neighborhood&apos;s health
       </span>
     </motion.div>
   );

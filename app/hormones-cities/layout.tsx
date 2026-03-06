@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Hormones & Cities - Urban Wellbeing Research | walkthru.earth',
+  title: 'Hormones & Cities - Neighborhood Health Insights | walkthru.earth',
   description:
-    'Shedding light on how urban environments impact our well-being through questionnaires and open data. Covering a wide range of topics to understand city life. Launching mid-2026.',
+    'Share anonymous wellbeing and mobility data from your phone, get back analyzed health insights for your neighborhood. Offline-first, privacy by design, aggregated to H3 hexagons. Launching mid-2026.',
   keywords:
-    'urban wellbeing, city survey, anonymous feedback, behavioral insights, livability, mental health, sustainable cities, urban psychology, questionnaires',
+    'neighborhood health, urban wellbeing, anonymous mobility data, offline-first, privacy by design, H3 hexagons, livability, mental health, sustainable cities',
   alternates: {
     canonical: 'https://walkthru.earth/hormones-cities',
   },
   openGraph: {
-    title: 'Hormones & Cities - Urban Wellbeing Research',
+    title: 'Hormones & Cities - Neighborhood Health Insights',
     description:
-      'Shedding light on how urban environments impact our well-being through questionnaires and open data. Launching mid-2026.',
+      'Share anonymous wellbeing and mobility data, get back neighborhood health insights. Offline-first, privacy by design. Launching mid-2026.',
     url: 'https://walkthru.earth/hormones-cities',
     siteName: 'walkthru.earth',
     locale: 'en_US',
@@ -22,15 +22,15 @@ export const metadata: Metadata = {
         url: 'https://walkthru.earth/og-hormones-cities.png',
         width: 1200,
         height: 630,
-        alt: 'Hormones & Cities - Urban Wellbeing Research',
+        alt: 'Hormones & Cities - Neighborhood Health Insights',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hormones & Cities - Urban Wellbeing Research',
+    title: 'Hormones & Cities - Neighborhood Health Insights',
     description:
-      'Shedding light on how urban environments impact our well-being through questionnaires and open data.',
+      'Share anonymous wellbeing and mobility data, get back neighborhood health insights. Offline-first, privacy by design.',
     creator: '@walkthru_earth',
     images: ['https://walkthru.earth/og-hormones-cities.png'],
   },

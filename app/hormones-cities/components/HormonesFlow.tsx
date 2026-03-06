@@ -42,7 +42,7 @@ const sources: FlowNode[] = [
   },
   {
     label: 'Mobile app',
-    sublabel: 'Mood, stress, AI reflection',
+    sublabel: 'Wellbeing + mobility, offline-first',
     Icon: Smartphone,
     kind: 'app',
   },
@@ -71,8 +71,14 @@ const processing: FlowNode[] = [
 
 const outputs: FlowNode[] = [
   {
+    label: 'You',
+    sublabel: 'Neighborhood health insights',
+    Icon: Smartphone,
+    kind: 'app',
+  },
+  {
     label: 'Families',
-    sublabel: 'Healthy neighborhoods',
+    sublabel: 'Find healthy areas',
     Icon: Home,
     kind: 'output',
   },
@@ -80,12 +86,6 @@ const outputs: FlowNode[] = [
     label: 'Planners',
     sublabel: 'Evidence for parks',
     Icon: MapPin,
-    kind: 'output',
-  },
-  {
-    label: 'Investors',
-    sublabel: 'ESG & impact data',
-    Icon: BadgeDollarSign,
     kind: 'output',
   },
   {

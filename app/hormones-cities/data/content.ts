@@ -73,7 +73,7 @@ export const pillars: Pillar[] = [
     icon: Heart,
     title: 'Hormones & Cities',
     description:
-      'Short anonymous surveys + AI reflection on how your city affects your mood.',
+      'Share wellbeing + mobility data anonymously, get back health insights for your neighborhood.',
     status: 'App ready',
   },
 ];
@@ -96,9 +96,9 @@ export const dataSources: DataSource[] = [
     icon: Smartphone,
     title: 'Mobile app',
     items: [
-      'Mood & stress surveys',
-      'AI-guided reflection',
-      'H3-aggregated location',
+      'Wellbeing + mobility data',
+      'Offline-first, on-device processing',
+      'Anonymous H3-aggregated sharing',
     ],
   },
   {
