@@ -428,19 +428,19 @@ export function GlobeExplorer({
         error={error}
       />
 
-      {/* Branding */}
+      {/* Branding — top-center on mobile, bottom-right on desktop */}
       <Link
         href="/links"
-        className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 transition-opacity hover:opacity-70 sm:top-auto sm:right-6 sm:bottom-6 sm:left-auto sm:translate-x-0"
+        className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-0.5 transition-opacity hover:opacity-70 sm:top-auto sm:right-6 sm:bottom-6 sm:left-auto sm:translate-x-0 sm:gap-1"
       >
         <Image
           src="/icon.svg"
           alt="walkthru.earth logo"
-          width={36}
-          height={36}
-          className="dark:invert"
+          width={28}
+          height={28}
+          className="sm:h-9 sm:w-9 dark:invert"
         />
-        <span className="text-[10px] font-semibold tracking-tight text-gray-700 dark:text-white/70">
+        <span className="text-[8px] font-semibold tracking-tight text-gray-700 sm:text-[10px] dark:text-white/70">
           walkthru.earth
         </span>
       </Link>
