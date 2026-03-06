@@ -44,7 +44,7 @@ export default function OpenSensorPage() {
       <Navbar />
       <main>
         {/* Hero Section */}
-        <section className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden pt-20 md:min-h-[80dvh] md:pt-24">
+        <section className="relative flex min-h-dvh items-center justify-center overflow-hidden pt-20 md:pt-24">
           <div className="from-primary/5 via-background to-primary/10 absolute inset-0 bg-gradient-to-br" />
 
           <motion.div

@@ -56,7 +56,7 @@ export default function SoftwarePage() {
       <Navbar />
       <main>
         {/* Hero Section */}
-        <section className="relative flex min-h-[60dvh] items-center justify-center overflow-hidden pt-20 md:pt-24">
+        <section className="relative flex min-h-dvh items-center justify-center overflow-hidden pt-20 md:pt-24">
           {/* Background gradient */}
           <div className="from-primary/5 via-background to-secondary/5 dark:from-primary/10 dark:to-secondary/10 absolute inset-0 bg-gradient-to-br" />
 

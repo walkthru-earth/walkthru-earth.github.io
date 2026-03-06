@@ -56,7 +56,7 @@ export default function HormonesCitiesPage() {
       <main>
         {/* ─── Hero ─────────────────────────────────────────────── */}
         <section ref={heroRef} className="relative h-[200vh]">
-          <div className="sticky top-0 flex h-[100dvh] items-start overflow-hidden pt-20 md:items-center">
+          <div className="sticky top-0 flex h-dvh items-start overflow-hidden pt-20 md:items-center">
             <div className="from-secondary/3 via-background to-secondary/5 absolute inset-0 bg-gradient-to-b" />
             <Container className="relative z-10 py-4 md:py-8">
               <div className="relative lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-16">

@@ -161,14 +161,14 @@ export default function HomePage() {
       <Navbar />
       <main>
         {/* Hero — full-bleed globe, text with frosted glass panel */}
-        <section className="relative min-h-[100dvh] overflow-hidden">
+        <section className="relative min-h-dvh overflow-hidden">
           {/* Globe — full bleed, no overlays */}
           <div className="absolute inset-0">
             <GlobePreview sectionId={activeLayer} nonInteractive />
           </div>
 
           {/* Text panel */}
-          <div className="relative z-10 flex min-h-[100dvh] items-end pt-24 pb-12 md:items-center md:pb-0">
+          <div className="relative z-10 flex min-h-dvh items-center pt-20 pb-6 md:pb-0">
             <div className="w-full px-6 md:px-12 lg:px-24">
               <div className="bg-background/60 max-w-xl rounded-2xl p-6 shadow-lg backdrop-blur-xl md:p-10">
                 <h1 className="text-foreground text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] font-light tracking-tight">

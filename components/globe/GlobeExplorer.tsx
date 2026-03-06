@@ -309,10 +309,7 @@ export function GlobeExplorer({
   }, [isLoading, currentSection, allRows]);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative h-screen w-full overflow-hidden"
-    >
+    <div ref={containerRef} className="relative h-dvh w-full overflow-hidden">
       <GlobeMap
         targetViewState={currentSection.viewState}
         layerData={layerData}

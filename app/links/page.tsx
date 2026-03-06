@@ -129,7 +129,7 @@ const socialLinks = [
 
 export default function LinksPage() {
   return (
-    <main className="bg-background min-h-screen">
+    <main className="bg-background min-h-dvh">
       {/* Theme Toggle */}
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
