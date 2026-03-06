@@ -266,6 +266,54 @@ function MobileDrawer(props: ScrollSectionProps) {
     return () => window.removeEventListener('globe:tap', handler);
   }, []);
 
+  // Horizontal swipe on drawer to navigate sections
+  const drawerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = drawerRef.current;
+    if (!el) return;
+
+    let startX = 0;
+    let startY = 0;
+    let locked: 'h' | 'v' | null = null;
+    let fired = false;
+
+    const onStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      startX = t.clientX;
+      startY = t.clientY;
+      locked = null;
+      fired = false;
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (fired) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      // Lock direction after 10px
+      if (!locked && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+        locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      }
+
+      // Horizontal: prevent Vaul from capturing, fire navigation
+      if (locked === 'h') {
+        e.preventDefault();
+        if (Math.abs(dx) > 60) {
+          fired = true;
+          onSwipe?.(dx < 0 ? 1 : -1);
+        }
+      }
+    };
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+    };
+  }, [onSwipe]);
+
   if (!isMobile) return null;
 
   return (
@@ -344,7 +392,10 @@ function MobileDrawer(props: ScrollSectionProps) {
         shouldScaleBackground={false}
         modal={false}
       >
-        <DrawerContent className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
+        <DrawerContent
+          ref={drawerRef}
+          className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
+        >
           <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
           <div
             className="overflow-y-auto px-4 pt-1 pb-6"
