@@ -349,9 +349,10 @@ function MobileDrawer(props: ScrollSectionProps) {
     return () => window.removeEventListener('globe:tap', handler);
   }, []);
 
-  // Drawer gestures: horizontal swipe → navigate, swipe down → close
+  // Gestures: horizontal swipe → navigate, swipe down → close drawer
   const closeDrawer = useCallback(() => setOpen(false), []);
-  const attachGestures = useDrawerGestures(onSwipe, closeDrawer);
+  const attachDrawerGestures = useDrawerGestures(onSwipe, closeDrawer);
+  const attachBarGestures = useDrawerGestures(onSwipe);
 
   if (!isMobile) return null;
 
@@ -360,6 +361,7 @@ function MobileDrawer(props: ScrollSectionProps) {
       {/* Floating bottom bar — always visible when drawer is closed */}
       {!open && (
         <div
+          ref={attachBarGestures}
           className="fixed inset-x-0 bottom-0 z-30 flex flex-col border-t border-black/10 bg-white/90 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
           style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
@@ -434,7 +436,7 @@ function MobileDrawer(props: ScrollSectionProps) {
         <DrawerContent className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
           <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
           <div
-            ref={attachGestures}
+            ref={attachDrawerGestures}
             className="overflow-y-auto px-4 pt-1 pb-6"
             style={{
               paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
