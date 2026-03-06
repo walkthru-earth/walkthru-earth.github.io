@@ -485,11 +485,17 @@ export function GlobeExplorer({
             <Image
               src="/icon.svg"
               alt="walkthru.earth logo"
-              width={28}
-              height={28}
-              className="sm:h-9 sm:w-9 dark:invert"
+              width={36}
+              height={36}
+              className="drop-shadow-[0_0_6px_rgba(255,255,255,0.6)] sm:h-11 sm:w-11"
             />
-            <span className="text-muted-foreground text-3xs sm:text-2xs font-semibold tracking-tight">
+            <span
+              className="text-2xs font-bold tracking-tight text-black sm:text-xs"
+              style={{
+                WebkitTextStroke: '1.5px white',
+                paintOrder: 'stroke fill',
+              }}
+            >
               walkthru.earth
             </span>
           </Link>
