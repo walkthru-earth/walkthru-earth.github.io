@@ -363,58 +363,58 @@ function MobileDrawer(props: ScrollSectionProps) {
               {props.timeControls}
             </div>
           )}
-          <div className="flex items-center justify-between px-3 py-2">
+          <div className="flex items-center justify-between px-4 py-2.5">
             <NavArrow
               direction={-1}
               disabled={sectionIndex === 0}
               onClick={() => onSwipe?.(-1)}
-              size="sm"
             />
 
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="flex items-center gap-2"
+              className="flex min-w-0 flex-1 flex-col items-center gap-1 px-3"
             >
-              {isLoading && (
-                <span className="relative flex h-2 w-2">
-                  <span className="bg-success absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
-                  <span className="bg-success relative inline-flex h-2 w-2 rounded-full" />
-                </span>
-              )}
               <SectionDots
                 current={sectionIndex}
                 total={totalSections}
                 size="sm"
               />
-              <span className="text-foreground text-sm font-medium">
-                {section.title}
-              </span>
-              {isLoading && rowCount !== undefined && rowCount > 0 && (
-                <span className="text-warning animate-pulse text-sm">
-                  {rowCount.toLocaleString()}
+              <div className="flex items-center gap-1.5">
+                {isLoading && (
+                  <span className="relative flex h-2 w-2 flex-shrink-0">
+                    <span className="bg-success absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
+                    <span className="bg-success relative inline-flex h-2 w-2 rounded-full" />
+                  </span>
+                )}
+                <span className="text-foreground truncate text-sm font-medium">
+                  {section.title}
                 </span>
-              )}
-              <svg
-                className="text-muted-foreground h-3 w-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 15l7-7 7 7"
-                />
-              </svg>
+                {isLoading && rowCount !== undefined && rowCount > 0 && (
+                  <span className="text-warning flex-shrink-0 animate-pulse text-sm">
+                    {rowCount.toLocaleString()}
+                  </span>
+                )}
+                <svg
+                  className="text-muted-foreground h-3 w-3 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 15l7-7 7 7"
+                  />
+                </svg>
+              </div>
             </button>
 
             <NavArrow
               direction={1}
               disabled={sectionIndex === totalSections - 1}
               onClick={() => onSwipe?.(1)}
-              size="sm"
             />
           </div>
         </div>
