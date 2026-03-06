@@ -52,7 +52,7 @@ function BrowserFrame({
     <div className="border-foreground/10 overflow-hidden rounded-xl border shadow-2xl">
       {/* Browser chrome */}
       <div className="bg-muted/80 flex items-center gap-2 border-b px-2.5 py-2 sm:gap-3 sm:px-4 sm:py-2.5">
-        {/* Traffic lights — hidden on small screens */}
+        {/* Traffic lights -hidden on small screens */}
         <div className="hidden items-center gap-1.5 sm:flex">
           <div className="h-3 w-3 rounded-full bg-[#ff5f57]" />
           <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
@@ -157,7 +157,7 @@ const featureShowcase = [
     icon: Box,
     title: 'Archive Browser',
     description:
-      'Browse ZIP archives progressively without downloading or uncompressing. Inspect file trees, sizes, and contents in a clean column view — all streamed lazily from cloud storage.',
+      'Browse ZIP archives progressively without downloading or uncompressing. Inspect file trees, sizes, and contents in a clean column view -all streamed lazily from cloud storage.',
     iframeUrl:
       'https://walkthru.earth/objex/?url=https%3A%2F%2Fs3.us-west-2.amazonaws.com%2Fus-west-2.opendata.source.coop%2Fharvard-lil%2Ffederal-github%2Fdata%2FMNGRLPychron%2Fpychron%2Fv1.zip',
   },
@@ -165,7 +165,7 @@ const featureShowcase = [
     icon: Database,
     title: 'STAC Catalog Browser',
     description:
-      'Navigate SpatioTemporal Asset Catalogs directly from cloud storage. Browse collections, items, and assets with spatial previews — no STAC API server needed.',
+      'Navigate SpatioTemporal Asset Catalogs directly from cloud storage. Browse collections, items, and assets with spatial previews -no STAC API server needed.',
     iframeUrl:
       'https://walkthru.earth/objex/?url=https%3A%2F%2Fs3.us-west-2.amazonaws.com%2Fus-west-2.opendata.source.coop%2Fplanet%2Feu-field-boundaries%2Fcollection.json#stac-browser',
   },
@@ -198,7 +198,7 @@ const quickFeatures = [
     icon: Search,
     title: 'In-Browser SQL',
     description:
-      'Query Parquet, CSV, and JSONL with DuckDB-WASM — cancellable queries with full SQL support, all client-side',
+      'Query Parquet, CSV, and JSONL with DuckDB-WASM -cancellable queries with full SQL support, all client-side',
   },
   {
     icon: Map,
@@ -234,7 +234,7 @@ const quickFeatures = [
     icon: ShieldCheck,
     title: 'Privacy First',
     description:
-      'Zero backend — everything runs in your browser. Credentials stay in memory and are never sent to any server',
+      'Zero backend -everything runs in your browser. Credentials stay in memory and are never sent to any server',
   },
 ];
 
@@ -338,7 +338,7 @@ export default function ObjexPage() {
               <p className="text-muted-foreground mt-6 max-w-2xl text-lg font-normal md:text-xl">
                 Browse, query, and visualize files in S3, GCS, Azure, R2, and
                 more. SQL queries with DuckDB, interactive geospatial maps, and
-                18+ specialized viewers for 100+ file formats — all running
+                18+ specialized viewers for 100+ file formats -all running
                 client-side in your browser.
               </p>
 
@@ -626,7 +626,7 @@ export default function ObjexPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground mb-4 leading-relaxed">
-                      Pure TypeScript utilities — zero Svelte dependency. Works
+                      Pure TypeScript utilities -zero Svelte dependency. Works
                       with any JS framework or Node.js.
                     </p>
                     <code className="bg-muted inline-block rounded px-2 py-1 text-xs break-all sm:text-sm">
@@ -656,7 +656,7 @@ export default function ObjexPage() {
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     objex is open-source under CC BY 4.0. Everything runs
-                    client-side — your credentials and data never leave your
+                    client-side -your credentials and data never leave your
                     browser.
                   </p>
                 </CardContent>

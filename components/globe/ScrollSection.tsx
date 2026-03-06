@@ -14,6 +14,8 @@ import type { GlobeSection } from './data/sections';
 
 interface ScrollSectionProps {
   section: GlobeSection;
+  /** Data-driven description (resolved from describeData or static fallback). */
+  resolvedDescription?: string;
   sectionIndex: number;
   totalSections: number;
   onSwipe?: (direction: -1 | 1) => void;
@@ -99,11 +101,13 @@ function NavArrow({
 
 function SectionContent({
   section,
+  resolvedDescription,
   sectionIndex,
   totalSections,
   onSwipe,
   queryPanel,
 }: ScrollSectionProps) {
+  const description = resolvedDescription ?? section.description;
   return (
     <>
       <div
@@ -127,7 +131,7 @@ function SectionContent({
       </h2>
 
       <p className="mb-3 text-sm leading-relaxed text-gray-700 sm:mb-4 sm:text-base dark:text-white/70">
-        {section.description}
+        {description}
       </p>
 
       {section.stat.value && (

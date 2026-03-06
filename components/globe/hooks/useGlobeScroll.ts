@@ -15,10 +15,11 @@ import {
  */
 export function useGlobeScroll(
   sectionCount: number,
-  isOverGlobeRef: MutableRefObject<boolean>
+  isOverGlobeRef: MutableRefObject<boolean>,
+  initialSection: number = 0
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeSection, setActiveSection] = useState(0);
+  const [activeSection, setActiveSection] = useState(initialSection);
   const cooldownRef = useRef(false);
 
   const navigate = useCallback(

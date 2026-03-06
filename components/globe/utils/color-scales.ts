@@ -86,3 +86,47 @@ export const POPULATION_DENSITY_COLORS: [number, number, number][] = [
   [240, 59, 32],
   [189, 0, 38], // deep red (dense)
 ];
+
+export const PRESSURE_COLORS: [number, number, number][] = [
+  [103, 0, 31], // deep red (low pressure / storm)
+  [178, 24, 43],
+  [253, 174, 97], // orange
+  [255, 255, 191], // yellow (normal ~1013 hPa)
+  [166, 217, 106], // green
+  [26, 152, 80], // dark green (high pressure)
+];
+
+export const SLOPE_COLORS: [number, number, number][] = [
+  [255, 255, 204], // pale yellow (flat)
+  [254, 217, 118],
+  [254, 178, 76], // orange
+  [253, 141, 60],
+  [240, 59, 32], // red
+  [189, 0, 38], // deep red (steep)
+];
+
+export const RUGGEDNESS_COLORS: [number, number, number][] = [
+  [237, 248, 233], // pale green (smooth)
+  [186, 228, 179],
+  [116, 196, 118], // green
+  [49, 163, 84],
+  [0, 109, 44], // deep green (extremely rugged)
+];
+
+export const HOUSING_PRESSURE_COLORS: [number, number, number][] = [
+  [49, 163, 84], // green (low pressure)
+  [173, 221, 142],
+  [255, 255, 178], // yellow
+  [253, 141, 60], // orange
+  [227, 26, 28], // red
+  [128, 0, 38], // deep red (extreme pressure)
+];
+
+export const VERTICAL_DENSITY_COLORS: [number, number, number][] = [
+  [158, 202, 225], // light blue (spacious — high bldg/person)
+  [66, 146, 198],
+  [8, 104, 172], // blue
+  [253, 174, 97], // orange (compressed)
+  [215, 48, 39], // red
+  [128, 0, 38], // deep red (most compressed — low bldg/person)
+];

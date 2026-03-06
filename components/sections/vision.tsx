@@ -42,19 +42,19 @@ export function Vision() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-20"
+          className="mb-20 text-center"
         >
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
+          <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
             Our <span className="text-primary font-medium">Vision</span>
           </h2>
-          <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Building a new kind of index for cities—measuring not just cost of
+          <p className="text-muted-foreground mx-auto mt-6 max-w-4xl text-xl leading-relaxed md:text-2xl">
+            Building a new kind of index for cities, measuring not just cost of
             living, but stress, safety, connection, and the ease of everyday
             life
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {visionPoints.map((point, index) => (
             <motion.div
               key={point.title}
@@ -63,10 +63,14 @@ export function Vision() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
-              <Card className="p-8 h-full hover:shadow-lg transition-shadow">
-                <point.icon className="h-12 w-12 text-primary mb-6" />
-                <h3 className="text-2xl md:text-3xl font-semibold mb-3">{point.title}</h3>
-                <p className="text-lg text-muted-foreground leading-relaxed">{point.description}</p>
+              <Card className="h-full p-8 transition-shadow hover:shadow-lg">
+                <point.icon className="text-primary mb-6 h-12 w-12" />
+                <h3 className="mb-3 text-2xl font-semibold md:text-3xl">
+                  {point.title}
+                </h3>
+                <p className="text-muted-foreground text-lg leading-relaxed">
+                  {point.description}
+                </p>
               </Card>
             </motion.div>
           ))}
@@ -79,9 +83,9 @@ export function Vision() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-20 text-center"
         >
-          <blockquote className="text-3xl md:text-4xl lg:text-5xl font-light italic text-foreground/80 max-w-5xl mx-auto leading-relaxed">
+          <blockquote className="text-foreground/80 mx-auto max-w-5xl text-3xl leading-relaxed font-light italic md:text-4xl lg:text-5xl">
             "Help urban communities become more resilient, sustainable, and
-            genuinely happier—using data to support lives, not the other way
+            genuinely happier, using data to support lives, not the other way
             around."
           </blockquote>
         </motion.div>

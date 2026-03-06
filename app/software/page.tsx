@@ -36,7 +36,7 @@ const software = [
     name: 'objex',
     tagline: 'Cloud Storage Explorer in the Browser',
     description:
-      'Browse, query, and visualize files in S3, GCS, Azure, R2, and more. SQL queries with DuckDB, interactive maps, and 100+ file format viewers — all client-side, zero backend.',
+      'Browse, query, and visualize files in S3, GCS, Azure, R2, and more. SQL queries with DuckDB, interactive maps, and 100+ file format viewers -all client-side, zero backend.',
     icon: '/software/objex/appicon.svg',
     highlights: [
       'SQL queries',

@@ -25,13 +25,18 @@ function tsToMs(v: unknown): number {
 
 interface GlobeExplorerProps {
   sections?: GlobeSection[];
+  initialSection?: number;
 }
 
-export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
+export function GlobeExplorer({
+  sections = SECTIONS,
+  initialSection = 0,
+}: GlobeExplorerProps) {
   const isOverGlobeRef = useRef(false);
   const { containerRef, activeSection, navigate } = useGlobeScroll(
     sections.length,
-    isOverGlobeRef
+    isOverGlobeRef,
+    initialSection
   );
 
   const [allRows, setAllRows] = useState<Record<string, unknown>[]>([]);
@@ -85,6 +90,15 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
   useEffect(() => {
     activeSectionRef.current = activeSection;
   }, [activeSection]);
+
+  // Keep URL in sync with active section (replaceState — no navigation)
+  useEffect(() => {
+    const id = sections[activeSection]?.id;
+    if (!id) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('section', id);
+    window.history.replaceState(null, '', url.toString());
+  }, [activeSection, sections]);
 
   /** Promise-based cache keyed by "sectionIdx:h3Res" to prevent duplicate loads. */
   const cacheRef = useRef<
@@ -259,6 +273,14 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
     requestAnimationFrame(() => setZoom(z));
   }, []);
 
+  // Resolve data-driven description once loading completes
+  const resolvedDescription = useMemo(() => {
+    if (!isLoading && currentSection.describeData && allRows.length > 0) {
+      return currentSection.describeData(allRows);
+    }
+    return currentSection.description;
+  }, [isLoading, currentSection, allRows]);
+
   return (
     <div
       ref={containerRef}
@@ -281,6 +303,7 @@ export function GlobeExplorer({ sections = SECTIONS }: GlobeExplorerProps) {
 
       <ScrollSection
         section={currentSection}
+        resolvedDescription={resolvedDescription}
         sectionIndex={activeSection}
         totalSections={sections.length}
         onSwipe={(dir) => {
