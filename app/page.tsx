@@ -175,18 +175,22 @@ export default function HomePage() {
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
-                  <div className="relative hidden h-48 w-72 flex-shrink-0 overflow-hidden rounded-xl border shadow-md md:block lg:h-56 lg:w-80">
+                  <div className="hidden flex-shrink-0 md:block">
                     <Image
                       src="/globe-preview-light.png"
                       alt="Globe explorer preview"
-                      fill
-                      className="object-cover object-center dark:hidden"
+                      width={320}
+                      height={224}
+                      className="rounded-xl border object-cover shadow-md"
+                      style={{ display: 'var(--light-display)' }}
                     />
                     <Image
                       src="/globe-preview-dark.png"
                       alt="Globe explorer preview"
-                      fill
-                      className="hidden object-cover object-center dark:block"
+                      width={320}
+                      height={224}
+                      className="rounded-xl border object-cover shadow-md"
+                      style={{ display: 'var(--dark-display)' }}
                     />
                   </div>
                 </div>
