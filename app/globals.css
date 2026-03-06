@@ -190,6 +190,16 @@
   }
 }
 
+/* Gradient text stroke for readability over busy backgrounds */
+.gradient-text {
+  -webkit-text-stroke: 1.5px hsl(0 0% 0% / 0.15);
+  paint-order: stroke fill;
+}
+
+.dark .gradient-text {
+  -webkit-text-stroke: 1.5px hsl(0 0% 100% / 0.2);
+}
+
 /* Focus styles for keyboard navigation */
 .focus-visible:focus {
   outline: 2px solid var(--ring);
