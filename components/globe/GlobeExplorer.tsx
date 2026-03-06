@@ -431,10 +431,10 @@ export function GlobeExplorer({
       {/* Branding */}
       <Link
         href="/links"
-        className="absolute right-4 bottom-4 z-20 flex flex-col items-center gap-1 rounded-xl border border-black/10 bg-white/90 px-3 py-2 shadow-md backdrop-blur-md transition-opacity hover:opacity-80 sm:right-6 sm:bottom-6 dark:border-white/10 dark:bg-black/80"
+        className="absolute right-4 bottom-4 z-20 flex flex-col items-center gap-1 transition-opacity hover:opacity-70 sm:right-6 sm:bottom-6"
       >
         <Image
-          src="/logo.svg"
+          src="/icon.svg"
           alt="walkthru.earth logo"
           width={36}
           height={36}
