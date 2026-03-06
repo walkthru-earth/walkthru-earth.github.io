@@ -4,41 +4,122 @@
 
 ## About
 
-walkthru.earth builds open infrastructure and tools to understand and improve urban life. We combine IoT sensor data, open geospatial datasets, and anonymous community wellbeing data to create neighborhood-level health and livability insights.
+walkthru.earth builds open infrastructure and tools to understand and improve urban life. We combine IoT sensor data, open geospatial datasets, and anonymous community wellbeing data to create neighborhood-level health and livability insights. Founded March 2025.
+
+Mission: To reveal the hidden patterns shaping daily life and turn them into people-first solutions that support wellbeing in cities everywhere.
+
+## Website Pages
+
+- Homepage: https://walkthru.earth
+- Globe Explorer (interactive 3D globe with 16 data layers): https://walkthru.earth/indices
+- OpenSensor.Space (weather station network): https://walkthru.earth/opensensor
+- Hormones & Cities (neighborhood health insights app): https://walkthru.earth/hormones-cities
+- Software (desktop & mobile tools): https://walkthru.earth/software
+- Objex (cloud storage explorer with geospatial visualization): https://walkthru.earth/software/objex
+- Imagery Desktop (aerial/satellite image management): https://walkthru.earth/software/imagery-desktop
+- About: https://walkthru.earth/about
+- Links: https://walkthru.earth/links
+- Privacy Policy: https://walkthru.earth/privacy
 
 ## Projects
 
 ### Globe Explorer
-Interactive 3D globe for exploring terrain, population, buildings, weather, and 50+ livability indices worldwide. Built on cloud-optimized geospatial formats (GeoParquet, COG, PMTiles).
+Interactive 3D globe for exploring terrain, population, buildings, weather, and 50+ livability indices worldwide. 16 data layers, ~300 GB of open data, real-time weather. Runs entirely in the browser using DuckDB-WASM — no account needed. Built on cloud-optimized geospatial formats (GeoParquet, COG, PMTiles).
 URL: https://walkthru.earth/indices
 
 ### OpenSensor.Space
-DIY weather station network measuring air quality, noise, temperature, humidity, and light in real time. Open hardware, open data.
+DIY weather station network measuring air quality (PM2.5, PM10), noise, temperature, humidity, and light in real time. Built with Raspberry Pi and Enviro+ sensors. Data streams directly to cloud storage as Parquet files with Hive partitioning. Open hardware, open data, serverless architecture.
 URL: https://walkthru.earth/opensensor
+Dashboard: https://opensensor.space
 
 ### Hormones & Cities
-Mobile app (coming mid-2026) for sharing anonymous wellbeing and mobility data. Offline-first, privacy by design. Data is aggregated to H3 hexagonal cells (~500m) and shared back as neighborhood health insights.
+Mobile app (launching mid-2026) for sharing anonymous wellbeing and mobility data. Users share how they feel; data is processed on-device, aggregated to H3 hexagonal cells (~500m), and shared back as neighborhood health insights. Offline-first, privacy by design, no account needed, no tracking. The more people contribute, the smarter the picture gets.
 URL: https://walkthru.earth/hormones-cities
 
-### Software
-Desktop and mobile tools for geospatial data processing, including Objex (3D model optimization) and Imagery Desktop (aerial/satellite image management).
-URL: https://walkthru.earth/software
+### Objex
+Cloud storage explorer with geospatial visualization. Browse and manage S3, GCS, R2, and other cloud storage buckets with built-in support for geospatial file formats. Desktop app built with Tauri.
+URL: https://walkthru.earth/software/objex
+GitHub: https://github.com/walkthru-earth/objex
 
-## Data
+### Imagery Desktop
+Desktop application for managing aerial and satellite imagery collections.
+URL: https://walkthru.earth/software/imagery-desktop
+GitHub: https://github.com/walkthru-earth/imagery-desktop
 
-All datasets are published as open data on Source Cooperative:
-https://source.coop/walkthru-earth
+## Four Planetary Indices
 
-Formats: GeoParquet, Cloud-Optimized GeoTIFF (COG), PMTiles, FlatGeobuf
+All indices share the same H3 cell ID for easy SQL joins. Stored in open table formats, sorted by h3_index for optimized range queries.
 
-## Links
+1. **Terrain** — GEDTM 30m GeoTIFF source. Elevation, slope, aspect, ruggedness. 287 GB, H3 res 1-10.
+2. **Buildings** — 2.75 billion polygons (Global Building Atlas). Density, height, footprint, volume. 2.6 GB, H3 res 3-8.
+3. **Population** — WorldPop SSP2 projections. 2025-2100 growth, 16 timesteps. 4.5 GB, H3 res 1-8.
+4. **Weather** — NOAA AI-NWP (GraphCast). Temperature, wind, pressure, precipitation. 3.6 GB/forecast, H3 res 5.
+
+## Data Formats
+
+- GeoParquet (with native Parquet 2.11+ GEOMETRY)
+- Cloud-Optimized GeoTIFF (COG)
+- PMTiles
+- FlatGeobuf
+- Snappy-compressed Parquet with Hive partitioning
+- H3 hexagonal grid indexing
+
+## Open Data on Source Cooperative
+
+All datasets are published as open data:
+
+- Source Cooperative organization: https://source.coop/walkthru-earth
+- DEM-Terrain — Global terrain data (elevation, slope, aspect) on H3 hexagonal grids as Parquet: https://source.coop/walkthru-earth/dem-terrain
+- Walkthru-Indices — Comprehensive livability metrics for sustainable communities: https://source.coop/walkthru-earth/indices
+- OpenSensor.Space — Real-time environmental sensor data in Parquet format: https://source.coop/walkthru-earth/opensensor-space
+
+## GitHub Repositories
+
+Organization: https://github.com/walkthru-earth
+
+### Core Data Pipelines
+- **walkthru-weather-index** — Event-driven weather downscaling pipeline: NOAA AI-NWP to H3 hexagonal grid to partitioned Parquet on S3: https://github.com/walkthru-earth/walkthru-weather-index
+- **walkthru-pop-index** — Global population projections (WorldPop SSP 1km) to H3-indexed GeoParquet: https://github.com/walkthru-earth/walkthru-pop-index
+- **walkthru-building-index** — Global Building Atlas LOD1 (2.75B buildings) to H3-indexed GeoParquet + Pyramid GeoParquet with native Parquet 2.11+ GEOMETRY: https://github.com/walkthru-earth/walkthru-building-index
+- **dem-terrain** — Global DEM to H3-indexed native Parquet 2.11+ terrain derivatives: https://github.com/walkthru-earth/dem-terrain
+- **h3-migration** — Migrate walkthru-earth S3 Parquet files to optimized H3 int64 schema (v2): https://github.com/walkthru-earth/h3-migration
+- **walkthru-data** — walkthru-data registry and taps: https://github.com/walkthru-earth/walkthru-data
+- **walkthru-datastore** — High-performance ESRI-compatible geospatial REST API server with zero-copy vector tile generation using DuckDB + orb architecture: https://github.com/walkthru-earth/walkthru-datastore
+
+### OpenSensor
+- **opensensor-space** — Decentralized, serverless dashboard for OpenSensor Network. Real-time environmental data from independent stations syncing to public cloud storage (AWS, GCS, R2): https://github.com/walkthru-earth/opensensor-space
+- **opensensor-enviroplus** — Lightweight, edge-first pipeline for collecting Enviro+ sensor data on Raspberry Pi and syncing to cloud object storage. Data stored as Parquet with Hive partitioning: https://github.com/walkthru-earth/opensensor-enviroplus
+- **opensensor-space-edge** — Edge computing for OpenSensor: https://github.com/walkthru-earth/opensensor-space-edge
+- **esp32s3-parquet-test** — Proof-of-concept: Snappy-compressed Parquet files on ESP32-S3, uploaded to AWS S3: https://github.com/walkthru-earth/esp32s3-parquet-test
+- **esp32s3-webhook** — ESP32-S3 Discord webhook demo with Rust and HTTPS: https://github.com/walkthru-earth/esp32s3-webhook
+
+### Software & Tools
+- **objex** — Cloud storage explorer with geospatial visualization: https://github.com/walkthru-earth/objex
+- **imagery-desktop** — Aerial/satellite image management desktop app: https://github.com/walkthru-earth/imagery-desktop
+- **react-native-duckdb** — DuckDB bindings for React Native: https://github.com/walkthru-earth/react-native-duckdb
+
+### Geospatial & Infrastructure
+- **mapserver-parquet** — MapServer with Parquet support via GDAL Arrow/Parquet driver or DuckDB: https://github.com/walkthru-earth/mapserver-parquet
+- **stac-cms-template** — Git-based CMS for authoring STAC metadata with visual map editing, automatic validation, no server required: https://github.com/walkthru-earth/stac-cms-template
+- **qgis-server** — QGIS Server Docker image, production ready with Apache/Lighttpd/spawn-fcgi: https://github.com/walkthru-earth/qgis-server
+- **walkthru-earth.github.io** — Website source code (Next.js): https://github.com/walkthru-earth/walkthru-earth.github.io
+- **walkthru-cn-auth-worker** — Cloudflare auth worker: https://github.com/walkthru-earth/walkthru-cn-auth-worker
+- **iso-trans** — ISO translation utilities: https://github.com/walkthru-earth/iso-trans
+
+### Other
+- **talks** — Presentations and slides: https://github.com/walkthru-earth/talks
+
+## Social Media & Contact
 
 - Website: https://walkthru.earth
 - GitHub: https://github.com/walkthru-earth
 - LinkedIn: https://www.linkedin.com/company/walkthru-earth/
-- Bluesky: https://bsky.app/profile/walkthru-earth.bsky.social
+- YouTube: https://www.youtube.com/@walkthru-earth/
+- Instagram: https://www.instagram.com/walkthru.earth
+- Facebook: https://www.facebook.com/walkthru.earth
+- X (Twitter): https://x.com/walkthru_earth
+- Bluesky: https://bsky.app/profile/walkthru.earth
+- TikTok: https://www.tiktok.com/@walkthru.earth
 - Source Cooperative: https://source.coop/walkthru-earth
-
-## Contact
-
-General inquiries: https://walkthru.earth/about
+- Email: hi@walkthru.earth
+- Presentations: https://walkthru.earth/talks
