@@ -431,7 +431,7 @@ export function GlobeExplorer({
       {/* Branding */}
       <Link
         href="/links"
-        className="absolute right-4 bottom-4 z-20 flex flex-col items-center gap-1 transition-opacity hover:opacity-70 sm:right-6 sm:bottom-6"
+        className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 transition-opacity hover:opacity-70 sm:top-auto sm:right-6 sm:bottom-6 sm:left-auto sm:translate-x-0"
       >
         <Image
           src="/icon.svg"
