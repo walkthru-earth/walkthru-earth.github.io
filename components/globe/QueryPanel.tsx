@@ -44,7 +44,139 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-/* ── Standalone Parquet info panel (top-left floating) ────────────── */
+/* ── Shared Parquet sub-components ────────────────────────────────── */
+
+function ChevronIcon({
+  open,
+  className,
+}: {
+  open: boolean;
+  className?: string;
+}) {
+  return (
+    <svg
+      className={`h-3 w-3 transition-transform duration-200 ${open ? 'rotate-180' : ''} ${className ?? 'text-gray-400 dark:text-white/40'}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M19 9l-7 7-7-7"
+      />
+    </svg>
+  );
+}
+
+function ParquetStatsGrid({
+  info,
+  px = 'px-3',
+  showFileSize,
+}: {
+  info: ParquetInfo;
+  px?: string;
+  showFileSize?: boolean;
+}) {
+  const rows: [string, string][] = [];
+  if (showFileSize) rows.push(['File size', formatBytes(info.fileSize)]);
+  rows.push(['Rows', info.numRows.toLocaleString()]);
+  rows.push(['Row groups', String(info.numRowGroups)]);
+  rows.push(['Version', String(info.parquetVersion)]);
+  return (
+    <div
+      className={`grid grid-cols-2 gap-x-4 gap-y-1.5 ${px} py-2.5 font-mono text-[10px]`}
+    >
+      {rows.map(([label, value]) => (
+        <div key={label} className="contents">
+          <div className="font-medium text-gray-500 dark:text-white/50">
+            {label}
+          </div>
+          <div className="text-right font-bold text-gray-800 dark:text-white/90">
+            {value}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ParquetSchemaSection({
+  info,
+  px = 'px-3',
+}: {
+  info: ParquetInfo;
+  px?: string;
+}) {
+  const [schemaOpen, setSchemaOpen] = useState(false);
+  return (
+    <div className="border-t border-black/10 dark:border-white/10">
+      <button
+        type="button"
+        onClick={() => setSchemaOpen(!schemaOpen)}
+        className={`flex w-full items-center justify-between ${px} py-2`}
+      >
+        <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase dark:text-white/50">
+          Schema ({info.columns.length} columns)
+        </span>
+        <ChevronIcon open={schemaOpen} />
+      </button>
+      {schemaOpen && (
+        <div className={`overflow-hidden ${px} pb-2.5`}>
+          <table className="w-full table-fixed font-mono text-[10px]">
+            <thead>
+              <tr className="text-gray-500 dark:text-white/50">
+                <th className="w-[55%] pb-1.5 text-left font-semibold">
+                  Column
+                </th>
+                <th className="w-[25%] pb-1.5 text-left font-semibold">Type</th>
+                <th className="w-[20%] pb-1.5 text-right font-semibold">
+                  Codec
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {info.columns.map((col) => (
+                <tr key={col.name}>
+                  <td className="truncate py-0.5 font-semibold text-gray-800 dark:text-white/85">
+                    {col.name}
+                  </td>
+                  <td className="truncate py-0.5 text-gray-500 dark:text-white/50">
+                    {col.type ?? '?'}
+                  </td>
+                  <td className="truncate py-0.5 text-right text-gray-400 dark:text-white/40">
+                    {col.codec ?? ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ParquetCreatedBy({
+  info,
+  px = 'px-3',
+}: {
+  info: ParquetInfo;
+  px?: string;
+}) {
+  if (!info.createdBy) return null;
+  return (
+    <div
+      className={`truncate border-t border-black/10 ${px} py-2 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/40`}
+    >
+      {info.createdBy}
+    </div>
+  );
+}
+
+/* ── Standalone Parquet info panel (desktop, top-left floating) ───── */
 
 export function ParquetInfoPanel({
   info,
@@ -54,27 +186,25 @@ export function ParquetInfoPanel({
   isLoading: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [schemaOpen, setSchemaOpen] = useState(false);
 
   return (
-    <div className="absolute top-4 left-4 z-20 sm:top-6 sm:left-6">
-      {/* "i" toggle button */}
+    <div className="absolute top-18 left-4 z-20 hidden sm:top-6 sm:left-6 sm:block">
       <button
         type="button"
         onClick={() => setOpen(!open)}
         aria-label="Parquet file info"
         aria-expanded={open}
-        className={`flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg backdrop-blur-md transition-all sm:h-14 sm:w-14 ${
+        className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10 ${
           open
             ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-600 dark:border-emerald-400/50 dark:bg-emerald-400/15 dark:text-emerald-400'
-            : 'border-black/15 bg-white/95 text-gray-600 hover:border-black/25 hover:bg-white dark:border-white/15 dark:bg-black/85 dark:text-white/60 dark:hover:border-white/25 dark:hover:bg-black/90'
+            : 'border-black/10 bg-white/95 text-gray-600 hover:bg-black/5 dark:border-white/10 dark:bg-black/85 dark:text-white/60 dark:hover:bg-white/10'
         }`}
       >
         {isLoading ? (
-          <span className="h-3 w-3 animate-pulse rounded-full bg-amber-500" />
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-amber-500" />
         ) : (
           <svg
-            className="h-6 w-6 sm:h-7 sm:w-7"
+            className="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -89,10 +219,8 @@ export function ParquetInfoPanel({
         )}
       </button>
 
-      {/* Expanded panel */}
       {open && info && (
         <div className="mt-2 w-72 rounded-xl border border-black/10 bg-white/95 shadow-xl backdrop-blur-md sm:w-80 dark:border-white/10 dark:bg-black/85">
-          {/* Header */}
           <div className="flex items-center gap-2 border-b border-black/10 px-4 py-2.5 dark:border-white/10">
             <svg
               className="h-4 w-4 text-emerald-500 dark:text-emerald-400"
@@ -111,101 +239,9 @@ export function ParquetInfoPanel({
               Parquet Metadata
             </span>
           </div>
-
-          {/* Summary stats */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 px-4 py-3 font-mono text-xs">
-            <div className="font-medium text-gray-500 dark:text-white/50">
-              File size
-            </div>
-            <div className="text-right font-bold text-gray-800 dark:text-white/90">
-              {formatBytes(info.fileSize)}
-            </div>
-            <div className="font-medium text-gray-500 dark:text-white/50">
-              Rows
-            </div>
-            <div className="text-right font-bold text-gray-800 dark:text-white/90">
-              {info.numRows.toLocaleString()}
-            </div>
-            <div className="font-medium text-gray-500 dark:text-white/50">
-              Row groups
-            </div>
-            <div className="text-right font-bold text-gray-800 dark:text-white/90">
-              {info.numRowGroups}
-            </div>
-            <div className="font-medium text-gray-500 dark:text-white/50">
-              Version
-            </div>
-            <div className="text-right font-bold text-gray-800 dark:text-white/90">
-              {info.parquetVersion}
-            </div>
-          </div>
-
-          {/* Schema (collapsible) */}
-          <div className="border-t border-black/10 dark:border-white/10">
-            <button
-              type="button"
-              onClick={() => setSchemaOpen(!schemaOpen)}
-              className="flex w-full items-center justify-between px-4 py-2.5"
-            >
-              <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase dark:text-white/50">
-                Schema ({info.columns.length} columns)
-              </span>
-              <svg
-                className={`h-3 w-3 text-gray-400 transition-transform duration-200 dark:text-white/40 ${schemaOpen ? 'rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-            {schemaOpen && (
-              <div className="overflow-hidden px-4 pb-3">
-                <table className="w-full table-fixed font-mono text-[10px]">
-                  <thead>
-                    <tr className="text-gray-500 dark:text-white/50">
-                      <th className="w-[55%] pb-1.5 text-left font-semibold">
-                        Column
-                      </th>
-                      <th className="w-[25%] pb-1.5 text-left font-semibold">
-                        Type
-                      </th>
-                      <th className="w-[20%] pb-1.5 text-right font-semibold">
-                        Codec
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {info.columns.map((col) => (
-                      <tr key={col.name}>
-                        <td className="truncate py-0.5 font-semibold text-gray-800 dark:text-white/85">
-                          {col.name}
-                        </td>
-                        <td className="truncate py-0.5 text-gray-500 dark:text-white/50">
-                          {col.type ?? '?'}
-                        </td>
-                        <td className="truncate py-0.5 text-right text-gray-400 dark:text-white/40">
-                          {col.codec ?? ''}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Created by */}
-          {info.createdBy && (
-            <div className="truncate border-t border-black/10 px-4 py-2.5 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/40">
-              {info.createdBy}
-            </div>
-          )}
+          <ParquetStatsGrid info={info} px="px-4" showFileSize />
+          <ParquetSchemaSection info={info} px="px-4" />
+          <ParquetCreatedBy info={info} px="px-4" />
         </div>
       )}
     </div>
@@ -258,20 +294,7 @@ function SQLToggleButton({
           {duration.toFixed(0)}ms
         </span>
       )}
-      <svg
-        className={`h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M5 15l7-7 7 7"
-        />
-      </svg>
+      <ChevronIcon open={expanded} className="" />
     </button>
   );
 }
@@ -342,6 +365,51 @@ export function QueryPanelInline({
         <div className="border-t border-black/10 dark:border-white/10">
           <SQLCodeBlock query={query} />
           <SQLStatsBar error={error} rowCount={rowCount} duration={duration} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Inline Parquet info (used inside mobile drawer) ──────────────── */
+
+export function ParquetInfoInline({
+  info,
+  isLoading,
+}: {
+  info: ParquetInfo | null;
+  isLoading: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="rounded-lg border border-black/10 dark:border-white/10">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        className="flex w-full items-center gap-2 px-3 py-2 font-mono text-xs text-gray-800 dark:text-white/80"
+      >
+        <span
+          className={`inline-block h-2 w-2 rounded-full transition-colors ${
+            isLoading
+              ? 'animate-pulse bg-amber-500'
+              : 'bg-sky-500 dark:bg-sky-400'
+          }`}
+        />
+        Parquet
+        {info && (
+          <span className="text-gray-400 dark:text-white/50">
+            {formatBytes(info.fileSize)}
+          </span>
+        )}
+        <ChevronIcon open={expanded} className="" />
+      </button>
+
+      {expanded && info && (
+        <div className="border-t border-black/10 dark:border-white/10">
+          <ParquetStatsGrid info={info} />
+          <ParquetSchemaSection info={info} />
+          <ParquetCreatedBy info={info} />
         </div>
       )}
     </div>

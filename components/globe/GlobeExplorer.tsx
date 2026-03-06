@@ -3,9 +3,24 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { GlobeMap } from './GlobeMap';
 import { ScrollSection } from './ScrollSection';
-import { QueryPanel, QueryPanelInline, ParquetInfoPanel } from './QueryPanel';
+import {
+  QueryPanel,
+  QueryPanelInline,
+  ParquetInfoPanel,
+  ParquetInfoInline,
+} from './QueryPanel';
 import { TimeSlider, MobileTimeControls } from './TimeSlider';
 import { useGlobeScroll } from './hooks/useGlobeScroll';
 import {
@@ -59,6 +74,7 @@ export function GlobeExplorer({
   const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
     {}
   );
+  const [pendingH3Res, setPendingH3Res] = useState<number | null>(null);
   const currentSection = sections[activeSection];
   const h3Res = h3ResOverrides[activeSection] ?? currentSection.defaultH3Res;
 
@@ -261,14 +277,19 @@ export function GlobeExplorer({
   const handleH3ResChange = useCallback(
     (delta: number) => {
       const [min, max] = currentSection.h3ResRange;
-      setH3ResOverrides((prev) => {
-        const cur = prev[activeSection] ?? currentSection.defaultH3Res;
-        const next = Math.max(min, Math.min(max, cur + delta));
-        if (next === cur) return prev;
-        return { ...prev, [activeSection]: next };
-      });
+      const cur = h3ResOverrides[activeSection] ?? currentSection.defaultH3Res;
+      const next = Math.max(min, Math.min(max, cur + delta));
+      if (next === cur) return;
+
+      // Warn when increasing to res 4+
+      if (next >= 4 && delta > 0) {
+        setPendingH3Res(next);
+        return;
+      }
+
+      setH3ResOverrides((prev) => ({ ...prev, [activeSection]: next }));
     },
-    [activeSection, currentSection]
+    [activeSection, currentSection, h3ResOverrides]
   );
 
   const handleZoomChange = useCallback((z: number) => {
@@ -316,13 +337,6 @@ export function GlobeExplorer({
         rowCount={rowCount}
         queryPanel={
           <>
-            {timestamps.length > 1 && (
-              <MobileTimeControls
-                timestamps={timestamps}
-                selectedIndex={timeStepIndex}
-                onChange={setTimeStepIndex}
-              />
-            )}
             <QueryPanelInline
               query={resolvedQuery}
               duration={queryDuration}
@@ -330,6 +344,7 @@ export function GlobeExplorer({
               isLoading={isLoading}
               error={error}
             />
+            <ParquetInfoInline info={parquetInfo} isLoading={isLoading} />
           </>
         }
         timeControls={
@@ -343,69 +358,65 @@ export function GlobeExplorer({
         }
       />
 
-      {/* Zoom & H3 resolution control */}
-      <div className="absolute top-4 right-4 z-20 flex flex-col items-center gap-2 sm:top-6 sm:right-6">
-        {/* Zoom circle */}
-        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white/95 shadow-lg backdrop-blur-md sm:h-14 sm:w-14 dark:border-white/10 dark:bg-black/85">
+      {/* Zoom & H3 resolution control — merged pill */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-0 rounded-full border border-black/10 bg-white/95 shadow-lg backdrop-blur-md sm:top-6 sm:right-6 dark:border-white/10 dark:bg-black/85">
+        <button
+          type="button"
+          onClick={() => handleH3ResChange(-1)}
+          disabled={h3Res <= currentSection.h3ResRange[0]}
+          className="flex h-9 w-9 items-center justify-center rounded-l-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 sm:h-10 sm:w-10 dark:text-white/60 dark:hover:bg-white/10"
+          aria-label="Decrease H3 resolution"
+        >
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5" />
+          </svg>
+        </button>
+        <div className="flex items-center gap-1.5 px-1">
           <div className="text-center">
-            <div className="font-mono text-xs font-bold text-gray-900 tabular-nums dark:text-white">
+            <div className="font-mono text-sm font-extrabold text-gray-900 tabular-nums dark:text-white">
               {zoom.toFixed(1)}
             </div>
-            <div className="text-[8px] font-medium text-gray-400 uppercase dark:text-white/40">
+            <div className="text-[8px] font-semibold text-gray-400 uppercase dark:text-white/40">
               zoom
             </div>
           </div>
-        </div>
-
-        {/* H3 resolution stepper */}
-        <div className="flex items-center gap-0 rounded-full border border-black/10 bg-white/95 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-black/85">
-          <button
-            type="button"
-            onClick={() => handleH3ResChange(-1)}
-            disabled={h3Res <= currentSection.h3ResRange[0]}
-            className="flex h-8 w-8 items-center justify-center rounded-l-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 dark:text-white/60 dark:hover:bg-white/10"
-            aria-label="Decrease H3 resolution"
-          >
-            <svg
-              className="h-3 w-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5" />
-            </svg>
-          </button>
-          <div className="flex min-w-[2.5rem] flex-col items-center px-1">
-            <span className="font-mono text-xs font-bold text-gray-900 tabular-nums dark:text-white">
+          <div className="h-6 w-px bg-gray-300 dark:bg-white/20" />
+          <div className="text-center">
+            <div className="font-mono text-sm font-extrabold text-gray-900 tabular-nums dark:text-white">
               {h3Res}
-            </span>
-            <span className="text-[7px] font-medium text-gray-400 uppercase dark:text-white/40">
+            </div>
+            <div className="text-[8px] font-semibold text-gray-400 uppercase dark:text-white/40">
               h3 res
-            </span>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => handleH3ResChange(1)}
-            disabled={h3Res >= currentSection.h3ResRange[1]}
-            className="flex h-8 w-8 items-center justify-center rounded-r-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 dark:text-white/60 dark:hover:bg-white/10"
-            aria-label="Increase H3 resolution"
-          >
-            <svg
-              className="h-3 w-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 5v14M5 12h14"
-              />
-            </svg>
-          </button>
         </div>
+        <button
+          type="button"
+          onClick={() => handleH3ResChange(1)}
+          disabled={h3Res >= currentSection.h3ResRange[1]}
+          className="flex h-9 w-9 items-center justify-center rounded-r-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 sm:h-10 sm:w-10 dark:text-white/60 dark:hover:bg-white/10"
+          aria-label="Increase H3 resolution"
+        >
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 5v14M5 12h14"
+            />
+          </svg>
+        </button>
       </div>
 
       {/* Parquet info panel (top-left) */}
@@ -428,10 +439,10 @@ export function GlobeExplorer({
         error={error}
       />
 
-      {/* Branding — top-center on mobile, bottom-right on desktop */}
+      {/* Branding — top-left on mobile, bottom-right on desktop */}
       <Link
         href="/links"
-        className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-0.5 transition-opacity hover:opacity-70 sm:top-auto sm:right-6 sm:bottom-6 sm:left-auto sm:translate-x-0 sm:gap-1"
+        className="absolute top-4 left-4 z-20 flex flex-col items-center gap-0.5 transition-opacity hover:opacity-70 sm:top-auto sm:right-6 sm:bottom-6 sm:left-auto sm:gap-1"
       >
         <Image
           src="/icon.svg"
@@ -444,6 +455,43 @@ export function GlobeExplorer({
           walkthru.earth
         </span>
       </Link>
+
+      {/* H3 high-res warning */}
+      <AlertDialog
+        open={pendingH3Res !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingH3Res(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Increase to H3 resolution {pendingH3Res}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Higher resolutions load significantly more data and may slow down
+              or crash your browser depending on your device&apos;s GPU and
+              available memory.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingH3Res !== null) {
+                  setH3ResOverrides((prev) => ({
+                    ...prev,
+                    [activeSection]: pendingH3Res,
+                  }));
+                }
+                setPendingH3Res(null);
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
