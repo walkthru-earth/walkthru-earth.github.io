@@ -1,15 +1,25 @@
 import {
-  Eye,
-  Brain,
-  Users,
-  Home,
-  Smile,
+  Heart,
   Globe,
   Lock,
   Shield,
   BarChart3,
-  MessageCircle,
+  Cpu,
+  Hexagon,
+  Activity,
+  Smartphone,
+  Database,
+  Home,
+  MapPin,
+  GraduationCap,
+  Landmark,
+  BadgeDollarSign,
+  Users,
+  CheckCircle2,
+  type LucideIcon,
 } from 'lucide-react';
+
+/* ── Phone screenshots ───────────────────────────────────────────── */
 
 export const screenshots = [
   {
@@ -35,158 +45,142 @@ export const screenshots = [
   },
 ];
 
-export const visionCards = [
-  {
-    icon: Eye,
-    title: 'Detect Patterns',
-    description:
-      "Identify patterns not yet detected in cities and people's lives through analytics, data, AI, and science.",
-    color: 'text-secondary',
-  },
-  {
-    icon: Brain,
-    title: 'Understand Behavior',
-    description:
-      'Once patterns are clear, we understand behavior and create tailored solutions for happier lives without relying on capitalism.',
-    color: 'text-secondary',
-  },
-  {
-    icon: Users,
-    title: 'Build Communities',
-    description:
-      'Create resilient, sustainable, and happier communities in urban ecosystems that communicate and complement each other.',
-    color: 'text-secondary',
-  },
-];
+/* ── Three pillars ───────────────────────────────────────────────── */
 
-export const surveyCategories = [
-  {
-    icon: Home,
-    name: 'Housing & Livability',
-    desc: 'Access to essentials, infrastructure quality',
-  },
-  {
-    icon: Smile,
-    name: 'Well-being & Mood',
-    desc: 'Emotional health, stress levels, happiness',
-  },
-  {
-    icon: Users,
-    name: 'Community Connection',
-    desc: 'Social bonds, safety perception, belonging',
-  },
-  {
-    icon: Globe,
-    name: 'Environmental Factors',
-    desc: 'Air quality, noise, green spaces, light',
-  },
-];
+export interface Pillar {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  status: string;
+}
 
-export const privacyFeatures = [
+export const pillars: Pillar[] = [
   {
-    icon: Lock,
-    title: '100% Anonymous',
+    icon: Activity,
+    title: 'OpenSensor.Space',
     description:
-      'No personally identifiable information collected. All responses are completely anonymous and cannot be traced back to individuals.',
-  },
-  {
-    icon: Shield,
-    title: 'Open & Transparent',
-    description:
-      'All methods, analytics, and aggregated data are open and transparent. We use synthetic data for prototypes and invite partners to contribute real data.',
+      'DIY stations measuring air, noise, temperature, and light in real time.',
+    status: 'Live',
   },
   {
     icon: BarChart3,
-    title: 'Aggregated Insights',
+    title: 'Livability Index',
     description:
-      'Individual responses are aggregated to detect patterns and trends. Insights are shared publicly to benefit communities, researchers, and policymakers.',
+      '50+ factors — food, water, schools, green space — scored per neighborhood.',
+    status: 'In development',
   },
   {
-    icon: MessageCircle,
-    title: 'Community-Driven',
+    icon: Heart,
+    title: 'Hormones & Cities',
     description:
-      'Survey questions and categories evolve based on community needs. Your feedback shapes how we understand and improve urban life.',
+      'Short anonymous surveys + AI reflection on how your city affects your mood.',
+    status: 'App ready',
   },
 ];
 
-export const livabilityMetrics = {
-  coreEssentials: ['Water Quality', 'Power Reliability', 'Weather & Air Quality', 'Food Access'],
-  accessProximity: [
-    'Schools',
-    'Hospitals',
-    'Public Transport',
-    'Distance from Sewage',
-    'Distance from Power Stations',
-    'Distance from Waste Points',
-    'Accessibility (POD)',
-  ],
-  environmental: [
-    'Sun Exposure',
-    'Green Areas',
-    'Light Pollution',
-    'Tap Water Safety',
-    'Building Density',
-  ],
-};
+/* ── Data sources ────────────────────────────────────────────────── */
 
-export const wellbeingMetrics = [
-  'Stress Levels',
-  'Safety Perception',
-  'Social Connection',
-  'Work-Life Balance',
-  'Happiness Index',
-  'Community Support',
-  'Mental Health Access',
-  'Recreational Facilities',
-];
+export interface DataSource {
+  icon: LucideIcon;
+  title: string;
+  items: string[];
+}
 
-export const resilienceMetrics = [
-  'Climate Adaptability',
-  'Economic Stability',
-  'Infrastructure Robustness',
-  'Resource Efficiency',
-  'Emergency Preparedness',
-  'Community Cohesion',
-  'Disaster Recovery',
-];
-
-export const philosophyPoints = [
+export const dataSources: DataSource[] = [
   {
-    title: 'Cost of Living Transparency',
-    description:
-      'Understanding happiness with facilities relative to monthly costs in different areas',
+    icon: Cpu,
+    title: 'IoT sensors',
+    items: ['PM2.5 & PM10', 'Temperature & humidity', 'Noise & light levels'],
   },
   {
-    title: 'Removing Purchase Guilt',
-    description: 'Help people feel content without the pressure to spend money to be happy in cities',
+    icon: Smartphone,
+    title: 'Mobile app',
+    items: [
+      'Mood & stress surveys',
+      'AI-guided reflection',
+      'H3-aggregated location',
+    ],
   },
   {
-    title: 'Education & Contentment',
-    description:
-      'Educating people to be happy with what they already have, focusing on sustainable practices',
-  },
-  {
-    title: 'Data-Driven Change',
-    description:
-      'Using open sensor data to build urban ecosystems that are resilient, sustainable, and genuinely happier',
+    icon: Database,
+    title: 'Open data',
+    items: [
+      'LandScan population',
+      'Overture Maps 64M+ POIs',
+      'OSM infrastructure',
+    ],
   },
 ];
 
-export const expectations = [
+/* ── Privacy ─────────────────────────────────────────────────────── */
+
+export interface PrivacyPoint {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}
+
+export const privacyPoints: PrivacyPoint[] = [
   {
-    title: 'Mobile-First Design',
-    description: 'Beautiful, intuitive interface inspired by modern design principles',
+    icon: Cpu,
+    title: 'Processed on-device',
+    description: 'Raw data never leaves your phone.',
   },
   {
-    title: 'Quick Surveys',
-    description: 'Short, focused questions that respect your time',
+    icon: Lock,
+    title: 'No account needed',
+    description: 'No email, no sign-up. Untraceable.',
   },
   {
-    title: 'Personal Insights',
-    description: 'See how your experiences compare to city-wide trends',
+    icon: Hexagon,
+    title: '~500 m hex cells',
+    description: 'We measure neighborhoods, not people.',
   },
   {
-    title: 'Public Impact',
-    description: 'Contribute to open data that helps improve urban life for everyone',
+    icon: Shield,
+    title: 'Zero tracking',
+    description: 'No cookies, no fingerprinting.',
   },
 ];
+
+/* ── Who benefits ────────────────────────────────────────────────── */
+
+export interface Beneficiary {
+  icon: LucideIcon;
+  title: string;
+  benefit: string;
+}
+
+export const beneficiaries: Beneficiary[] = [
+  { icon: Home, title: 'Families', benefit: 'Find healthy neighborhoods' },
+  { icon: MapPin, title: 'Planners', benefit: 'Justify parks & transit' },
+  { icon: BadgeDollarSign, title: 'Investors', benefit: 'ESG & impact data' },
+  { icon: GraduationCap, title: 'Researchers', benefit: 'Open datasets' },
+  { icon: Landmark, title: 'Policymakers', benefit: 'Health regulations' },
+  { icon: Users, title: 'Communities', benefit: 'Advocate with data' },
+];
+
+/* ── All index metrics (flat list for badges) ────────────────────── */
+
+export const allMetrics = [
+  'Water quality',
+  'Power reliability',
+  'Air quality',
+  'Food access',
+  'Schools',
+  'Hospitals',
+  'Public transport',
+  'Green areas',
+  'Sun exposure',
+  'Building density',
+  'Light pollution',
+  'Stress levels',
+  'Safety perception',
+  'Social connection',
+  'Happiness index',
+  'Climate adaptability',
+  'Emergency preparedness',
+  'Community cohesion',
+];
+
+export { CheckCircle2 };

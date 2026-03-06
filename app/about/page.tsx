@@ -72,6 +72,9 @@ export default function AboutPage() {
           <div className="from-primary/3 via-background absolute inset-0 bg-gradient-to-b" />
           <Container className="relative z-10">
             <motion.div {...fade} className="mx-auto max-w-3xl">
+              <div className="bg-primary/10 text-primary mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium">
+                People-First Urban Intelligence
+              </div>
               <h1 className="text-4xl font-light tracking-tight md:text-5xl lg:text-6xl">
                 About{' '}
                 <GradientText className="font-semibold">
@@ -79,6 +82,11 @@ export default function AboutPage() {
                 </GradientText>
               </h1>
               <p className="text-muted-foreground mt-6 text-lg leading-relaxed md:text-xl">
+                Building a new kind of index for cities — measuring not just
+                cost of living, but stress, safety, connection, and the ease of
+                everyday life.
+              </p>
+              <p className="text-muted-foreground mt-3 text-base leading-relaxed">
                 Cities are measured by spreadsheets — GDP, property values,
                 traffic flow. Those numbers tell us nothing about whether a
                 child is thriving, a resident is chronically stressed, or a
@@ -140,7 +148,7 @@ export default function AboutPage() {
                 <h2 className="mb-2 text-2xl font-semibold tracking-tight md:text-3xl">
                   Four planetary indices
                 </h2>
-                <p className="text-muted-foreground mb-6 text-sm">
+                <p className="text-muted-foreground mb-6 text-base">
                   Raw scientific data converted into a single H3 hexagonal grid
                   anyone can query with one SQL statement.
                 </p>
@@ -149,24 +157,24 @@ export default function AboutPage() {
                     <div key={idx.name} className="rounded-xl border p-4">
                       <div className="mb-2 flex items-center gap-2.5">
                         <idx.Icon className="text-primary h-5 w-5 flex-shrink-0" />
-                        <span className="text-sm font-semibold">
+                        <span className="text-base font-semibold">
                           {idx.name}
                         </span>
-                        <span className="text-primary ml-auto text-[11px] font-bold">
+                        <span className="text-primary ml-auto text-sm font-bold">
                           {idx.volume}
                         </span>
                       </div>
-                      <p className="text-muted-foreground text-xs leading-relaxed">
+                      <p className="text-muted-foreground text-sm leading-relaxed">
                         {idx.metrics}
                       </p>
-                      <div className="text-muted-foreground mt-1.5 flex items-center justify-between text-[10px]">
+                      <div className="text-muted-foreground mt-1.5 flex items-center justify-between text-sm">
                         <span>{idx.source}</span>
                         <span className="font-mono">{idx.res}</span>
                       </div>
                     </div>
                   ))}
                 </div>
-                <p className="text-muted-foreground mt-4 text-xs leading-relaxed">
+                <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
                   All indices share the same H3 cell ID — join terrain,
                   buildings, population, and weather in a single SQL statement.
                   Stored in open table formats, sorted by h3_index for optimized
@@ -179,7 +187,7 @@ export default function AboutPage() {
                 <h2 className="mb-2 text-2xl font-semibold tracking-tight md:text-3xl">
                   The pipeline
                 </h2>
-                <p className="text-muted-foreground mb-4 text-sm">
+                <p className="text-muted-foreground mb-4 text-base">
                   From raw scientific data to your browser — no servers in
                   between.
                 </p>
@@ -250,8 +258,8 @@ export default function AboutPage() {
                     >
                       <Hexagon className="text-primary mt-0.5 h-4 w-4 flex-shrink-0" />
                       <div>
-                        <div className="text-xs font-semibold">{title}</div>
-                        <div className="text-muted-foreground text-[11px]">
+                        <div className="text-sm font-semibold">{title}</div>
+                        <div className="text-muted-foreground text-sm">
                           {desc}
                         </div>
                       </div>
@@ -274,6 +282,18 @@ export default function AboutPage() {
                     their environment is doing to them.
                   </p>
                 </div>
+              </motion.div>
+
+              <motion.div {...fade}>
+                <h2 className="mb-4 text-2xl font-semibold tracking-tight md:text-3xl">
+                  Our mission
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  To reveal the hidden patterns shaping daily life and turn them
+                  into people-first solutions that support wellbeing in cities
+                  everywhere. Help urban communities become more resilient,
+                  sustainable, and genuinely happier.
+                </p>
               </motion.div>
 
               <motion.blockquote

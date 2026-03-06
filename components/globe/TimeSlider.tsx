@@ -28,14 +28,14 @@ function PlayPauseButton({
   onToggle: () => void;
   size?: 'sm' | 'md';
 }) {
-  const sz = size === 'sm' ? 'h-6 w-6' : 'h-7 w-7';
-  const ico = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5';
+  const sz = size === 'sm' ? 'h-7 w-7' : 'h-9 w-9';
+  const ico = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
   return (
     <button
       type="button"
       onClick={onToggle}
       aria-label={playing ? 'Pause' : 'Play'}
-      className={`flex ${sz} items-center justify-center rounded-full border border-black/10 text-gray-700 transition-colors hover:bg-black/5 active:scale-95 dark:border-white/10 dark:text-white/70 dark:hover:bg-white/10`}
+      className={`flex ${sz} bg-primary text-primary-foreground hover:bg-primary/90 items-center justify-center rounded-full shadow-sm transition-colors active:scale-95`}
     >
       {playing ? (
         <svg className={ico} fill="currentColor" viewBox="0 0 24 24">
@@ -117,19 +117,19 @@ export const TimeSlider = memo(function TimeSlider({
 
   return (
     <div className="absolute bottom-14 left-1/2 z-20 hidden -translate-x-1/2 sm:block">
-      <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-white/95 px-4 py-2.5 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-black/85">
+      <div className="border-border/50 bg-background/90 flex items-center gap-3 rounded-xl border px-4 py-2.5 shadow-lg backdrop-blur-md">
         <PlayPauseButton playing={playing} onToggle={toggle} />
 
         <div className="flex flex-col items-center gap-1">
           {/* Current timestamp */}
           <div className="flex items-center gap-2">
             {isLoading && (
-              <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+              <span className="bg-warning h-2 w-2 animate-pulse rounded-full" />
             )}
-            <span className="font-mono text-xs font-bold text-gray-900 dark:text-white">
+            <span className="text-foreground font-mono text-xs font-bold">
               {formatTimestamp(selected)} UTC
             </span>
-            <span className="text-[10px] text-gray-400 dark:text-white/40">
+            <span className="text-muted-foreground text-2xs">
               {selectedIndex + 1}/{timestamps.length}
             </span>
           </div>
@@ -142,13 +142,13 @@ export const TimeSlider = memo(function TimeSlider({
               max={timestamps.length - 1}
               value={selectedIndex}
               onChange={(e) => onChange(Number(e.target.value))}
-              className="time-slider h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-emerald-500 dark:bg-white/15"
+              className="time-slider bg-muted accent-success h-1.5 w-full cursor-pointer appearance-none rounded-full"
             />
             <div className="mt-2 flex justify-between px-1">
-              <span className="text-[9px] text-gray-400 dark:text-white/40">
+              <span className="text-muted-foreground text-2xs">
                 {formatTimestamp(timestamps[0])}
               </span>
-              <span className="text-[9px] text-gray-400 dark:text-white/40">
+              <span className="text-muted-foreground text-2xs">
                 {formatTimestamp(timestamps[timestamps.length - 1])}
               </span>
             </div>
@@ -177,13 +177,13 @@ export const MobileTimeControls = memo(function MobileTimeControls({
   const selected = timestamps[selectedIndex];
 
   return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/10">
+    <div className="border-border/50 flex items-center gap-1.5 rounded-lg border px-2 py-1.5">
       <PlayPauseButton playing={playing} onToggle={toggle} size="sm" />
       <button
         type="button"
         disabled={selectedIndex === 0}
         onClick={() => onChange(selectedIndex - 1)}
-        className="text-gray-600 disabled:opacity-20 dark:text-white/60"
+        className="text-muted-foreground disabled:opacity-20"
         aria-label="Previous timestep"
       >
         <svg
@@ -200,14 +200,14 @@ export const MobileTimeControls = memo(function MobileTimeControls({
           />
         </svg>
       </button>
-      <span className="font-mono text-[10px] font-medium text-gray-800 dark:text-white/80">
+      <span className="text-foreground text-2xs font-mono font-medium">
         {formatTimestamp(selected)}
       </span>
       <button
         type="button"
         disabled={selectedIndex === timestamps.length - 1}
         onClick={() => onChange(selectedIndex + 1)}
-        className="text-gray-600 disabled:opacity-20 dark:text-white/60"
+        className="text-muted-foreground disabled:opacity-20"
         aria-label="Next timestep"
       >
         <svg

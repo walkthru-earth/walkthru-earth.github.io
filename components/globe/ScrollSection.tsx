@@ -36,18 +36,11 @@ function SectionDots({
   total: number;
   size?: 'sm' | 'md';
 }) {
-  const active =
-    size === 'sm'
-      ? 'w-3 bg-emerald-500'
-      : 'w-7 bg-emerald-500 dark:bg-emerald-400';
+  const active = size === 'sm' ? 'w-3 bg-primary' : 'w-7 bg-primary';
   const past =
-    size === 'sm'
-      ? 'w-1 bg-black/15 dark:bg-white/20'
-      : 'w-2.5 bg-black/25 dark:bg-white/35';
+    size === 'sm' ? 'w-1 bg-foreground/15' : 'w-2.5 bg-foreground/25';
   const future =
-    size === 'sm'
-      ? 'w-1 bg-black/15 dark:bg-white/20'
-      : 'w-2.5 bg-black/10 dark:bg-white/10';
+    size === 'sm' ? 'w-1 bg-foreground/10' : 'w-2.5 bg-foreground/10';
   return (
     <div className="flex items-center gap-1">
       {Array.from({ length: total }).map((_, i) => (
@@ -82,7 +75,7 @@ function NavArrow({
       disabled={disabled}
       onClick={onClick}
       aria-label={direction === -1 ? 'Previous section' : 'Next section'}
-      className={`flex ${sz} items-center justify-center rounded-full border border-black/15 bg-black/10 text-gray-800 shadow-sm transition-all hover:bg-black/20 active:scale-95 disabled:opacity-20 dark:border-white/15 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20`}
+      className={`flex ${sz} border-border/50 bg-muted text-foreground hover:bg-accent items-center justify-center rounded-full border shadow-sm transition-all active:scale-95 disabled:opacity-20`}
     >
       <svg
         className={ico}
@@ -121,25 +114,25 @@ function SectionContent({
       </div>
 
       {section.subtitle && (
-        <p className="mb-1 font-mono text-xs font-medium tracking-wider text-emerald-600 uppercase sm:text-sm dark:text-emerald-400">
+        <p className="text-success mb-1 font-mono text-sm font-medium tracking-wider uppercase sm:text-base">
           {section.subtitle}
         </p>
       )}
 
-      <h2 className="mb-2 text-xl leading-tight font-bold text-gray-900 sm:mb-3 sm:text-3xl dark:text-white">
+      <h2 className="text-foreground mb-2 text-xl leading-tight font-bold sm:mb-3 sm:text-3xl">
         {section.title}
       </h2>
 
-      <p className="mb-3 text-sm leading-relaxed text-gray-700 sm:mb-4 sm:text-base dark:text-white/70">
+      <p className="text-muted-foreground mb-3 text-base leading-relaxed sm:mb-4 sm:text-lg">
         {description}
       </p>
 
       {section.stat.value && (
         <div className="mb-3 flex items-baseline gap-2 sm:mb-4">
-          <span className="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">
+          <span className="text-foreground text-2xl font-extrabold sm:text-3xl">
             {section.stat.value}
           </span>
-          <span className="text-xs font-medium text-gray-600 sm:text-sm dark:text-white/60">
+          <span className="text-muted-foreground text-sm font-medium sm:text-base">
             {section.stat.label}
           </span>
         </div>
@@ -159,7 +152,7 @@ function SectionContent({
             {section.colorLegend.map((l, i) => (
               <span
                 key={i}
-                className="text-xs font-medium text-gray-500 dark:text-white/50"
+                className="text-muted-foreground text-sm font-medium"
               >
                 {l.label}
               </span>
@@ -173,7 +166,7 @@ function SectionContent({
           href={section.sourceCoopUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-black/10 sm:px-3.5 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+          className="border-border/50 bg-muted hover:bg-accent flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors sm:px-3.5 sm:py-2 sm:text-base"
         >
           <Image
             src="/source-coop-logo.png"
@@ -182,16 +175,16 @@ function SectionContent({
             height={12}
             className="rounded-sm sm:h-3.5 sm:w-3.5"
           />
-          <span className="text-gray-800 dark:text-white/80">Data</span>
+          <span className="text-foreground">Data</span>
         </a>
         <a
           href={section.githubUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-black/10 sm:px-3.5 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+          className="border-border/50 bg-muted hover:bg-accent flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors sm:px-3.5 sm:py-2 sm:text-base"
         >
           <svg
-            className="h-3.5 w-3.5 text-gray-800 sm:h-4 sm:w-4 dark:text-white/80"
+            className="text-foreground h-3.5 w-3.5 sm:h-4 sm:w-4"
             viewBox="0 0 24 24"
             fill="currentColor"
             aria-hidden="true"
@@ -199,14 +192,14 @@ function SectionContent({
             <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
           </svg>
           <svg
-            className="h-3 w-3 text-amber-500 sm:h-3.5 sm:w-3.5"
+            className="text-warning h-3 w-3 sm:h-3.5 sm:w-3.5"
             viewBox="0 0 24 24"
             fill="currentColor"
             aria-hidden="true"
           >
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
-          <span className="text-gray-800 dark:text-white/80">Star</span>
+          <span className="text-foreground">Star</span>
         </a>
       </div>
 
@@ -218,7 +211,7 @@ function SectionContent({
           disabled={sectionIndex === 0}
           onClick={() => onSwipe?.(-1)}
         />
-        <span className="text-sm font-semibold text-gray-600 tabular-nums sm:text-base dark:text-white/60">
+        <span className="text-muted-foreground text-sm font-semibold tabular-nums sm:text-base">
           {sectionIndex + 1} / {totalSections}
         </span>
         <NavArrow
@@ -362,11 +355,11 @@ function MobileDrawer(props: ScrollSectionProps) {
       {!open && (
         <div
           ref={attachBarGestures}
-          className="fixed inset-x-0 bottom-0 z-30 flex flex-col border-t border-black/10 bg-white/90 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
+          className="border-border/50 bg-background/90 fixed inset-x-0 bottom-0 z-30 flex flex-col border-t shadow-lg backdrop-blur-xl"
           style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
           {props.timeControls && (
-            <div className="flex justify-center border-b border-black/5 px-3 py-1.5 dark:border-white/5">
+            <div className="border-border/30 flex justify-center border-b px-3 py-1.5">
               {props.timeControls}
             </div>
           )}
@@ -385,8 +378,8 @@ function MobileDrawer(props: ScrollSectionProps) {
             >
               {isLoading && (
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="bg-success absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
+                  <span className="bg-success relative inline-flex h-2 w-2 rounded-full" />
                 </span>
               )}
               <SectionDots
@@ -394,16 +387,16 @@ function MobileDrawer(props: ScrollSectionProps) {
                 total={totalSections}
                 size="sm"
               />
-              <span className="text-xs font-medium text-gray-900 dark:text-white/90">
+              <span className="text-foreground text-sm font-medium">
                 {section.title}
               </span>
               {isLoading && rowCount !== undefined && rowCount > 0 && (
-                <span className="animate-pulse text-[10px] text-amber-600 dark:text-amber-400">
+                <span className="text-warning animate-pulse text-sm">
                   {rowCount.toLocaleString()}
                 </span>
               )}
               <svg
-                className="h-3 w-3 text-gray-400 dark:text-white/50"
+                className="text-muted-foreground h-3 w-3"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -433,7 +426,7 @@ function MobileDrawer(props: ScrollSectionProps) {
         shouldScaleBackground={false}
         modal={false}
       >
-        <DrawerContent className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
+        <DrawerContent className="border-border/50 bg-background/90 max-h-[70vh] backdrop-blur-xl">
           <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
           <div
             ref={attachDrawerGestures}
@@ -529,11 +522,11 @@ function DesktopCard(props: ScrollSectionProps) {
       onPointerUp={onPointerUp}
     >
       <div
-        className={`relative rounded-2xl border border-black/5 bg-white/95 p-6 shadow-2xl backdrop-blur-md select-none dark:border-white/10 dark:bg-black/85 ${dragging ? 'opacity-90' : ''}`}
+        className={`border-border/50 bg-background/95 relative rounded-2xl border p-6 shadow-2xl backdrop-blur-md select-none ${dragging ? 'opacity-90' : ''}`}
       >
         {/* Drag handle icon */}
         <svg
-          className="absolute top-2.5 right-2.5 h-4 w-4 text-gray-300 dark:text-white/20"
+          className="text-muted-foreground/40 absolute top-2.5 right-2.5 h-4 w-4"
           viewBox="0 0 16 16"
           fill="currentColor"
           aria-hidden="true"
@@ -566,14 +559,12 @@ function LoadingOverlay({
     <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center">
       {/* Pulsing ring */}
       <div className="relative">
-        <div className="h-24 w-24 animate-ping rounded-full border-2 border-emerald-500/30 sm:h-32 sm:w-32" />
+        <div className="border-success/30 h-24 w-24 animate-ping rounded-full border-2 sm:h-32 sm:w-32" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-1 rounded-full bg-black/40 px-4 py-2 backdrop-blur-sm">
-            <span className="text-[10px] font-medium text-white/90">
-              Loading
-            </span>
+          <div className="bg-background/70 flex flex-col items-center gap-1 rounded-full px-4 py-2 backdrop-blur-sm">
+            <span className="text-foreground text-sm font-medium">Loading</span>
             {rowCount > 0 && (
-              <span className="text-[10px] text-emerald-400 tabular-nums">
+              <span className="text-success text-sm tabular-nums">
                 {rowCount.toLocaleString()} rows
               </span>
             )}

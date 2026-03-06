@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { GlobeMap } from './GlobeMap';
 import { ScrollSection } from './ScrollSection';
 import {
@@ -365,73 +366,99 @@ export function GlobeExplorer({
 
       {!embed && (
         <>
-          {/* Zoom & H3 resolution control — merged pill */}
-          <div className="absolute top-4 right-4 z-20 flex items-center gap-0 rounded-full border border-black/10 bg-white/95 shadow-lg backdrop-blur-md sm:top-6 sm:right-6 dark:border-white/10 dark:bg-black/85">
-            <button
-              type="button"
-              onClick={() => handleH3ResChange(-1)}
-              disabled={h3Res <= currentSection.h3ResRange[0]}
-              className="flex h-9 w-9 items-center justify-center rounded-l-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 sm:h-10 sm:w-10 dark:text-white/60 dark:hover:bg-white/10"
-              aria-label="Decrease H3 resolution"
-            >
-              <svg
-                className="h-3.5 w-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 12H5"
-                />
-              </svg>
-            </button>
-            <div className="flex items-center gap-1.5 px-1">
-              <div className="text-center">
-                <div className="font-mono text-sm font-extrabold text-gray-900 tabular-nums dark:text-white">
-                  {zoom.toFixed(1)}
-                </div>
-                <div className="text-[8px] font-semibold text-gray-400 uppercase dark:text-white/40">
-                  zoom
-                </div>
-              </div>
-              <div className="h-6 w-px bg-gray-300 dark:bg-white/20" />
-              <div className="text-center">
-                <div className="font-mono text-sm font-extrabold text-gray-900 tabular-nums dark:text-white">
-                  {h3Res}
-                </div>
-                <div className="text-[8px] font-semibold text-gray-400 uppercase dark:text-white/40">
-                  h3 res
-                </div>
-              </div>
+          {/* Theme toggle + Zoom & H3 resolution control */}
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-2 sm:top-6 sm:right-6">
+            <div className="border-border/50 bg-background/90 overflow-hidden rounded-full border shadow-lg backdrop-blur-md">
+              <ThemeToggle />
             </div>
-            <button
-              type="button"
-              onClick={() => handleH3ResChange(1)}
-              disabled={h3Res >= currentSection.h3ResRange[1]}
-              className="flex h-9 w-9 items-center justify-center rounded-r-full text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-20 sm:h-10 sm:w-10 dark:text-white/60 dark:hover:bg-white/10"
-              aria-label="Increase H3 resolution"
-            >
-              <svg
-                className="h-3.5 w-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
+            <div className="border-border/50 bg-background/90 flex items-center gap-0 rounded-full border shadow-lg backdrop-blur-md">
+              <button
+                type="button"
+                onClick={() => handleH3ResChange(-1)}
+                disabled={h3Res <= currentSection.h3ResRange[0]}
+                className="text-muted-foreground hover:bg-accent flex h-9 w-9 items-center justify-center rounded-l-full transition-colors disabled:opacity-20 sm:h-10 sm:w-10"
+                aria-label="Decrease H3 resolution"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 5v14M5 12h14"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 12H5"
+                  />
+                </svg>
+              </button>
+              <div className="flex items-center gap-1.5 px-1">
+                <div className="text-center">
+                  <div className="text-foreground font-mono text-sm font-extrabold tabular-nums">
+                    {zoom.toFixed(1)}
+                  </div>
+                  <div className="text-muted-foreground text-3xs font-semibold uppercase">
+                    zoom
+                  </div>
+                </div>
+                <div className="bg-border h-6 w-px" />
+                <div className="text-center">
+                  <div className="text-foreground font-mono text-sm font-extrabold tabular-nums">
+                    {h3Res}
+                  </div>
+                  <div className="text-muted-foreground text-3xs font-semibold uppercase">
+                    h3 res
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleH3ResChange(1)}
+                disabled={h3Res >= currentSection.h3ResRange[1]}
+                className="text-muted-foreground hover:bg-accent flex h-9 w-9 items-center justify-center rounded-r-full transition-colors disabled:opacity-20 sm:h-10 sm:w-10"
+                aria-label="Increase H3 resolution"
+              >
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 5v14M5 12h14"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          {/* Parquet info panel (top-left) */}
-          <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />
+          {/* Back button + Parquet info (top-left) */}
+          <div className="absolute top-18 left-4 z-20 hidden items-center gap-2 sm:top-6 sm:left-6 sm:flex">
+            <Link
+              href="/"
+              className="border-border/50 bg-background/90 text-foreground hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-colors"
+              aria-label="Back to home"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </Link>
+            <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />
+          </div>
 
           {/* Desktop time slider */}
           <TimeSlider
@@ -462,7 +489,7 @@ export function GlobeExplorer({
               height={28}
               className="sm:h-9 sm:w-9 dark:invert"
             />
-            <span className="text-[8px] font-semibold tracking-tight text-gray-700 sm:text-[10px] dark:text-white/70">
+            <span className="text-muted-foreground text-3xs sm:text-2xs font-semibold tracking-tight">
               walkthru.earth
             </span>
           </Link>

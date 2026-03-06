@@ -55,7 +55,7 @@ function ChevronIcon({
 }) {
   return (
     <svg
-      className={`h-3 w-3 transition-transform duration-200 ${open ? 'rotate-180' : ''} ${className ?? 'text-gray-400 dark:text-white/40'}`}
+      className={`h-3 w-3 transition-transform duration-200 ${open ? 'rotate-180' : ''} ${className ?? 'text-muted-foreground/70'}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -87,16 +87,12 @@ function ParquetStatsGrid({
   rows.push(['Version', String(info.parquetVersion)]);
   return (
     <div
-      className={`grid grid-cols-2 gap-x-4 gap-y-1.5 ${px} py-2.5 font-mono text-[10px]`}
+      className={`grid grid-cols-2 gap-x-4 gap-y-1.5 ${px} text-2xs py-2.5 font-mono`}
     >
       {rows.map(([label, value]) => (
         <div key={label} className="contents">
-          <div className="font-medium text-gray-500 dark:text-white/50">
-            {label}
-          </div>
-          <div className="text-right font-bold text-gray-800 dark:text-white/90">
-            {value}
-          </div>
+          <div className="text-muted-foreground font-medium">{label}</div>
+          <div className="text-foreground text-right font-bold">{value}</div>
         </div>
       ))}
     </div>
@@ -112,22 +108,22 @@ function ParquetSchemaSection({
 }) {
   const [schemaOpen, setSchemaOpen] = useState(false);
   return (
-    <div className="border-t border-black/10 dark:border-white/10">
+    <div className="border-border/50 border-t">
       <button
         type="button"
         onClick={() => setSchemaOpen(!schemaOpen)}
         className={`flex w-full items-center justify-between ${px} py-2`}
       >
-        <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase dark:text-white/50">
+        <span className="text-muted-foreground text-2xs font-bold tracking-wider uppercase">
           Schema ({info.columns.length} columns)
         </span>
         <ChevronIcon open={schemaOpen} />
       </button>
       {schemaOpen && (
         <div className={`overflow-hidden ${px} pb-2.5`}>
-          <table className="w-full table-fixed font-mono text-[10px]">
+          <table className="text-2xs w-full table-fixed font-mono">
             <thead>
-              <tr className="text-gray-500 dark:text-white/50">
+              <tr className="text-muted-foreground">
                 <th className="w-[55%] pb-1.5 text-left font-semibold">
                   Column
                 </th>
@@ -140,13 +136,13 @@ function ParquetSchemaSection({
             <tbody>
               {info.columns.map((col) => (
                 <tr key={col.name}>
-                  <td className="truncate py-0.5 font-semibold text-gray-800 dark:text-white/85">
+                  <td className="text-foreground/85 truncate py-0.5 font-semibold">
                     {col.name}
                   </td>
-                  <td className="truncate py-0.5 text-gray-500 dark:text-white/50">
+                  <td className="text-muted-foreground truncate py-0.5">
                     {col.type ?? '?'}
                   </td>
-                  <td className="truncate py-0.5 text-right text-gray-400 dark:text-white/40">
+                  <td className="text-muted-foreground/70 truncate py-0.5 text-right">
                     {col.codec ?? ''}
                   </td>
                 </tr>
@@ -169,7 +165,7 @@ function ParquetCreatedBy({
   if (!info.createdBy) return null;
   return (
     <div
-      className={`truncate border-t border-black/10 ${px} py-2 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/40`}
+      className={`text-muted-foreground/70 border-border/50 truncate border-t ${px} text-2xs py-2 font-mono`}
     >
       {info.createdBy}
     </div>
@@ -188,7 +184,7 @@ export function ParquetInfoPanel({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="absolute top-18 left-4 z-20 hidden sm:top-6 sm:left-6 sm:block">
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -196,12 +192,12 @@ export function ParquetInfoPanel({
         aria-expanded={open}
         className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10 ${
           open
-            ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-600 dark:border-emerald-400/50 dark:bg-emerald-400/15 dark:text-emerald-400'
-            : 'border-black/10 bg-white/95 text-gray-600 hover:bg-black/5 dark:border-white/10 dark:bg-black/85 dark:text-white/60 dark:hover:bg-white/10'
+            ? 'border-success-border bg-success-muted text-success'
+            : 'border-border/50 bg-background/90 text-muted-foreground hover:bg-accent'
         }`}
       >
         {isLoading ? (
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-amber-500" />
+          <span className="bg-warning h-2.5 w-2.5 animate-pulse rounded-full" />
         ) : (
           <svg
             className="h-4 w-4"
@@ -220,10 +216,10 @@ export function ParquetInfoPanel({
       </button>
 
       {open && info && (
-        <div className="mt-2 w-72 rounded-xl border border-black/10 bg-white/95 shadow-xl backdrop-blur-md sm:w-80 dark:border-white/10 dark:bg-black/85">
-          <div className="flex items-center gap-2 border-b border-black/10 px-4 py-2.5 dark:border-white/10">
+        <div className="border-border/50 bg-background/95 mt-2 w-72 rounded-xl border shadow-xl backdrop-blur-md sm:w-80">
+          <div className="border-border/50 flex items-center gap-2 border-b px-4 py-2.5">
             <svg
-              className="h-4 w-4 text-emerald-500 dark:text-emerald-400"
+              className="text-success h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -235,7 +231,7 @@ export function ParquetInfoPanel({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <span className="font-mono text-sm font-bold text-gray-800 dark:text-white/90">
+            <span className="text-foreground font-mono text-sm font-bold">
               Parquet Metadata
             </span>
           </div>
@@ -249,10 +245,10 @@ export function ParquetInfoPanel({
 }
 
 const TOKEN_CLASSES: Record<Token['type'], string> = {
-  keyword: 'text-emerald-600 dark:text-emerald-400 font-semibold',
-  string: 'text-amber-600 dark:text-amber-300',
-  number: 'text-sky-600 dark:text-sky-300',
-  text: 'text-gray-800 dark:text-white/90',
+  keyword: 'text-success font-semibold',
+  string: 'text-warning',
+  number: 'text-info',
+  text: 'text-foreground',
 };
 
 /* ── Shared small components ─────────────────────────────────────── */
@@ -276,23 +272,19 @@ function SQLToggleButton({
     <button onClick={onToggle} aria-expanded={expanded} className={className}>
       <span
         className={`inline-block h-2 w-2 rounded-full transition-colors ${
-          isLoading
-            ? 'animate-pulse bg-amber-500'
-            : 'bg-emerald-500 dark:bg-emerald-400'
+          isLoading ? 'bg-warning animate-pulse' : 'bg-success'
         }`}
       />
       SQL
       {isLoading && (
-        <span className="animate-pulse text-amber-600 dark:text-amber-300">
+        <span className="text-warning animate-pulse">
           {rowCount > 0
             ? `${rowCount.toLocaleString()} rows...`
             : 'querying...'}
         </span>
       )}
       {!isLoading && duration !== null && (
-        <span className="text-gray-400 dark:text-white/50">
-          {duration.toFixed(0)}ms
-        </span>
+        <span className="text-muted-foreground">{duration.toFixed(0)}ms</span>
       )}
       <ChevronIcon open={expanded} className="" />
     </button>
@@ -301,7 +293,7 @@ function SQLToggleButton({
 
 function SQLCodeBlock({ query }: { query: string }) {
   return (
-    <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed text-gray-800 sm:p-4 dark:text-white/90">
+    <pre className="text-foreground overflow-x-auto p-3 font-mono text-xs leading-relaxed sm:p-4">
       <code>
         {tokenizeSQL(query).map((tok, i) => (
           <span key={i} className={TOKEN_CLASSES[tok.type]}>
@@ -324,9 +316,9 @@ function SQLStatsBar({
 }) {
   if (!error && rowCount === 0 && duration === null) return null;
   return (
-    <div className="flex items-center gap-3 border-t border-black/10 px-3 py-2 font-mono text-[10px] text-gray-400 dark:border-white/10 dark:text-white/50">
+    <div className="text-muted-foreground border-border/50 text-2xs flex items-center gap-3 border-t px-3 py-2 font-mono">
       {error ? (
-        <span className="text-red-500 dark:text-red-400">{error}</span>
+        <span className="text-error">{error}</span>
       ) : (
         <>
           {rowCount > 0 && <span>{rowCount.toLocaleString()} rows</span>}
@@ -351,18 +343,18 @@ export function QueryPanelInline({
   if (!query) return null;
 
   return (
-    <div className="rounded-lg border border-black/10 dark:border-white/10">
+    <div className="border-border/50 rounded-lg border">
       <SQLToggleButton
         expanded={expanded}
         onToggle={() => setExpanded(!expanded)}
         isLoading={isLoading}
         rowCount={rowCount}
         duration={duration}
-        className="flex w-full items-center gap-2 px-3 py-2 font-mono text-xs text-gray-800 dark:text-white/80"
+        className="text-foreground/80 flex w-full items-center gap-2 px-3 py-2 font-mono text-xs"
       />
 
       {expanded && (
-        <div className="border-t border-black/10 dark:border-white/10">
+        <div className="border-border/50 border-t">
           <SQLCodeBlock query={query} />
           <SQLStatsBar error={error} rowCount={rowCount} duration={duration} />
         </div>
@@ -383,22 +375,20 @@ export function ParquetInfoInline({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-lg border border-black/10 dark:border-white/10">
+    <div className="border-border/50 rounded-lg border">
       <button
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        className="flex w-full items-center gap-2 px-3 py-2 font-mono text-xs text-gray-800 dark:text-white/80"
+        className="text-foreground/80 flex w-full items-center gap-2 px-3 py-2 font-mono text-xs"
       >
         <span
           className={`inline-block h-2 w-2 rounded-full transition-colors ${
-            isLoading
-              ? 'animate-pulse bg-amber-500'
-              : 'bg-sky-500 dark:bg-sky-400'
+            isLoading ? 'bg-warning animate-pulse' : 'bg-info'
           }`}
         />
         Parquet
         {info && (
-          <span className="text-gray-400 dark:text-white/50">
+          <span className="text-muted-foreground">
             {formatBytes(info.fileSize)}
           </span>
         )}
@@ -406,7 +396,7 @@ export function ParquetInfoInline({
       </button>
 
       {expanded && info && (
-        <div className="border-t border-black/10 dark:border-white/10">
+        <div className="border-border/50 border-t">
           <ParquetStatsGrid info={info} />
           <ParquetSchemaSection info={info} />
           <ParquetCreatedBy info={info} />
@@ -437,12 +427,12 @@ export const QueryPanel = memo(function QueryPanel({
         isLoading={isLoading}
         rowCount={rowCount}
         duration={duration}
-        className="flex items-center gap-1.5 rounded-lg border border-black/10 bg-white/95 px-2 py-1 font-mono text-[11px] text-gray-800 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/85 dark:text-white/80 dark:hover:bg-black/90"
+        className="border-border/50 bg-background/90 text-2xs text-foreground hover:bg-accent flex items-center gap-1.5 rounded-lg border px-2 py-1 font-mono transition-colors"
       />
 
       {/* Expanded panel (opens upward) */}
       <div
-        className={`order-first mb-2 overflow-hidden rounded-lg border border-black/10 bg-white/95 transition-all duration-200 dark:border-white/10 dark:bg-black/85 ${
+        className={`border-border/50 bg-background/95 order-first mb-2 overflow-hidden rounded-lg border transition-all duration-200 ${
           expanded
             ? 'max-h-96 opacity-100'
             : 'pointer-events-none max-h-0 border-transparent opacity-0'

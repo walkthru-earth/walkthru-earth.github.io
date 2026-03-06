@@ -62,7 +62,7 @@ function BrowserFrame({
         {/* Address bar */}
         <div className="bg-background/80 flex min-w-0 flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 sm:gap-2 sm:px-3">
           <Globe className="text-muted-foreground h-3.5 w-3.5 flex-shrink-0" />
-          <span className="text-muted-foreground min-w-0 flex-1 truncate font-mono text-[11px] sm:text-xs">
+          <span className="text-muted-foreground text-2xs min-w-0 flex-1 truncate font-mono sm:text-xs">
             {url}
           </span>
           <button

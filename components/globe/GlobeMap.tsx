@@ -42,22 +42,20 @@ const SPHERE_MESH = new SphereGeometry({
   nlong: 36,
 });
 
-/* Theme palettes — colors for globe rendering */
+/* Theme palettes — colors for globe rendering (matched to site branding) */
 const THEMES = {
   dark: {
-    background: 'linear-gradient(0deg, #000, #112)',
-    sphere: [10, 15, 30] as [number, number, number],
-    land: [40, 80, 120] as [number, number, number],
-    landOpacity: 0.15,
-    borders: [60, 100, 140, 120] as [number, number, number, number],
+    sphere: [12, 20, 16] as [number, number, number],
+    land: [30, 70, 50] as [number, number, number],
+    landOpacity: 0.18,
+    borders: [50, 90, 70, 120] as [number, number, number, number],
     ambient: 0.6,
   },
   light: {
-    background: 'linear-gradient(0deg, #d4e6f1, #eaf2f8)',
-    sphere: [160, 200, 230] as [number, number, number],
-    land: [80, 140, 80] as [number, number, number],
+    sphere: [170, 210, 185] as [number, number, number],
+    land: [80, 140, 100] as [number, number, number],
     landOpacity: 0.3,
-    borders: [100, 100, 100, 160] as [number, number, number, number],
+    borders: [100, 120, 100, 160] as [number, number, number, number],
     ambient: 1.0,
   },
 };
@@ -259,7 +257,7 @@ export const GlobeMap = memo(function GlobeMap({
 
   return (
     <div
-      className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#eaf2f8_0%,_#b0cfe0_45%,_#8ab4d0_100%)] dark:bg-[radial-gradient(circle_at_center,_#1a1a2e_0%,_#0a0a18_45%,_#000_100%)]"
+      className="globe-bg absolute inset-0"
       onPointerDown={(e) => {
         tapRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
       }}

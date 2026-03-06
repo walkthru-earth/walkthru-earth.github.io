@@ -24,8 +24,8 @@
   --muted: hsl(60 5% 96%);
   --muted-foreground: hsl(0 0% 45%);
 
-  --accent: hsl(158 64% 52%);
-  --accent-foreground: hsl(0 0% 100%);
+  --accent: hsl(60 5% 93%);
+  --accent-foreground: hsl(0 0% 9%);
 
   --destructive: hsl(0 84% 60%);
   --destructive-foreground: hsl(0 0% 98%);
@@ -33,6 +33,14 @@
   --border: hsl(60 5% 90%);
   --input: hsl(60 5% 90%);
   --ring: hsl(158 64% 52%);
+
+  /* Status colors — auto-adapt to light/dark */
+  --success: hsl(152 69% 31%);
+  --success-muted: hsl(152 69% 31% / 0.15);
+  --success-border: hsl(152 69% 31% / 0.5);
+  --warning: hsl(37 91% 40%);
+  --info: hsl(204 80% 40%);
+  --error: hsl(0 84% 50%);
 
   --radius: 0.5rem;
 }
@@ -61,7 +69,7 @@
   --muted: hsl(0 0% 15%);
   --muted-foreground: hsl(60 5% 65%);
 
-  --accent: hsl(158 64% 42%);
+  --accent: hsl(0 0% 18%);
   --accent-foreground: hsl(60 10% 98%);
 
   --destructive: hsl(0 62% 50%);
@@ -70,6 +78,14 @@
   --border: hsl(0 0% 20%);
   --input: hsl(0 0% 20%);
   --ring: hsl(158 64% 42%);
+
+  /* Status colors — dark variants */
+  --success: hsl(158 64% 52%);
+  --success-muted: hsl(158 64% 52% / 0.15);
+  --success-border: hsl(158 64% 52% / 0.5);
+  --warning: hsl(37 91% 55%);
+  --info: hsl(199 89% 60%);
+  --error: hsl(0 74% 60%);
 }
 
 @theme inline {
@@ -92,11 +108,25 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Status semantic colors */
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-error: var(--error);
+
+  /* Dense UI text sizes */
+  --text-2xs: 0.625rem; /* 10px — stats, labels */
+  --text-3xs: 0.5rem; /* 8px  — captions */
 }
 
 @layer base {
   * {
     border-color: var(--border);
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   body {
@@ -135,7 +165,7 @@
   }
 
   p {
-    font-size: clamp(1.125rem, 2vw, 1.25rem);
+    font-size: clamp(1.125rem, 2vw, 1.35rem);
     line-height: 1.7;
   }
 
@@ -171,21 +201,41 @@
   opacity: 0.9;
 }
 
+/* Globe background — adapts via :root / .dark */
+.globe-bg {
+  background: radial-gradient(
+    ellipse at center,
+    hsl(60 20% 97%) 0%,
+    hsl(150 20% 88%) 35%,
+    hsl(155 25% 78%) 65%,
+    hsl(158 30% 68%) 100%
+  );
+}
+.dark .globe-bg {
+  background: radial-gradient(
+    ellipse at center,
+    hsl(160 10% 8%) 0%,
+    hsl(160 15% 6%) 35%,
+    hsl(160 20% 4%) 65%,
+    hsl(160 25% 2%) 100%
+  );
+}
+
 /* Time slider thumb */
 .time-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: white;
-  border: 2px solid #10b981;
+  background: var(--background);
+  border: 2px solid var(--success);
   cursor: pointer;
 }
 .time-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: white;
-  border: 2px solid #10b981;
+  background: var(--background);
+  border: 2px solid var(--success);
   cursor: pointer;
 }

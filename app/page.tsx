@@ -29,7 +29,7 @@ const GlobePreview = dynamic(
       <div className="bg-muted/50 flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="border-primary/30 border-t-primary h-6 w-6 animate-spin rounded-full border-2" />
-          <p className="text-muted-foreground text-xs">Loading globe...</p>
+          <p className="text-muted-foreground text-sm">Loading globe...</p>
         </div>
       </div>
     ),
@@ -91,7 +91,7 @@ export default function HomePage() {
                   </GradientText>
                 </h1>
 
-                <p className="text-muted-foreground mt-4 max-w-md text-base leading-relaxed md:text-lg">
+                <p className="text-muted-foreground mt-4 max-w-md text-lg leading-relaxed md:text-xl">
                   Every day, your city is processing you — noise, air, density,
                   heat. We make those invisible forces visible, and the data
                   free for everyone.
@@ -119,10 +119,10 @@ export default function HomePage() {
                         key={item.section}
                         type="button"
                         onClick={() => handleLayerClick(item.section)}
-                        className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200 sm:text-sm ${
+                        className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 sm:text-base ${
                           isActive
                             ? 'bg-primary text-primary-foreground shadow-primary/25 scale-105 shadow-md'
-                            : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10 hover:text-foreground border-foreground/10 hover:border-foreground/20 border'
+                            : 'bg-background/80 text-secondary-foreground border-secondary/40 hover:bg-secondary/20 backdrop-blur-sm'
                         }`}
                       >
                         {isActive && (
@@ -134,7 +134,7 @@ export default function HomePage() {
                   })}
                   <Link
                     href="/indices"
-                    className="group border-foreground/10 bg-foreground/5 text-foreground/70 hover:border-primary/30 hover:bg-primary/10 hover:text-primary flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-200 sm:text-sm"
+                    className="group border-foreground/10 bg-foreground/5 text-foreground/70 hover:border-primary/30 hover:bg-primary/10 hover:text-primary flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 sm:text-base"
                   >
                     +10 more
                     <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
@@ -256,10 +256,14 @@ export default function HomePage() {
               <h2 className="mb-2 text-center text-3xl font-light tracking-tight md:text-4xl">
                 How it works
               </h2>
-              <p className="text-muted-foreground mb-10 text-center text-base md:text-lg">
+              <p className="text-muted-foreground mb-10 text-center text-lg md:text-xl">
                 Open data in, open insights out — no servers in between
               </p>
               <DataFlowDiagram />
+
+              <blockquote className="text-foreground/70 border-primary/30 mx-auto mt-10 max-w-xl border-l-4 py-2 pl-6 text-xl leading-relaxed font-light italic md:text-2xl">
+                Using data to support lives, not the other way around.
+              </blockquote>
             </div>
           </Container>
         </section>
@@ -269,11 +273,14 @@ export default function HomePage() {
           <Container>
             <div className="mx-auto max-w-4xl text-center">
               <h2 className="mb-4 text-3xl font-light tracking-tight md:text-4xl">
-                Open data, open science
+                Let&apos;s build healthier cities together
               </h2>
-              <p className="text-muted-foreground mb-8 text-base leading-relaxed md:text-lg">
-                All our datasets are freely available on Source Cooperative.
-                Book a call to learn more or explore the data yourself.
+              <p className="text-muted-foreground mb-8 text-lg leading-relaxed md:text-xl">
+                If you believe cities should serve people — not just economies —
+                we&apos;re probably on the same page. Whether you run a city,
+                invest in impact, do urban research, or just want better data
+                for your community — don&apos;t hesitate to reach out. Pick a
+                time that works for you.
               </p>
 
               <div className="mb-10 flex flex-col justify-center gap-3 sm:flex-row">
