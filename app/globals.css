@@ -170,3 +170,22 @@
 .dark img:not([data-no-filter]) {
   opacity: 0.9;
 }
+
+/* Time slider thumb */
+.time-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #10b981;
+  cursor: pointer;
+}
+.time-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #10b981;
+  cursor: pointer;
+}

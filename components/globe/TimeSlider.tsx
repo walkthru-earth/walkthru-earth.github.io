@@ -142,9 +142,9 @@ export const TimeSlider = memo(function TimeSlider({
               max={timestamps.length - 1}
               value={selectedIndex}
               onChange={(e) => onChange(Number(e.target.value))}
-              className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-emerald-500 dark:bg-white/15"
+              className="time-slider h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-emerald-500 dark:bg-white/15"
             />
-            <div className="mt-0.5 flex justify-between">
+            <div className="mt-2 flex justify-between px-1">
               <span className="text-[9px] text-gray-400 dark:text-white/40">
                 {formatTimestamp(timestamps[0])}
               </span>
