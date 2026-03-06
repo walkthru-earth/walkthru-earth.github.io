@@ -465,8 +465,22 @@ function DesktopCard(props: ScrollSectionProps) {
       onPointerUp={onPointerUp}
     >
       <div
-        className={`rounded-2xl border border-black/5 bg-white/95 p-6 shadow-2xl backdrop-blur-md select-none dark:border-white/10 dark:bg-black/85 ${dragging ? 'opacity-90' : ''}`}
+        className={`relative rounded-2xl border border-black/5 bg-white/95 p-6 shadow-2xl backdrop-blur-md select-none dark:border-white/10 dark:bg-black/85 ${dragging ? 'opacity-90' : ''}`}
       >
+        {/* Drag handle icon */}
+        <svg
+          className="absolute top-2.5 right-2.5 h-4 w-4 text-gray-300 dark:text-white/20"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <circle cx="5" cy="3" r="1.5" />
+          <circle cx="11" cy="3" r="1.5" />
+          <circle cx="5" cy="8" r="1.5" />
+          <circle cx="11" cy="8" r="1.5" />
+          <circle cx="5" cy="13" r="1.5" />
+          <circle cx="11" cy="13" r="1.5" />
+        </svg>
         <SectionContent {...props} />
       </div>
     </div>
