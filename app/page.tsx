@@ -175,17 +175,19 @@ export default function HomePage() {
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 md:max-w-48">
-                    {[
-                      'Global coverage',
-                      'Real-time weather',
-                      'Runs in your browser',
-                      'Open data',
-                    ].map((h) => (
-                      <Badge key={h} variant="outline" className="text-sm">
-                        {h}
-                      </Badge>
-                    ))}
+                  <div className="relative hidden h-48 w-72 flex-shrink-0 overflow-hidden rounded-xl border shadow-md md:block lg:h-56 lg:w-80">
+                    <Image
+                      src="/globe-preview-light.png"
+                      alt="Globe explorer preview"
+                      fill
+                      className="object-cover object-center dark:hidden"
+                    />
+                    <Image
+                      src="/globe-preview-dark.png"
+                      alt="Globe explorer preview"
+                      fill
+                      className="hidden object-cover object-center dark:block"
+                    />
                   </div>
                 </div>
               </Card>
@@ -194,55 +196,76 @@ export default function HomePage() {
             <div className="grid gap-6 md:grid-cols-2">
               <Link href="/opensensor" className="group block">
                 <Card className="hover:border-primary/30 h-full cursor-pointer transition-all duration-300 hover:shadow-md">
-                  <CardHeader>
-                    <div className="mb-2 flex items-center gap-3">
-                      <div className="bg-primary/10 rounded-lg p-2.5">
-                        <Cloud className="text-primary h-5 w-5" />
+                  <div className="flex items-center gap-4 p-6">
+                    <div className="flex-1">
+                      <div className="mb-2 flex items-center gap-3">
+                        <div className="bg-primary/10 rounded-lg p-2.5">
+                          <Cloud className="text-primary h-5 w-5" />
+                        </div>
+                        <Badge>Active</Badge>
                       </div>
-                      <Badge>Active</Badge>
+                      <CardTitle className="mb-1 text-xl">
+                        OpenSensor.Space
+                      </CardTitle>
+                      <CardDescription className="text-base font-medium">
+                        Open weather station network
+                      </CardDescription>
+                      <p className="text-muted-foreground mt-3 mb-3 text-base leading-relaxed">
+                        DIY weather stations streaming environmental data to the
+                        cloud in real-time. Open source, open data.
+                      </p>
+                      <span className="text-primary inline-flex items-center gap-1 text-base font-medium">
+                        Learn more
+                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                      </span>
                     </div>
-                    <CardTitle className="text-xl">OpenSensor.Space</CardTitle>
-                    <CardDescription className="text-base font-medium">
-                      Open weather station network
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-3 text-base leading-relaxed">
-                      DIY weather stations streaming environmental data to the
-                      cloud in real-time. Open source, open data.
-                    </p>
-                    <span className="text-primary inline-flex items-center gap-1 text-base font-medium">
-                      Learn more
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                    </span>
-                  </CardContent>
+                    <div className="hidden flex-shrink-0 sm:block">
+                      <Image
+                        src="/opensensor-icon-512.png"
+                        alt="OpenSensor.Space"
+                        width={80}
+                        height={80}
+                        className="rounded-2xl opacity-80 transition-opacity group-hover:opacity-100"
+                      />
+                    </div>
+                  </div>
                 </Card>
               </Link>
 
               <Link href="/hormones-cities" className="group block">
                 <Card className="hover:border-secondary/30 h-full cursor-pointer transition-all duration-300 hover:shadow-md">
-                  <CardHeader>
-                    <div className="mb-2 flex items-center gap-3">
-                      <div className="bg-secondary/10 rounded-lg p-2.5">
-                        <Heart className="text-secondary h-5 w-5" />
+                  <div className="flex items-center gap-4 p-6">
+                    <div className="flex-1">
+                      <div className="mb-2 flex items-center gap-3">
+                        <div className="bg-secondary/10 rounded-lg p-2.5">
+                          <Heart className="text-secondary h-5 w-5" />
+                        </div>
+                        <Badge variant="secondary">Coming soon</Badge>
                       </div>
-                      <Badge variant="secondary">Coming soon</Badge>
+                      <CardTitle className="mb-1 text-xl">
+                        Hormones & Cities
+                      </CardTitle>
+                      <CardDescription className="text-base font-medium">
+                        Anonymous urban wellbeing survey
+                      </CardDescription>
+                      <p className="text-muted-foreground mt-3 mb-3 text-base leading-relaxed">
+                        How do cities shape how we feel? Anonymous surveys to
+                        detect patterns and build happier communities.
+                      </p>
+                      <span className="text-secondary inline-flex items-center gap-1 text-base font-medium">
+                        Learn more
+                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                      </span>
                     </div>
-                    <CardTitle className="text-xl">Hormones & Cities</CardTitle>
-                    <CardDescription className="text-base font-medium">
-                      Anonymous urban wellbeing survey
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-3 text-base leading-relaxed">
-                      How do cities shape how we feel? Anonymous surveys to
-                      detect patterns and build happier communities.
-                    </p>
-                    <span className="text-secondary inline-flex items-center gap-1 text-base font-medium">
-                      Learn more
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                    </span>
-                  </CardContent>
+                    <div className="relative hidden h-40 w-20 flex-shrink-0 overflow-hidden rounded-xl border shadow-md sm:block">
+                      <Image
+                        src="/hormones-cities-dashboard.png"
+                        alt="City Pulse mobile app"
+                        fill
+                        className="object-cover object-top"
+                      />
+                    </div>
+                  </div>
                 </Card>
               </Link>
             </div>
