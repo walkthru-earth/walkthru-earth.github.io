@@ -49,10 +49,14 @@ export default function HomePage() {
   const [activeLayer, setActiveLayer] = useState('weather-temperature');
   const [userInteracted, setUserInteracted] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const marqueeRef = useRef<HTMLDivElement>(null);
 
-  // Auto-cycle layers until user interacts
+  // Desktop: auto-cycle layers until user interacts
   useEffect(() => {
     if (userInteracted) return;
+    // Only run interval on desktop (marquee handles mobile)
+    const mq = window.matchMedia('(min-width: 768px)');
+    if (!mq.matches) return;
     let idx = 0;
     intervalRef.current = setInterval(() => {
       idx = (idx + 1) % globeLayers.length;
@@ -61,6 +65,36 @@ export default function HomePage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
+  }, [userInteracted]);
+
+  // Mobile: sync active layer to whichever chip is near the left edge
+  useEffect(() => {
+    if (userInteracted) return;
+    const container = marqueeRef.current;
+    if (!container) return;
+
+    const chips = container.querySelectorAll<HTMLElement>('[data-layer]');
+    if (!chips.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const section = (entry.target as HTMLElement).dataset.layer;
+            if (section) setActiveLayer(section);
+          }
+        }
+      },
+      {
+        root: container,
+        // Only trigger when chip enters the left ~20% of the container
+        rootMargin: '0px -80% 0px 0px',
+        threshold: 0.5,
+      }
+    );
+
+    chips.forEach((chip) => observer.observe(chip));
+    return () => observer.disconnect();
   }, [userInteracted]);
 
   const handleLayerClick = useCallback((section: string) => {
@@ -97,7 +131,7 @@ export default function HomePage() {
                   free for everyone.
                 </p>
 
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-5 md:mt-6">
                   <Button size="lg" className="group gap-2 text-base" asChild>
                     <Link href="/indices">
                       <Globe className="h-5 w-5" />
@@ -105,13 +139,37 @@ export default function HomePage() {
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>
-                  <Button size="lg" variant="outline" asChild>
-                    <Link href="/about">Learn more</Link>
-                  </Button>
                 </div>
 
-                {/* Layer chips */}
-                <div className="mt-6 flex flex-wrap gap-2">
+                {/* Layer chips — marquee on mobile, grid on desktop */}
+                {/* Mobile: scrolling marquee */}
+                <div
+                  ref={marqueeRef}
+                  className="marquee-chips -mx-6 mt-5 md:hidden"
+                >
+                  <div className="marquee-chips-track">
+                    {[...globeLayers, ...globeLayers].map((item, i) => {
+                      const isActive = activeLayer === item.section;
+                      return (
+                        <button
+                          key={`${item.section}-${i}`}
+                          type="button"
+                          data-layer={item.section}
+                          onClick={() => handleLayerClick(item.section)}
+                          className={`flex-shrink-0 rounded-full border px-3 py-1 text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                            isActive
+                              ? 'bg-primary text-primary-foreground shadow-primary/25 shadow-md'
+                              : 'bg-background/80 text-secondary-foreground border-secondary/40 backdrop-blur-sm'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Desktop: static grid */}
+                <div className="mt-6 hidden flex-wrap gap-2 md:flex">
                   {globeLayers.map((item) => {
                     const isActive = activeLayer === item.section;
                     return (
@@ -119,7 +177,7 @@ export default function HomePage() {
                         key={item.section}
                         type="button"
                         onClick={() => handleLayerClick(item.section)}
-                        className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 sm:text-base ${
+                        className={`rounded-full border px-3.5 py-1.5 text-base font-medium transition-all duration-200 ${
                           isActive
                             ? 'bg-primary text-primary-foreground shadow-primary/25 scale-105 shadow-md'
                             : 'bg-background/80 text-secondary-foreground border-secondary/40 hover:bg-secondary/20 backdrop-blur-sm'
@@ -134,7 +192,7 @@ export default function HomePage() {
                   })}
                   <Link
                     href="/indices"
-                    className="group border-foreground/10 bg-foreground/5 text-foreground/70 hover:border-primary/30 hover:bg-primary/10 hover:text-primary flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 sm:text-base"
+                    className="group border-foreground/10 bg-foreground/5 text-foreground/70 hover:border-primary/30 hover:bg-primary/10 hover:text-primary flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-base font-medium transition-all duration-200"
                   >
                     +10 more
                     <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />

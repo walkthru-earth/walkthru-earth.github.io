@@ -221,6 +221,47 @@
   );
 }
 
+/* Marquee chip scroller */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-chips {
+  display: flex;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+}
+
+.marquee-chips-track {
+  display: flex;
+  gap: 0.5rem;
+  animation: marquee-scroll 35s linear infinite;
+  width: max-content;
+}
+
+.marquee-chips:hover .marquee-chips-track,
+.marquee-chips:focus-within .marquee-chips-track {
+  animation-play-state: paused;
+}
+
 /* Time slider thumb */
 .time-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
