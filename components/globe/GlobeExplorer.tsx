@@ -431,16 +431,16 @@ export function GlobeExplorer({
       {/* Branding */}
       <Link
         href="/links"
-        className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-lg border border-black/10 bg-white/90 px-2 py-1 shadow-md backdrop-blur-md transition-opacity hover:opacity-80 sm:bottom-6 sm:left-6 sm:gap-2 sm:rounded-xl sm:px-2.5 sm:py-1.5 dark:border-white/10 dark:bg-black/80"
+        className="absolute right-4 bottom-4 z-20 flex flex-col items-center gap-1 rounded-xl border border-black/10 bg-white/90 px-3 py-2 shadow-md backdrop-blur-md transition-opacity hover:opacity-80 sm:right-6 sm:bottom-6 dark:border-white/10 dark:bg-black/80"
       >
         <Image
           src="/logo.svg"
           alt="walkthru.earth logo"
-          width={20}
-          height={20}
-          className="sm:h-6 sm:w-6 dark:invert"
+          width={36}
+          height={36}
+          className="dark:invert"
         />
-        <span className="text-[9px] font-semibold tracking-tight text-gray-700 sm:text-[10px] dark:text-white/70">
+        <span className="text-[10px] font-semibold tracking-tight text-gray-700 dark:text-white/70">
           walkthru.earth
         </span>
       </Link>
