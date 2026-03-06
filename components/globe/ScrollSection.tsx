@@ -265,6 +265,8 @@ function MobileDrawer(props: ScrollSectionProps) {
     window.addEventListener('globe:tap', handler);
     return () => window.removeEventListener('globe:tap', handler);
   }, []);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
   const swipeRef = useRef<{ x: number; y: number; swiped: boolean }>({
     x: 0,
     y: 0,
@@ -281,10 +283,17 @@ function MobileDrawer(props: ScrollSectionProps) {
       if (s.swiped) return;
       const dx = e.clientX - s.x;
       const dy = e.clientY - s.y;
-      // Only trigger if horizontal movement dominates and exceeds threshold
+      // Horizontal swipe → navigate sections
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
         s.swiped = true;
         onSwipe?.(dx < 0 ? 1 : -1);
+        return;
+      }
+      // Vertical swipe down → close drawer when scrolled to top
+      const atTop = !scrollRef.current || scrollRef.current.scrollTop <= 0;
+      if (atTop && dy > 60 && dy > Math.abs(dx) * 1.5) {
+        s.swiped = true;
+        setOpen(false);
       }
     },
     [onSwipe]
@@ -371,7 +380,8 @@ function MobileDrawer(props: ScrollSectionProps) {
         <DrawerContent className="max-h-[70vh] border-black/10 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
           <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
           <div
-            className="touch-pan-y overflow-y-auto px-4 pt-1 pb-6"
+            ref={scrollRef}
+            className="overflow-y-auto px-4 pt-1 pb-6"
             style={{
               paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
             }}
