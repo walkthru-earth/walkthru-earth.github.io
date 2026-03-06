@@ -48,26 +48,80 @@ const globeLayers = [
 export default function HomePage() {
   const [activeLayer, setActiveLayer] = useState('weather-temperature');
   const [userInteracted, setUserInteracted] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const marqueeRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useRef<number | null>(null);
+  const touchActiveRef = useRef(false);
 
-  // Desktop: auto-cycle layers until user interacts
+  // Auto-scroll the marquee + allow native swipe + mouse drag
   useEffect(() => {
-    if (userInteracted) return;
-    // Only run interval on desktop (marquee handles mobile)
-    const mq = window.matchMedia('(min-width: 768px)');
-    if (!mq.matches) return;
-    let idx = 0;
-    intervalRef.current = setInterval(() => {
-      idx = (idx + 1) % globeLayers.length;
-      setActiveLayer(globeLayers[idx].section);
-    }, 4000);
+    const container = marqueeRef.current;
+    if (!container) return;
+
+    const speed = 0.3; // px per frame
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragScrollLeft = 0;
+
+    const step = () => {
+      if (!touchActiveRef.current && !userInteracted) {
+        container.scrollLeft += speed;
+        // Loop: when we've scrolled past the first set, jump back seamlessly
+        const half = container.scrollWidth / 2;
+        if (container.scrollLeft >= half) {
+          container.scrollLeft -= half;
+        }
+      }
+      autoScrollRef.current = requestAnimationFrame(step);
+    };
+
+    autoScrollRef.current = requestAnimationFrame(step);
+
+    // Pause auto-scroll during touch
+    const onTouchStart = () => {
+      touchActiveRef.current = true;
+    };
+    const onTouchEnd = () => {
+      touchActiveRef.current = false;
+    };
+
+    // Mouse drag-to-scroll
+    const onMouseDown = (e: MouseEvent) => {
+      isDragging = true;
+      touchActiveRef.current = true;
+      dragStartX = e.pageX - container.offsetLeft;
+      dragScrollLeft = container.scrollLeft;
+      container.style.cursor = 'grabbing';
+    };
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - container.offsetLeft;
+      container.scrollLeft = dragScrollLeft - (x - dragStartX);
+    };
+    const onMouseUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      touchActiveRef.current = false;
+      container.style.cursor = '';
+    };
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
+    container.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (autoScrollRef.current) cancelAnimationFrame(autoScrollRef.current);
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchend', onTouchEnd);
+      container.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
     };
   }, [userInteracted]);
 
-  // Mobile: sync active layer to whichever chip is near the left edge
+  // Sync active layer to whichever chip is near the left edge (only while auto-scrolling)
   useEffect(() => {
     if (userInteracted) return;
     const container = marqueeRef.current;
@@ -87,8 +141,8 @@ export default function HomePage() {
       },
       {
         root: container,
-        // Only trigger when chip enters the left ~20% of the container
-        rootMargin: '0px -80% 0px 0px',
+        // Target the center ~20% of the container
+        rootMargin: '0px -40% 0px -40%',
         threshold: 0.5,
       }
     );
@@ -141,11 +195,10 @@ export default function HomePage() {
                   </Button>
                 </div>
 
-                {/* Layer chips — marquee on mobile, grid on desktop */}
-                {/* Mobile: scrolling marquee */}
+                {/* Layer chips — scrolling marquee */}
                 <div
                   ref={marqueeRef}
-                  className="marquee-chips -mx-6 mt-5 md:hidden"
+                  className="marquee-chips-scroll -mx-6 mt-5 cursor-grab md:-mx-10"
                 >
                   <div className="marquee-chips-track">
                     {[...globeLayers, ...globeLayers].map((item, i) => {
@@ -156,10 +209,10 @@ export default function HomePage() {
                           type="button"
                           data-layer={item.section}
                           onClick={() => handleLayerClick(item.section)}
-                          className={`flex-shrink-0 rounded-full border px-3 py-1 text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                          className={`flex-shrink-0 rounded-full border px-3 py-1 text-sm font-medium whitespace-nowrap transition-all duration-200 md:px-3.5 md:py-1.5 md:text-base ${
                             isActive
                               ? 'bg-primary text-primary-foreground shadow-primary/25 shadow-md'
-                              : 'bg-background/80 text-secondary-foreground border-secondary/40 backdrop-blur-sm'
+                              : 'bg-background/80 text-secondary-foreground border-secondary/40 hover:bg-secondary/20 backdrop-blur-sm'
                           }`}
                         >
                           {item.label}
@@ -167,36 +220,6 @@ export default function HomePage() {
                       );
                     })}
                   </div>
-                </div>
-                {/* Desktop: static grid */}
-                <div className="mt-6 hidden flex-wrap gap-2 md:flex">
-                  {globeLayers.map((item) => {
-                    const isActive = activeLayer === item.section;
-                    return (
-                      <button
-                        key={item.section}
-                        type="button"
-                        onClick={() => handleLayerClick(item.section)}
-                        className={`rounded-full border px-3.5 py-1.5 text-base font-medium transition-all duration-200 ${
-                          isActive
-                            ? 'bg-primary text-primary-foreground shadow-primary/25 scale-105 shadow-md'
-                            : 'bg-background/80 text-secondary-foreground border-secondary/40 hover:bg-secondary/20 backdrop-blur-sm'
-                        }`}
-                      >
-                        {isActive && (
-                          <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-                        )}
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                  <Link
-                    href="/indices"
-                    className="group border-foreground/10 bg-foreground/5 text-foreground/70 hover:border-primary/30 hover:bg-primary/10 hover:text-primary flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-base font-medium transition-all duration-200"
-                  >
-                    +10 more
-                    <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
                 </div>
               </div>
             </div>
