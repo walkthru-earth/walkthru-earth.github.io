@@ -28,9 +28,10 @@ const mainLinks = [
   {
     title: 'Website',
     description: 'Our main website',
-    url: 'https://walkthru.earth',
+    url: '/',
     icon: Globe,
     color: 'bg-primary/10 text-primary border-primary/20',
+    internal: true,
   },
   {
     title: 'OpenSensor.Space',
@@ -42,9 +43,10 @@ const mainLinks = [
   {
     title: 'Hormones & Cities App',
     description: 'Measure how your city affects you',
-    url: 'https://walkthru.earth/hormones-cities',
+    url: '/hormones-cities',
     icon: ExternalLink,
     color: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+    internal: true,
   },
   {
     title: 'Open Data',
@@ -156,32 +158,47 @@ export default function LinksPage() {
 
         {/* Main Links */}
         <div className="mb-8 space-y-3">
-          {mainLinks.map((link) => (
-            <a
-              key={link.title}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center gap-4 rounded-xl border p-4 transition-all hover:scale-[1.02] hover:shadow-md ${link.color}`}
-            >
-              {link.image ? (
-                <Image
-                  src={link.image}
-                  alt={link.title}
-                  width={24}
-                  height={24}
-                  className="h-6 w-6"
-                />
-              ) : link.icon ? (
-                <link.icon className="h-6 w-6" />
-              ) : null}
-              <div className="flex-1">
-                <div className="font-semibold">{link.title}</div>
-                <div className="text-sm opacity-80">{link.description}</div>
-              </div>
-              <ExternalLink className="h-4 w-4 opacity-50" />
-            </a>
-          ))}
+          {mainLinks.map((link) => {
+            const content = (
+              <>
+                {link.image ? (
+                  <Image
+                    src={link.image}
+                    alt={link.title}
+                    width={24}
+                    height={24}
+                    className="h-6 w-6"
+                  />
+                ) : link.icon ? (
+                  <link.icon className="h-6 w-6" />
+                ) : null}
+                <div className="flex-1">
+                  <div className="font-semibold">{link.title}</div>
+                  <div className="text-sm opacity-80">{link.description}</div>
+                </div>
+                {!link.internal && (
+                  <ExternalLink className="h-4 w-4 opacity-50" />
+                )}
+              </>
+            );
+            const cls = `flex items-center gap-4 rounded-xl border p-4 transition-all hover:scale-[1.02] hover:shadow-md ${link.color}`;
+
+            return link.internal ? (
+              <Link key={link.title} href={link.url} className={cls}>
+                {content}
+              </Link>
+            ) : (
+              <a
+                key={link.title}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cls}
+              >
+                {content}
+              </a>
+            );
+          })}
         </div>
 
         {/* Contact */}
