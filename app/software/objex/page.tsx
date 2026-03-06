@@ -32,7 +32,7 @@ import { Footer } from '@/components/sections/footer';
 
 function BrowserFrame({
   url,
-  title,
+  title: _title,
   children,
 }: {
   url: string;
@@ -472,7 +472,7 @@ export default function ObjexPage() {
             </motion.div>
 
             <div className="space-y-16 md:space-y-24">
-              {featureShowcase.map((feature, index) => {
+              {featureShowcase.map((feature) => {
                 const Icon = feature.icon;
                 return (
                   <motion.div

@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { GlobeMap } from './GlobeMap';
 import { ScrollSection } from './ScrollSection';
 import { QueryPanel, QueryPanelInline, ParquetInfoPanel } from './QueryPanel';
@@ -425,6 +427,23 @@ export function GlobeExplorer({
         isLoading={isLoading}
         error={error}
       />
+
+      {/* Branding */}
+      <Link
+        href="/links"
+        className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-lg border border-black/10 bg-white/90 px-2 py-1 shadow-md backdrop-blur-md transition-opacity hover:opacity-80 sm:bottom-6 sm:left-6 sm:gap-2 sm:rounded-xl sm:px-2.5 sm:py-1.5 dark:border-white/10 dark:bg-black/80"
+      >
+        <Image
+          src="/logo.svg"
+          alt="walkthru.earth logo"
+          width={20}
+          height={20}
+          className="sm:h-6 sm:w-6 dark:invert"
+        />
+        <span className="text-[9px] font-semibold tracking-tight text-gray-700 sm:text-[10px] dark:text-white/70">
+          walkthru.earth
+        </span>
+      </Link>
     </div>
   );
 }
