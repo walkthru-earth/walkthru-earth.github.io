@@ -32,6 +32,13 @@ import {
   type ColorRange,
   type ParquetInfo,
 } from './data/sections';
+import { BASE_LAND_ID, BASE_BORDERS_ID, computeRange } from './data/constants';
+import { useUserLocation } from './hooks/useUserLocation';
+import { UserLocationCard } from './UserLocationCard';
+import { LayerPanel, type LayerControl } from './LayerPanel';
+import type { PinScreenPos } from './GlobeMap';
+
+/* ── Helpers ─────────────────────────────────────────────────────── */
 
 /** Convert hyparquet timestamp (BigInt µs, Date, or number) to epoch ms. */
 function tsToMs(v: unknown): number {
@@ -41,10 +48,22 @@ function tsToMs(v: unknown): number {
   return 0;
 }
 
+/* ── Unified layer state ─────────────────────────────────────────── */
+
+interface LayerState {
+  visible: boolean;
+  opacity: number;
+}
+
+const DEFAULT_LAYER: LayerState = { visible: true, opacity: 0.85 };
+const DEFAULT_BASE: LayerState = { visible: false, opacity: 0.3 };
+
+/* ── Component ───────────────────────────────────────────────────── */
+
 interface GlobeExplorerProps {
   sections?: GlobeSection[];
   initialSection?: number;
-  /** Hide all UI overlays — used when embedding the globe (e.g. homepage hero). */
+  /** Hide all UI chrome — used when embedding the globe (e.g. homepage hero). */
   embed?: boolean;
 }
 
@@ -74,6 +93,19 @@ export function GlobeExplorer({
     window.dispatchEvent(new Event('globe:tap'));
   }, []);
 
+  const {
+    location: userLocation,
+    isLocating,
+    locate: locateUser,
+    clear: clearUserLocation,
+  } = useUserLocation();
+
+  const [pinScreen, setPinScreen] = useState<PinScreenPos | null>(null);
+
+  // ── Unified layer state dict ──
+  // Keys: 'h3-layer', 'base-land', 'base-borders'
+  const [layerState, setLayerState] = useState<Record<string, LayerState>>({});
+
   // Per-section h3Res overrides (sparse — only stores user changes)
   const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
     {}
@@ -87,7 +119,7 @@ export function GlobeExplorer({
     [weatherPrefix, h3Res]
   );
 
-  // Extract sorted unique timestamps (ms) from loaded rows
+  // ── Timestamps ──
   const timestamps = useMemo(() => {
     if (allRows.length === 0) return [];
     const first = allRows[0];
@@ -100,20 +132,19 @@ export function GlobeExplorer({
     return Array.from(set).sort((a, b) => a - b);
   }, [allRows]);
 
-  // Filter rows by selected timestamp
   const layerData = useMemo(() => {
     if (timestamps.length <= 1) return allRows;
     const targetMs = timestamps[timeStepIndex] ?? timestamps[0];
     return allRows.filter((r) => tsToMs(r.timestamp) === targetMs);
   }, [allRows, timestamps, timeStepIndex]);
 
-  // Ref tracks the active section so async callbacks can check without stale closures
+  // ── Refs ──
   const activeSectionRef = useRef(0);
   useEffect(() => {
     activeSectionRef.current = activeSection;
   }, [activeSection]);
 
-  // Keep URL in sync with active section (replaceState — no navigation)
+  // Keep URL in sync with active section
   useEffect(() => {
     const id = sections[activeSection]?.id;
     if (!id) return;
@@ -122,7 +153,7 @@ export function GlobeExplorer({
     window.history.replaceState(null, '', url.toString());
   }, [activeSection, sections]);
 
-  /** Promise-based cache keyed by "sectionIdx:h3Res" to prevent duplicate loads. */
+  /** Promise cache keyed by "sectionIdx:h3Res". */
   const cacheRef = useRef<
     Map<
       string,
@@ -155,35 +186,13 @@ export function GlobeExplorer({
     };
   }, []);
 
-  const computeRange = useCallback(
-    (rows: Record<string, unknown>[], column: string): ColorRange => {
-      if (!column || rows.length === 0) return { min: 0, max: 1 };
-      const values = rows
-        .map((r) => Number(r[column]))
-        .filter(Number.isFinite)
-        .sort((a, b) => a - b);
-      if (values.length === 0) return { min: 0, max: 1 };
-      return {
-        min: values[Math.floor(values.length * 0.05)] ?? 0,
-        max: values[Math.floor(values.length * 0.95)] ?? 1,
-      };
-    },
-    []
-  );
-
-  /**
-   * Load data for a section. Uses activeSectionRef to check if the section
-   * is still current. Supports progressive rendering via onProgress.
-   */
+  // ── Data loading ──
   const loadSection = useCallback(
     (sectionIdx: number, section: GlobeSection, ctx: QueryContext) => {
       const cacheKey = `${sectionIdx}:${ctx.h3Res}`;
       let loadPromise = cacheRef.current.get(cacheKey);
 
       if (!loadPromise) {
-        console.log(
-          `[Globe] Loading "${section.id}" h3_res=${ctx.h3Res} (section ${sectionIdx})...`
-        );
         Promise.resolve().then(() => {
           if (activeSectionRef.current !== sectionIdx) return;
           setIsLoading(true);
@@ -192,7 +201,6 @@ export function GlobeExplorer({
         });
 
         const start = performance.now();
-
         const onProgress = (partialRows: Record<string, unknown>[]) => {
           if (activeSectionRef.current !== sectionIdx) return;
           setAllRows(partialRows);
@@ -202,15 +210,10 @@ export function GlobeExplorer({
         loadPromise = section.loadData(ctx, onProgress).then((result) => {
           const duration = performance.now() - start;
           const range = computeRange(result.rows, section.colorColumn);
-          console.log(
-            `[Globe] "${section.id}" done: ${result.rows.length} rows in ${duration.toFixed(0)}ms`
-          );
           return { rows: result.rows, duration, range, info: result.info };
         });
         cacheRef.current.set(cacheKey, loadPromise);
         loadPromise.catch(() => cacheRef.current.delete(cacheKey));
-      } else {
-        console.log(`[Globe] "${section.id}" h3_res=${ctx.h3Res} cache hit`);
       }
 
       loadPromise
@@ -226,7 +229,6 @@ export function GlobeExplorer({
         .catch((err) => {
           if (activeSectionRef.current !== sectionIdx) return;
           const msg = err instanceof Error ? err.message : String(err);
-          console.error(`[Globe] Load failed for "${section.id}":`, msg);
           setError(msg);
           setAllRows([]);
           setQueryDuration(null);
@@ -235,19 +237,16 @@ export function GlobeExplorer({
           setIsLoading(false);
         });
     },
-    [computeRange]
+    []
   );
 
-  // Load current section, then prefetch next after it completes
+  // Load current section + prefetch next
   useEffect(() => {
     if (!queryCtx) return;
 
-    const cacheKey = `${activeSection}:${queryCtx.h3Res}`;
-
-    // Load the active section
     loadSection(activeSection, currentSection, queryCtx);
 
-    // Prefetch next section AFTER current finishes — avoid bandwidth competition
+    const cacheKey = `${activeSection}:${queryCtx.h3Res}`;
     const currentPromise = cacheRef.current.get(cacheKey);
     const nextIdx = activeSection + 1;
     if (currentPromise && nextIdx < sections.length) {
@@ -275,8 +274,76 @@ export function GlobeExplorer({
     sections,
     h3ResOverrides,
     loadSection,
-    computeRange,
   ]);
+
+  // ── Base layer controls for GlobeMap ──
+  const baseControls = useMemo(
+    () => ({
+      [BASE_LAND_ID]: layerState[BASE_LAND_ID] ?? DEFAULT_BASE,
+      [BASE_BORDERS_ID]: layerState[BASE_BORDERS_ID] ?? DEFAULT_BASE,
+    }),
+    [layerState]
+  );
+
+  // ── Layer panel entries ──
+  const layerControls = useMemo<LayerControl[]>(() => {
+    const legend = currentSection.colorLegend;
+    const ls = layerState['h3-layer'] ?? DEFAULT_LAYER;
+    const entries: LayerControl[] = [
+      {
+        id: 'h3-layer',
+        label: currentSection.title,
+        color: legend[Math.floor(legend.length / 2)]?.color ?? '#888',
+        visible: ls.visible,
+        opacity: ls.opacity,
+        rowCount,
+      },
+    ];
+
+    // Base layers (initially hidden)
+    const land = layerState[BASE_LAND_ID] ?? DEFAULT_BASE;
+    entries.push({
+      id: BASE_LAND_ID,
+      label: 'Land',
+      color: 'rgb(80,140,100)',
+      visible: land.visible,
+      opacity: land.opacity,
+      rowCount: 0,
+    });
+    const borders = layerState[BASE_BORDERS_ID] ?? DEFAULT_BASE;
+    entries.push({
+      id: BASE_BORDERS_ID,
+      label: 'Country Borders',
+      color: 'rgb(100,120,100)',
+      visible: borders.visible,
+      opacity: borders.opacity,
+      rowCount: 0,
+    });
+
+    return entries;
+  }, [currentSection, layerState, rowCount]);
+
+  // ── Layer panel callbacks ──
+  const handleLayerToggle = useCallback(
+    (id: string) =>
+      setLayerState((prev) => {
+        const cur = prev[id] ?? DEFAULT_LAYER;
+        return { ...prev, [id]: { ...cur, visible: !cur.visible } };
+      }),
+    []
+  );
+
+  const handleLayerOpacity = useCallback(
+    (id: string, opacity: number) =>
+      setLayerState((prev) => {
+        const cur = prev[id] ?? DEFAULT_LAYER;
+        return { ...prev, [id]: { ...cur, opacity } };
+      }),
+    []
+  );
+
+  // ── Single-layer props (derived from layer state) ──
+  const singleLS = layerState['h3-layer'] ?? DEFAULT_LAYER;
 
   const handleH3ResChange = useCallback(
     (delta: number) => {
@@ -284,13 +351,10 @@ export function GlobeExplorer({
       const cur = h3ResOverrides[activeSection] ?? currentSection.defaultH3Res;
       const next = Math.max(min, Math.min(max, cur + delta));
       if (next === cur) return;
-
-      // Warn when increasing to res 4+
       if (next >= 4 && delta > 0) {
         setPendingH3Res(next);
         return;
       }
-
       setH3ResOverrides((prev) => ({ ...prev, [activeSection]: next }));
     },
     [activeSection, currentSection, h3ResOverrides]
@@ -300,7 +364,6 @@ export function GlobeExplorer({
     requestAnimationFrame(() => setZoom(z));
   }, []);
 
-  // Resolve data-driven description once loading completes
   const resolvedDescription = useMemo(() => {
     if (!isLoading && currentSection.describeData && allRows.length > 0) {
       return currentSection.describeData(allRows);
@@ -323,6 +386,11 @@ export function GlobeExplorer({
         onCursorOverGlobe={handleCursorOverGlobe}
         onZoomChange={handleZoomChange}
         onTap={handleGlobeTap}
+        userLocation={userLocation}
+        onUserPinScreen={setPinScreen}
+        layerOpacity={singleLS.opacity}
+        layerVisible={singleLS.visible}
+        baseControls={baseControls}
       />
 
       {!embed && (
@@ -363,11 +431,86 @@ export function GlobeExplorer({
 
       {!embed && (
         <>
-          {/* Theme toggle + Zoom & H3 resolution control */}
+          {/* User location card — positioned at pin top in 3D */}
+          {userLocation && (
+            <UserLocationCard
+              location={userLocation}
+              section={currentSection}
+              layerData={layerData}
+              h3Res={h3Res}
+              pinScreen={pinScreen}
+            />
+          )}
+
+          {/* Layers + Locate + Zoom & H3 resolution control */}
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2 sm:top-6 sm:right-6">
-            <div className="border-border/50 bg-background/90 overflow-hidden rounded-full border shadow-lg backdrop-blur-md">
-              <ThemeToggle />
-            </div>
+            <LayerPanel
+              layers={layerControls}
+              onToggle={handleLayerToggle}
+              onOpacity={handleLayerOpacity}
+            />
+            {/* Locate me button */}
+            <button
+              type="button"
+              onClick={userLocation ? clearUserLocation : locateUser}
+              disabled={isLocating}
+              className={[
+                'border-border/50 bg-background/90 flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10',
+                isLocating ? 'animate-pulse' : '',
+                userLocation
+                  ? 'border-amber-400/50 text-amber-400'
+                  : 'text-muted-foreground hover:bg-accent',
+              ].join(' ')}
+              aria-label={userLocation ? 'Clear location' : 'Find my location'}
+            >
+              {isLocating ? (
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  {userLocation ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  ) : (
+                    <>
+                      <circle cx="12" cy="12" r="3" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 2v3m0 14v3M2 12h3m14 0h3"
+                      />
+                      <circle cx="12" cy="12" r="8" strokeDasharray="2 3" />
+                    </>
+                  )}
+                </svg>
+              )}
+            </button>
             <div className="border-border/50 bg-background/90 flex items-center gap-0 rounded-full border shadow-lg backdrop-blur-md">
               <button
                 type="button"
@@ -433,7 +576,7 @@ export function GlobeExplorer({
             </div>
           </div>
 
-          {/* Back button + Parquet info (top-left) */}
+          {/* Back button + Theme toggle + Parquet info (top-left, desktop only) */}
           <div className="absolute top-18 left-4 z-20 hidden items-center gap-2 sm:top-6 sm:left-6 sm:flex">
             <Link
               href="/"
@@ -454,6 +597,9 @@ export function GlobeExplorer({
                 />
               </svg>
             </Link>
+            <div className="border-border/50 bg-background/90 overflow-hidden rounded-full border shadow-lg backdrop-blur-md">
+              <ThemeToggle />
+            </div>
             <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />
           </div>
 

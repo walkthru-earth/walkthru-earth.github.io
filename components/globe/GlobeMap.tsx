@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo, useCallback, useRef } from 'react';
+import { memo, useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import DeckGL from '@deck.gl/react';
 import {
@@ -11,11 +11,13 @@ import {
   LinearInterpolator,
   type PickingInfo,
 } from '@deck.gl/core';
-import { GeoJsonLayer } from '@deck.gl/layers';
+import { GeoJsonLayer, ColumnLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import { SphereGeometry } from '@luma.gl/engine';
 import { H3HexagonLayer } from '@deck.gl/geo-layers';
 import type { ViewState, ColorRange } from './data/sections';
+import { BASE_LAND_ID, BASE_BORDERS_ID } from './data/constants';
+import type { UserLocation } from './hooks/useUserLocation';
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -40,6 +42,10 @@ const SPHERE_MESH = new SphereGeometry({
   nlong: 36,
 });
 
+/** Base height of the user location beam in meters — overridden when extruded layers are tall */
+const USER_PIN_HEIGHT_BASE = 1_200_000;
+const USER_PIN_HEIGHT_EXTRUDED = 3_500_000;
+
 /* Theme palettes — colors for globe rendering (matched to site branding) */
 const THEMES = {
   dark: {
@@ -57,6 +63,16 @@ const THEMES = {
     ambient: 1.0,
   },
 };
+
+/* ------------------------------------------------------------------ */
+/*  Screen position type for the user pin                              */
+/* ------------------------------------------------------------------ */
+
+export interface PinScreenPos {
+  x: number;
+  y: number;
+  visible: boolean;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -82,6 +98,16 @@ interface GlobeMapProps {
   onZoomChange?: (zoom: number) => void;
   /** Called when the globe canvas is tapped (short touch, not a drag). */
   onTap?: () => void;
+  /** User's resolved location — renders a pin on the globe when set. */
+  userLocation?: UserLocation | null;
+  /** Reports the screen-space position of the user pin top each frame. */
+  onUserPinScreen?: (pos: PinScreenPos | null) => void;
+  /** Opacity for the H3 layer (controlled by LayerPanel). */
+  layerOpacity?: number;
+  /** Visibility for the H3 layer (controlled by LayerPanel). */
+  layerVisible?: boolean;
+  /** Base layer controls — visibility & opacity for land/borders. */
+  baseControls?: Record<string, { visible: boolean; opacity: number }>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -101,17 +127,93 @@ export const GlobeMap = memo(function GlobeMap({
   onCursorOverGlobe,
   onZoomChange,
   onTap,
+  userLocation,
+  onUserPinScreen,
+  layerOpacity = 0.85,
+  layerVisible = true,
+  baseControls,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
   const palette = isDark ? THEMES.dark : THEMES.light;
   const tapRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
+  // Animated pulse tick (0-1 repeating) for the user pin rings
+  const [pulseTick, setPulseTick] = useState(0);
+  useEffect(() => {
+    if (!userLocation) return;
+    let raf: number;
+    const loop = () => {
+      // 2.5 second cycle
+      setPulseTick((Date.now() % 2500) / 2500);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [userLocation]);
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const deckRef = useRef<any>(null);
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
+  // Keep callback ref fresh without triggering re-renders
+  const onUserPinScreenRef = useRef(onUserPinScreen);
+  useEffect(() => {
+    onUserPinScreenRef.current = onUserPinScreen;
+  }, [onUserPinScreen]);
+
+  const userLocationRef = useRef(userLocation);
+  useEffect(() => {
+    userLocationRef.current = userLocation;
+  }, [userLocation]);
+
+  const extrudedRef = useRef(extruded);
+  useEffect(() => {
+    extrudedRef.current = extruded;
+  }, [extruded]);
+
+  // Project user pin to screen coords after each render frame
+  const handleAfterRender = useCallback(() => {
+    const loc = userLocationRef.current;
+    const cb = onUserPinScreenRef.current;
+    if (!cb) return;
+    if (!loc) {
+      cb(null);
+      return;
+    }
+
+    const deck = deckRef.current?.deck;
+    if (!deck) return;
+    const viewport = deck.getViewports?.()?.[0];
+    if (!viewport) return;
+
+    const pinH = extrudedRef.current
+      ? USER_PIN_HEIGHT_EXTRUDED
+      : USER_PIN_HEIGHT_BASE;
+
+    try {
+      const [x, y] = viewport.project([
+        loc.longitude,
+        loc.latitude,
+        pinH + 120_000, // top of the head marker
+      ]);
+      // Also project the base at surface level for the round-trip check
+      const [bx, by] = viewport.project([loc.longitude, loc.latitude, 0]);
+      const [lng2, lat2] = viewport.unproject([bx, by]);
+      const dLng = Math.abs(lng2 - loc.longitude);
+      const dLat = Math.abs(lat2 - loc.latitude);
+      // Wider threshold (20°) — the unproject round-trip diverges when
+      // the point is on the far side of the globe
+      const visible =
+        dLng < 20 && dLat < 20 && Number.isFinite(x) && Number.isFinite(y);
+      cb({ x, y, visible });
+    } catch {
+      cb(null);
+    }
+  }, []);
+
   // deck.gl manages internal state — animates to new position on change
   const initialViewState = useMemo(() => {
-    console.log(
-      `[DeckGL] View transition → lon=${targetViewState.longitude}, lat=${targetViewState.latitude}, zoom=${targetViewState.zoom}`
-    );
     return {
       longitude: targetViewState.longitude,
       latitude: targetViewState.latitude,
@@ -151,34 +253,34 @@ export const GlobeMap = memo(function GlobeMap({
         pickable: true,
       }),
 
-      // 2. Land masses (hidden when H3 data covers the globe)
+      // 2. Land masses
       new GeoJsonLayer({
         id: 'earth-land',
         data: LAND_GEOJSON,
-        visible: layerData.length === 0,
+        visible:
+          baseControls?.[BASE_LAND_ID]?.visible ?? layerData.length === 0,
         stroked: false,
         filled: true,
-        opacity: palette.landOpacity,
+        opacity: baseControls?.[BASE_LAND_ID]?.opacity ?? palette.landOpacity,
         getFillColor: palette.land,
       }),
 
-      // 3. Country borders (hidden when H3 data covers the globe)
+      // 3. Country borders
       new GeoJsonLayer({
         id: 'country-borders',
         data: COUNTRY_BORDERS,
-        visible: layerData.length === 0,
+        visible:
+          baseControls?.[BASE_BORDERS_ID]?.visible ?? layerData.length === 0,
         stroked: true,
         filled: false,
         lineWidthMinPixels: 0.5,
+        opacity: baseControls?.[BASE_BORDERS_ID]?.opacity ?? 1,
         getLineColor: palette.borders,
       }),
     ];
 
     // 4. H3 data layer
-    if (layerData.length > 0) {
-      console.log(
-        `[DeckGL] Adding H3 layer: ${layerData.length} hexagons, extruded=${extruded}, elevationScale=${elevationScale}, colorRange=[${colorRange.min.toFixed(1)}, ${colorRange.max.toFixed(1)}]`
-      );
+    if (layerData.length > 0 && layerVisible) {
       result.push(
         new H3HexagonLayer({
           id: 'h3-layer',
@@ -195,7 +297,7 @@ export const GlobeMap = memo(function GlobeMap({
           ) => [number, number, number, number],
           getElevation:
             (getElevation as ((d: unknown) => number) | undefined) ?? (() => 0),
-          opacity: 0.85,
+          opacity: layerOpacity,
           coverage: 0.92,
           material: {
             ambient: 0.64,
@@ -210,9 +312,89 @@ export const GlobeMap = memo(function GlobeMap({
       );
     }
 
-    console.log(
-      `[DeckGL] Layers: ${result.map((l: { id: string }) => l.id).join(', ')} | land/borders visible=${layerData.length === 0}`
-    );
+    // 5. User location pin — pulse rings + beam + head
+    if (userLocation) {
+      const pinPos = [userLocation.longitude, userLocation.latitude] as [
+        number,
+        number,
+      ];
+      const pinH = extruded ? USER_PIN_HEIGHT_EXTRUDED : USER_PIN_HEIGHT_BASE;
+
+      // Expanding pulse rings (3 staggered waves)
+      const PULSE_COUNT = 3;
+      for (let i = 0; i < PULSE_COUNT; i++) {
+        const phase = (pulseTick + i / PULSE_COUNT) % 1;
+        const radius = 40_000 + phase * 300_000;
+        const alpha = Math.round((1 - phase) * 180);
+        result.push(
+          new ScatterplotLayer({
+            id: `user-pulse-${i}`,
+            data: [{ position: pinPos }],
+            getPosition: (d: { position: [number, number] }) => d.position,
+            getRadius: radius,
+            getFillColor: [255, 200, 0, Math.round(alpha * 0.15)],
+            getLineColor: [255, 200, 0, alpha],
+            stroked: true,
+            filled: true,
+            lineWidthMinPixels: 1.5,
+            radiusMinPixels: 4,
+            radiusMaxPixels: 60,
+          })
+        );
+      }
+
+      // Static base dot
+      result.push(
+        new ScatterplotLayer({
+          id: 'user-pin-center',
+          data: [{ position: pinPos }],
+          getPosition: (d: { position: [number, number] }) => d.position,
+          getRadius: 35_000,
+          getFillColor: [255, 220, 40, 200],
+          radiusMinPixels: 5,
+          radiusMaxPixels: 14,
+        })
+      );
+
+      // Vertical column beam — amber/gold
+      result.push(
+        new ColumnLayer({
+          id: 'user-pin-column',
+          data: [{ position: pinPos }],
+          getPosition: (d: { position: [number, number] }) => d.position,
+          getElevation: pinH,
+          diskResolution: 12,
+          radius: 10_000,
+          getFillColor: [255, 200, 0, 130],
+          extruded: true,
+          material: {
+            ambient: 0.9,
+            diffuse: 0.3,
+            shininess: 32,
+          },
+        })
+      );
+
+      // Top marker — hexagonal head in bright yellow
+      result.push(
+        new ColumnLayer({
+          id: 'user-pin-head',
+          data: [{ position: pinPos }],
+          getPosition: (d: { position: [number, number] }) => d.position,
+          getElevation: pinH + 120_000,
+          offset: [0, 0],
+          diskResolution: 6,
+          radius: 40_000,
+          getFillColor: [255, 220, 40, 230],
+          extruded: true,
+          material: {
+            ambient: 0.95,
+            diffuse: 0.5,
+            shininess: 64,
+          },
+        })
+      );
+    }
 
     return result;
   }, [
@@ -224,6 +406,11 @@ export const GlobeMap = memo(function GlobeMap({
     extruded,
     elevationScale,
     palette,
+    userLocation,
+    pulseTick,
+    layerOpacity,
+    layerVisible,
+    baseControls,
   ]);
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
@@ -273,6 +460,7 @@ export const GlobeMap = memo(function GlobeMap({
       }}
     >
       <DeckGL
+        ref={deckRef}
         views={GLOBE_VIEW}
         initialViewState={initialViewState}
         controller={true}
@@ -280,6 +468,7 @@ export const GlobeMap = memo(function GlobeMap({
         layers={layers}
         onHover={handleHover}
         onViewStateChange={handleViewStateChange}
+        onAfterRender={handleAfterRender}
         getTooltip={handleTooltip}
         style={{ width: '100%', height: '100%' }}
       />

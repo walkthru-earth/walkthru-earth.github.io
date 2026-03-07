@@ -18,25 +18,11 @@ import {
   type LoadResult,
   type ParquetInfo,
 } from '../utils/parquet-loader';
+import { S3_BASE, S3_BUCKET } from './constants';
+import type { ViewState, QueryContext, ColorRange } from './constants';
 
-export type { ParquetInfo };
-
-export interface ViewState {
-  latitude: number;
-  longitude: number;
-  zoom: number;
-}
-
-/** Runtime context passed to buildQuery/loadData — values resolved at mount time. */
-export interface QueryContext {
-  weatherPrefix: string;
-  h3Res: number;
-}
-
-export interface ColorRange {
-  min: number;
-  max: number;
-}
+export type { ParquetInfo, ViewState, QueryContext, ColorRange };
+export { S3_BASE, S3_BUCKET };
 
 export interface GlobeSection {
   id: string;
@@ -74,10 +60,6 @@ export interface GlobeSection {
 }
 
 /* ── Data source URLs ─────────────────────────────────────────────── */
-
-const S3_BUCKET =
-  'https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop';
-const S3_BASE = `${S3_BUCKET}/walkthru-earth`;
 
 const PROBE_BASE = 'https://data.source.coop/walkthru-earth';
 
@@ -139,7 +121,7 @@ const weatherParquet = (prefix: string, res: number) =>
 
 /** Convert h3_index to hex string for deck.gl H3HexagonLayer.
  *  Handles both BigInt (v2 int64) and hex string (v1 weather). */
-const h3ToHex = (d: Record<string, unknown>): string => {
+export const h3ToHex = (d: Record<string, unknown>): string => {
   const v = d.h3_index;
   if (typeof v === 'bigint') return v.toString(16);
   if (typeof v === 'number') return BigInt(v).toString(16);

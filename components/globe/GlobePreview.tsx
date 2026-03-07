@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { GlobeMap } from './GlobeMap';
 import {
   SECTIONS,
   resolveWeatherPrefix,
-  type ColorRange,
   type QueryContext,
 } from './data/sections';
+import { computeRange, type ColorRange } from './data/constants';
 
 interface GlobePreviewProps {
   /** Section id to display (e.g. 'terrain', 'weather-temperature') */
@@ -48,22 +48,6 @@ export function GlobePreview({
     };
   }, []);
 
-  const computeRange = useCallback(
-    (data: Record<string, unknown>[], column: string): ColorRange => {
-      if (!column || data.length === 0) return { min: 0, max: 1 };
-      const values = data
-        .map((r) => Number(r[column]))
-        .filter(Number.isFinite)
-        .sort((a, b) => a - b);
-      if (values.length === 0) return { min: 0, max: 1 };
-      return {
-        min: values[Math.floor(values.length * 0.05)] ?? 0,
-        max: values[Math.floor(values.length * 0.95)] ?? 1,
-      };
-    },
-    []
-  );
-
   // Promise cache to avoid duplicate loads
   const cacheRef = useRef<Map<string, Promise<Record<string, unknown>[]>>>(
     new Map()
@@ -92,7 +76,7 @@ export function GlobePreview({
       setRows(data);
       setColorRange(computeRange(data, section.colorColumn));
     });
-  }, [weatherPrefix, sectionId, section, computeRange]);
+  }, [weatherPrefix, sectionId, section]);
 
   return (
     <div
