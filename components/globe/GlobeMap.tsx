@@ -22,10 +22,8 @@ import type { ViewState, ColorRange } from './data/sections';
 /* ------------------------------------------------------------------ */
 
 const EARTH_RADIUS_METERS = 6.3e6;
-const LAND_GEOJSON =
-  'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_land.geojson';
-const COUNTRY_BORDERS =
-  'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_admin_0_boundary_lines_land.geojson';
+const LAND_GEOJSON = '/geo/ne_50m_land.geojson';
+const COUNTRY_BORDERS = '/geo/ne_50m_admin_0_boundary_lines_land.geojson';
 
 const GLOBE_VIEW = new GlobeView({ id: 'globe', resolution: 5 });
 
