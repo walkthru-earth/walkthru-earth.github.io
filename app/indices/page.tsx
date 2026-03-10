@@ -32,7 +32,20 @@ function IndicesContent() {
       )
     : 0;
 
-  return <GlobeExplorer initialSection={initialSection} />;
+  const z = searchParams.get('z');
+  const lat = searchParams.get('y');
+  const lng = searchParams.get('x');
+  const h3 = searchParams.get('h3');
+
+  return (
+    <GlobeExplorer
+      initialSection={initialSection}
+      initialZoom={z ? parseFloat(z) : undefined}
+      initialLat={lat ? parseFloat(lat) : undefined}
+      initialLng={lng ? parseFloat(lng) : undefined}
+      initialH3Res={h3 ? parseInt(h3, 10) : undefined}
+    />
+  );
 }
 
 export default function IndicesPage() {

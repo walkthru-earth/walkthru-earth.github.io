@@ -39,7 +39,7 @@ const GlobePreview = dynamic(
 const globeLayers = [
   { label: 'Temperature', section: 'weather-temperature' },
   { label: 'Elevation', section: 'terrain' },
-  { label: 'Urban Density', section: 'buildings-nile' },
+  { label: 'Urban Density', section: 'urban-density' },
   { label: 'Population Growth', section: 'population-growth' },
   { label: 'Housing Pressure', section: 'housing-pressure' },
   { label: 'Shrinking Cities', section: 'shrinking-cities' },

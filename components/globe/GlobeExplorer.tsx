@@ -61,7 +61,7 @@ interface LayerState {
   opacity: number;
 }
 
-const DEFAULT_LAYER: LayerState = { visible: true, opacity: 0.85 };
+const DEFAULT_LAYER: LayerState = { visible: true, opacity: 0.95 };
 const DEFAULT_BASE: LayerState = { visible: false, opacity: 0.3 };
 
 /* ── Component ───────────────────────────────────────────────────── */
@@ -69,6 +69,11 @@ const DEFAULT_BASE: LayerState = { visible: false, opacity: 0.3 };
 interface GlobeExplorerProps {
   sections?: GlobeSection[];
   initialSection?: number;
+  /** Initial viewport from URL params (z/lat/lng/h3). */
+  initialZoom?: number;
+  initialLat?: number;
+  initialLng?: number;
+  initialH3Res?: number;
   /** Hide all UI chrome — used when embedding the globe (e.g. homepage hero). */
   embed?: boolean;
 }
@@ -76,6 +81,10 @@ interface GlobeExplorerProps {
 export function GlobeExplorer({
   sections = SECTIONS,
   initialSection = 0,
+  initialZoom,
+  initialLat,
+  initialLng,
+  initialH3Res,
   embed = false,
 }: GlobeExplorerProps) {
   const isOverGlobeRef = useRef(false);
@@ -93,7 +102,15 @@ export function GlobeExplorer({
   const [error, setError] = useState<string | null>(null);
   const [parquetInfo, setParquetInfo] = useState<ParquetInfo | null>(null);
   const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(sections[0]?.viewState.zoom ?? 1.5);
+  const [zoom, setZoom] = useState(
+    initialZoom ?? sections[0]?.viewState.zoom ?? 1.5
+  );
+  const [longitude, setLongitude] = useState(
+    initialLng ?? sections[0]?.viewState.longitude ?? 0
+  );
+  const [latitude, setLatitude] = useState(
+    initialLat ?? sections[0]?.viewState.latitude ?? 20
+  );
   const [viewportBounds, setViewportBounds] = useState<
     [number, number, number, number] | null
   >(null);
@@ -117,7 +134,7 @@ export function GlobeExplorer({
 
   // Per-section h3Res overrides (sparse — only stores manual user changes)
   const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
-    {}
+    () => (initialH3Res != null ? { [initialSection]: initialH3Res } : {})
   );
   const [pendingH3Res, setPendingH3Res] = useState<number | null>(null);
   const currentSection = sections[activeSection];
@@ -222,14 +239,21 @@ export function GlobeExplorer({
     activeSectionRef.current = activeSection;
   }, [activeSection]);
 
-  // Keep URL in sync with active section
+  // Keep URL in sync with viewport state (debounced to avoid thrashing)
   useEffect(() => {
     const id = sections[activeSection]?.id;
     if (!id) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set('section', id);
-    window.history.replaceState(null, '', url.toString());
-  }, [activeSection, sections]);
+    const timer = setTimeout(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('section', id);
+      url.searchParams.set('z', zoom.toFixed(1));
+      url.searchParams.set('y', latitude.toFixed(1));
+      url.searchParams.set('x', longitude.toFixed(1));
+      url.searchParams.set('h3', String(h3Res));
+      window.history.replaceState(null, '', url.toString());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [activeSection, sections, zoom, latitude, longitude, h3Res]);
 
   /** Promise cache keyed by "sectionIdx:h3Res". */
   const cacheRef = useRef<
@@ -512,6 +536,8 @@ export function GlobeExplorer({
       bounds: [number, number, number, number] | null;
     }) => {
       setZoom(state.zoom);
+      setLongitude(state.longitude);
+      setLatitude(state.latitude);
       setViewportBounds(state.bounds);
     },
     []
@@ -544,6 +570,11 @@ export function GlobeExplorer({
         layerOpacity={singleLS.opacity}
         layerVisible={singleLS.visible}
         baseControls={baseControls}
+        initialViewStateOverride={
+          initialZoom != null && initialLat != null && initialLng != null
+            ? { zoom: initialZoom, latitude: initialLat, longitude: initialLng }
+            : undefined
+        }
       />
 
       {!embed && (
@@ -576,6 +607,7 @@ export function GlobeExplorer({
                 timestamps={timestamps}
                 selectedIndex={timeStepIndex}
                 onChange={setTimeStepIndex}
+                autoPlay={!isLoading}
               />
             ) : undefined
           }
@@ -762,6 +794,7 @@ export function GlobeExplorer({
             selectedIndex={timeStepIndex}
             onChange={setTimeStepIndex}
             isLoading={isLoading}
+            autoPlay={!isLoading}
           />
 
           {/* Desktop-only floating SQL panel */}

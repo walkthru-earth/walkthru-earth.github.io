@@ -90,7 +90,7 @@ function NavArrow({
   );
 }
 
-/* ── Shared content ───────────────────────────────────────────────── */
+/* ── Desktop content (full — unchanged) ──────────────────────────── */
 
 function SectionContent({
   section,
@@ -255,14 +255,17 @@ function useIsMobile() {
  */
 function useDrawerGestures(
   onSwipe?: (direction: -1 | 1) => void,
-  onClose?: () => void
+  onClose?: () => void,
+  onOpen?: () => void
 ) {
   const onSwipeRef = useRef(onSwipe);
   const onCloseRef = useRef(onClose);
+  const onOpenRef = useRef(onOpen);
   useEffect(() => {
     onSwipeRef.current = onSwipe;
     onCloseRef.current = onClose;
-  }, [onSwipe, onClose]);
+    onOpenRef.current = onOpen;
+  }, [onSwipe, onClose, onOpen]);
 
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -302,15 +305,22 @@ function useDrawerGestures(
         }
       }
 
-      if (locked === 'v' && dy > 0) {
-        // Swiping down — block pull-to-refresh when at top
-        const atTop = el.scrollTop <= 0;
-        if (atTop) {
-          e.preventDefault();
-          if (dy > 80) {
-            fired = true;
-            onCloseRef.current?.();
+      if (locked === 'v') {
+        if (dy > 0) {
+          // Swiping down — close drawer (when scrolled to top)
+          const atTop = el.scrollTop <= 0;
+          if (atTop) {
+            e.preventDefault();
+            if (dy > 80) {
+              fired = true;
+              onCloseRef.current?.();
+            }
           }
+        } else if (dy < -60) {
+          // Swiping up — open drawer
+          e.preventDefault();
+          fired = true;
+          onOpenRef.current?.();
         }
       }
     };
@@ -329,9 +339,188 @@ function useDrawerGestures(
   return attachGestures;
 }
 
+/* ── Mobile drawer content (compact with expandable details) ──── */
+
+function MobileDrawerContent({
+  section,
+  resolvedDescription,
+  sectionIndex,
+  totalSections,
+  onSwipe,
+  queryPanel,
+  isLoading,
+  rowCount,
+}: ScrollSectionProps) {
+  const [expanded, setExpanded] = useState(false);
+  const description = resolvedDescription ?? section.description;
+
+  return (
+    <>
+      {/* Always visible: dots + title row + color legend + nav */}
+      <div
+        className="mb-2"
+        role="progressbar"
+        aria-valuenow={sectionIndex + 1}
+        aria-valuemin={1}
+        aria-valuemax={totalSections}
+      >
+        <SectionDots current={sectionIndex} total={totalSections} />
+      </div>
+
+      {section.subtitle && (
+        <p className="text-success mb-0.5 font-mono text-xs font-medium tracking-wider uppercase">
+          {section.subtitle}
+        </p>
+      )}
+
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="text-foreground min-w-0 flex-1 truncate text-lg leading-tight font-bold">
+          {section.title}
+        </h2>
+        {isLoading && (
+          <div className="flex flex-shrink-0 items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="bg-success absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
+              <span className="bg-success relative inline-flex h-2 w-2 rounded-full" />
+            </span>
+            {rowCount !== undefined && rowCount > 0 && (
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {rowCount.toLocaleString()}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {section.colorLegend.length > 0 && (
+        <div className="mb-2">
+          <div
+            className="h-1.5 w-full rounded-full"
+            role="img"
+            aria-label={`Color scale from ${section.colorLegend[0].label} to ${section.colorLegend[section.colorLegend.length - 1].label}`}
+            style={{
+              background: `linear-gradient(to right, ${section.colorLegend.map((l) => l.color).join(', ')})`,
+            }}
+          />
+          <div className="mt-0.5 flex justify-between">
+            {section.colorLegend.map((l, i) => (
+              <span
+                key={i}
+                className="text-muted-foreground text-xs font-medium"
+              >
+                {l.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Nav row */}
+      <div className="flex items-center justify-between">
+        <NavArrow
+          direction={-1}
+          disabled={sectionIndex === 0}
+          onClick={() => onSwipe?.(-1)}
+          size="sm"
+        />
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-muted-foreground flex items-center gap-1 text-xs font-medium"
+        >
+          {expanded ? 'Less' : 'More'}
+          <svg
+            className={`h-3 w-3 transition-transform ${expanded ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+        <NavArrow
+          direction={1}
+          disabled={sectionIndex === totalSections - 1}
+          onClick={() => onSwipe?.(1)}
+          size="sm"
+        />
+      </div>
+
+      {/* Expandable details */}
+      {expanded && (
+        <div className="border-border/30 mt-2 border-t pt-2">
+          <p className="text-muted-foreground mb-2 text-sm leading-relaxed">
+            {description}
+          </p>
+
+          {section.stat.value && (
+            <div className="mb-2 flex items-baseline gap-2">
+              <span className="text-foreground text-xl font-extrabold">
+                {section.stat.value}
+              </span>
+              <span className="text-muted-foreground text-xs font-medium">
+                {section.stat.label}
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <a
+              href={section.sourceCoopUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-border/50 bg-muted hover:bg-accent flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+            >
+              <Image
+                src="/source-coop-logo.png"
+                alt="Source Cooperative"
+                width={12}
+                height={12}
+                className="rounded-sm"
+              />
+              <span className="text-foreground">Data</span>
+            </a>
+            <a
+              href={section.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-border/50 bg-muted hover:bg-accent flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+            >
+              <svg
+                className="text-foreground h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+              </svg>
+              <svg
+                className="text-warning h-3 w-3"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <span className="text-foreground">Star</span>
+            </a>
+          </div>
+
+          {queryPanel && <div className="mt-2">{queryPanel}</div>}
+        </div>
+      )}
+    </>
+  );
+}
+
 function MobileDrawer(props: ScrollSectionProps) {
   const isMobile = useIsMobile();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const { section, sectionIndex, totalSections, isLoading, rowCount, onSwipe } =
     props;
 
@@ -342,10 +531,11 @@ function MobileDrawer(props: ScrollSectionProps) {
     return () => window.removeEventListener('globe:tap', handler);
   }, []);
 
-  // Gestures: horizontal swipe → navigate, swipe down → close drawer
+  // Gestures: horizontal swipe → navigate, vertical → open/close drawer
   const closeDrawer = useCallback(() => setOpen(false), []);
+  const openDrawer = useCallback(() => setOpen(true), []);
   const attachDrawerGestures = useDrawerGestures(onSwipe, closeDrawer);
-  const attachBarGestures = useDrawerGestures(onSwipe);
+  const attachBarGestures = useDrawerGestures(onSwipe, undefined, openDrawer);
 
   if (!isMobile) return null;
 
@@ -368,6 +558,7 @@ function MobileDrawer(props: ScrollSectionProps) {
               direction={-1}
               disabled={sectionIndex === 0}
               onClick={() => onSwipe?.(-1)}
+              size="sm"
             />
 
             <button
@@ -391,7 +582,7 @@ function MobileDrawer(props: ScrollSectionProps) {
                   {section.title}
                 </span>
                 {isLoading && rowCount !== undefined && rowCount > 0 && (
-                  <span className="text-warning flex-shrink-0 animate-pulse text-sm">
+                  <span className="text-warning flex-shrink-0 animate-pulse text-xs tabular-nums">
                     {rowCount.toLocaleString()}
                   </span>
                 )}
@@ -415,6 +606,7 @@ function MobileDrawer(props: ScrollSectionProps) {
               direction={1}
               disabled={sectionIndex === totalSections - 1}
               onClick={() => onSwipe?.(1)}
+              size="sm"
             />
           </div>
         </div>
@@ -426,16 +618,16 @@ function MobileDrawer(props: ScrollSectionProps) {
         shouldScaleBackground={false}
         modal={false}
       >
-        <DrawerContent className="border-border/50 bg-background/90 max-h-[70vh] backdrop-blur-xl">
+        <DrawerContent className="border-border/50 bg-background/95 max-h-[45vh] backdrop-blur-xl">
           <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
           <div
             ref={attachDrawerGestures}
-            className="overflow-y-auto px-4 pt-1 pb-6"
+            className="overflow-y-auto px-4 pt-1 pb-4"
             style={{
-              paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+              paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
             }}
           >
-            <SectionContent {...props} />
+            <MobileDrawerContent {...props} />
           </div>
         </DrawerContent>
       </Drawer>

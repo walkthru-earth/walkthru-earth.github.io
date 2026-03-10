@@ -123,6 +123,12 @@ interface GlobeMapProps {
   layerVisible?: boolean;
   /** Base layer controls — visibility & opacity for land/borders. */
   baseControls?: Record<string, { visible: boolean; opacity: number }>;
+  /** One-time viewport override from URL params — used only on first render. */
+  initialViewStateOverride?: {
+    zoom: number;
+    latitude: number;
+    longitude: number;
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -144,9 +150,10 @@ export const GlobeMap = memo(function GlobeMap({
   onTap,
   userLocation,
   onUserPinScreen,
-  layerOpacity = 0.85,
+  layerOpacity = 0.95,
   layerVisible = true,
   baseControls,
+  initialViewStateOverride,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
@@ -276,8 +283,19 @@ export const GlobeMap = memo(function GlobeMap({
     }
   }, []);
 
-  // deck.gl manages internal state — animates to new position on change
+  // deck.gl manages internal state — animates to new position on change.
+  // On first render, use URL override (no transition); afterwards fly-to.
+  // Render-time state adjustment (same pattern as GlobeExplorer section resets).
+  const [usedOverride, setUsedOverride] = useState(false);
   const initialViewState = useMemo(() => {
+    if (!usedOverride && initialViewStateOverride) {
+      return {
+        longitude: initialViewStateOverride.longitude,
+        latitude: initialViewStateOverride.latitude,
+        zoom: initialViewStateOverride.zoom,
+        transitionDuration: 0,
+      };
+    }
     return {
       longitude: targetViewState.longitude,
       latitude: targetViewState.latitude,
@@ -289,7 +307,13 @@ export const GlobeMap = memo(function GlobeMap({
     targetViewState.longitude,
     targetViewState.latitude,
     targetViewState.zoom,
+    initialViewStateOverride,
+    usedOverride,
   ]);
+  // Mark override as consumed after first render
+  if (!usedOverride && initialViewStateOverride) {
+    setUsedOverride(true);
+  }
 
   const effects = useMemo(
     () => [
@@ -323,12 +347,14 @@ export const GlobeMap = memo(function GlobeMap({
 
       // 2. Blue Marble satellite texture (initially hidden, toggled via LayerPanel)
       // BitmapLayer maps directly to lat/lng — correct projection, unaffected by lighting.
+      // Stacking order via polygonOffset: satellite (back) → land → borders → H3 (front)
       new BitmapLayer({
         id: BASE_SATELLITE_ID,
         image: EARTH_TEXTURE,
         bounds: [-180, -90, 180, 90] as [number, number, number, number],
         visible: baseControls?.[BASE_SATELLITE_ID]?.visible ?? false,
         opacity: baseControls?.[BASE_SATELLITE_ID]?.opacity ?? 0.8,
+        parameters: { depthTest: true, polygonOffset: [30, 30] },
       }),
 
       // 3. Land masses
@@ -341,6 +367,7 @@ export const GlobeMap = memo(function GlobeMap({
         filled: true,
         opacity: baseControls?.[BASE_LAND_ID]?.opacity ?? palette.landOpacity,
         getFillColor: palette.land,
+        parameters: { depthTest: true, polygonOffset: [20, 20] },
       }),
 
       // 4. Country borders
@@ -354,6 +381,7 @@ export const GlobeMap = memo(function GlobeMap({
         lineWidthMinPixels: 0.5,
         opacity: baseControls?.[BASE_BORDERS_ID]?.opacity ?? 1,
         getLineColor: palette.borders,
+        parameters: { depthTest: true, polygonOffset: [10, 10] },
       }),
     ];
 

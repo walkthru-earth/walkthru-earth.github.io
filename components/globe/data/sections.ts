@@ -331,7 +331,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
    * Section 4: Buildings + Population — Nile Delta / Cairo (zoom ~4)
    * ──────────────────────────────────────────────────────────────── */
   {
-    id: 'buildings-nile',
+    id: 'urban-density',
     title: 'Urban Density',
     subtitle: 'Nile Delta · Cairo',
     description:
@@ -483,7 +483,7 @@ FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
    * Section 6: Buildings — Tokyo (zoom ~4, building height)
    * ──────────────────────────────────────────────────────────────── */
   {
-    id: 'buildings-tokyo',
+    id: 'building-density',
     title: 'Building Density',
     subtitle: 'Tokyo · East Asia',
     description:

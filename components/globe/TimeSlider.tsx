@@ -7,6 +7,8 @@ interface TimeSliderProps {
   selectedIndex: number;
   onChange: (index: number) => void;
   isLoading: boolean;
+  /** Start playing automatically once timestamps are available. */
+  autoPlay?: boolean;
 }
 
 function formatTimestamp(ms: number): string {
@@ -57,11 +59,13 @@ function usePlayback(
   length: number,
   selectedIndex: number,
   onChange: (index: number) => void,
-  intervalMs = 800
+  intervalMs = 800,
+  autoPlay = false
 ) {
   const [playing, setPlaying] = useState(false);
   const indexRef = useRef(selectedIndex);
   const lengthRef = useRef(length);
+  const autoPlayedRef = useRef(false);
   useEffect(() => {
     indexRef.current = selectedIndex;
   }, [selectedIndex]);
@@ -70,6 +74,14 @@ function usePlayback(
   useEffect(() => {
     lengthRef.current = length;
   }, [length]);
+
+  // Auto-play once when timestamps become available
+  useEffect(() => {
+    if (autoPlay && length > 1 && !autoPlayedRef.current) {
+      autoPlayedRef.current = true;
+      queueMicrotask(() => setPlaying(true));
+    }
+  }, [autoPlay, length]);
 
   useEffect(() => {
     if (!playing || length <= 1) return;
@@ -104,11 +116,14 @@ export const TimeSlider = memo(function TimeSlider({
   selectedIndex,
   onChange,
   isLoading,
+  autoPlay,
 }: TimeSliderProps) {
   const { playing, toggle } = usePlayback(
     timestamps.length,
     selectedIndex,
-    onChange
+    onChange,
+    800,
+    autoPlay
   );
 
   if (timestamps.length <= 1) return null;
@@ -165,11 +180,14 @@ export const MobileTimeControls = memo(function MobileTimeControls({
   timestamps,
   selectedIndex,
   onChange,
+  autoPlay,
 }: Omit<TimeSliderProps, 'isLoading'>) {
   const { playing, toggle } = usePlayback(
     timestamps.length,
     selectedIndex,
-    onChange
+    onChange,
+    800,
+    autoPlay
   );
 
   if (timestamps.length <= 1) return null;
