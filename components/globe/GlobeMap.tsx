@@ -87,7 +87,7 @@ interface GlobeMapProps {
   getFillColor: (
     d: Record<string, unknown>,
     range: ColorRange
-  ) => [number, number, number, number];
+  ) => Uint8Array | [number, number, number, number];
   getElevation?: (d: Record<string, unknown>) => number;
   formatTooltip?: (d: Record<string, unknown>) => string | null;
   extruded: boolean;
@@ -352,10 +352,8 @@ export const GlobeMap = memo(function GlobeMap({
           extruded,
           elevationScale,
           getHexagon: getHexagon as (d: unknown) => string,
-          getFillColor: ((d: unknown) =>
-            getFillColor(d as Record<string, unknown>, colorRange)) as (
-            d: unknown
-          ) => [number, number, number, number],
+          getFillColor: (d: unknown) =>
+            getFillColor(d as Record<string, unknown>, colorRange),
           getElevation:
             (getElevation as ((d: unknown) => number) | undefined) ?? (() => 0),
           opacity: layerOpacity,

@@ -45,7 +45,7 @@ export interface GlobeSection {
   getFillColor: (
     d: Record<string, unknown>,
     range: ColorRange
-  ) => [number, number, number, number];
+  ) => Uint8Array | [number, number, number, number];
   getElevation?: (d: Record<string, unknown>) => number;
   formatTooltip?: (d: Record<string, unknown>) => string | null;
   extruded: boolean;

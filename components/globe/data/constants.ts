@@ -36,19 +36,50 @@ export const BASE_BORDERS_ID = 'base-borders';
 
 /* ── Shared helpers ───────────────────────────────────────────────── */
 
-/** Compute 5th–95th percentile range for a numeric column. */
+/**
+ * In-place quickselect — rearranges `arr` so that `arr[k]` holds the
+ * value that would be at index `k` in a fully sorted array.  O(n) average.
+ */
+function quickselect(arr: number[], k: number): number {
+  let lo = 0;
+  let hi = arr.length - 1;
+  while (lo < hi) {
+    const pivot = arr[(lo + hi) >> 1];
+    let i = lo;
+    let j = hi;
+    while (i <= j) {
+      while (arr[i] < pivot) i++;
+      while (arr[j] > pivot) j--;
+      if (i <= j) {
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+        i++;
+        j--;
+      }
+    }
+    if (j < k) lo = i;
+    if (i > k) hi = j;
+  }
+  return arr[k];
+}
+
+/** Compute 5th–95th percentile range for a numeric column.  O(n) via quickselect. */
 export function computeRange(
   rows: Record<string, unknown>[],
   column: string
 ): ColorRange {
   if (!column || rows.length === 0) return { min: 0, max: 1 };
-  const values = rows
-    .map((r) => Number(r[column]))
-    .filter(Number.isFinite)
-    .sort((a, b) => a - b);
+  const values: number[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const v = Number(rows[i][column]);
+    if (Number.isFinite(v)) values.push(v);
+  }
   if (values.length === 0) return { min: 0, max: 1 };
+  const lo = Math.floor(values.length * 0.05);
+  const hi = Math.floor(values.length * 0.95);
   return {
-    min: values[Math.floor(values.length * 0.05)] ?? 0,
-    max: values[Math.floor(values.length * 0.95)] ?? 1,
+    min: quickselect(values, lo),
+    max: quickselect(values, hi),
   };
 }

@@ -1,21 +1,34 @@
-/** Interpolate between color stops based on a normalized value [0, 1]. */
+/**
+ * Interpolate between color stops based on a normalized value [0, 1].
+ *
+ * Returns a reusable Uint8Array(4) — deck.gl accepts typed arrays for
+ * color accessors and this avoids allocating a new tuple per hexagon.
+ * Callers must NOT retain a reference to the returned buffer.
+ */
+const _rgba = new Uint8Array(4);
+
 export function interpolateColor(
   t: number,
   stops: [number, number, number][]
-): [number, number, number, number] {
+): Uint8Array {
   const clamped = Math.max(0, Math.min(1, t));
-  if (stops.length === 1) return [...stops[0], 220];
+  if (stops.length === 1) {
+    _rgba[0] = stops[0][0];
+    _rgba[1] = stops[0][1];
+    _rgba[2] = stops[0][2];
+    _rgba[3] = 220;
+    return _rgba;
+  }
   const segCount = stops.length - 1;
   const segIndex = Math.min(Math.floor(clamped * segCount), segCount - 1);
   const segT = clamped * segCount - segIndex;
   const a = stops[segIndex];
   const b = stops[segIndex + 1];
-  return [
-    Math.round(a[0] + (b[0] - a[0]) * segT),
-    Math.round(a[1] + (b[1] - a[1]) * segT),
-    Math.round(a[2] + (b[2] - a[2]) * segT),
-    220,
-  ];
+  _rgba[0] = a[0] + (b[0] - a[0]) * segT;
+  _rgba[1] = a[1] + (b[1] - a[1]) * segT;
+  _rgba[2] = a[2] + (b[2] - a[2]) * segT;
+  _rgba[3] = 220;
+  return _rgba;
 }
 
 /** Normalize a value to [0, 1] given min/max bounds. */
