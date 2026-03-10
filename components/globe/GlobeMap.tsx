@@ -47,12 +47,26 @@ const SPHERE_MESH = new SphereGeometry({
   nlong: 36,
 });
 
-/** Higher-resolution sphere for the Blue Marble satellite texture */
-const SPHERE_MESH_HI = new SphereGeometry({
-  radius: EARTH_RADIUS_METERS,
-  nlat: 36,
-  nlong: 72,
-});
+/**
+ * Higher-resolution sphere for the Blue Marble satellite texture.
+ * Flips UV horizontally so the texture isn't mirrored — luma.gl's
+ * SphereGeometry uses u=x/nlong which maps east-west reversed
+ * relative to deck.gl's GlobeView coordinate system.
+ */
+const SPHERE_MESH_HI = (() => {
+  const geo = new SphereGeometry({
+    radius: EARTH_RADIUS_METERS,
+    nlat: 36,
+    nlong: 72,
+  });
+  const uv = geo.attributes.TEXCOORD_0?.value;
+  if (uv instanceof Float32Array) {
+    for (let i = 0; i < uv.length; i += 2) {
+      uv[i] = 1 - uv[i]; // flip U
+    }
+  }
+  return geo;
+})();
 
 /** Base height of the user location beam in meters — overridden when extruded layers are tall */
 const USER_PIN_HEIGHT_BASE = 1_200_000;
