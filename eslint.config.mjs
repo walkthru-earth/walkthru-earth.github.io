@@ -16,6 +16,20 @@ export default [
   // TypeScript configuration
   ...tseslint.configs.recommended,
 
+  // Node.js config files — allow `process` and other Node globals
+  {
+    files: ['*.config.{js,mjs,cjs,ts}', '*.config.*.{js,mjs,cjs,ts}'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        module: 'readonly',
+        require: 'readonly',
+      },
+    },
+  },
+
   // React and Next.js configuration
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
