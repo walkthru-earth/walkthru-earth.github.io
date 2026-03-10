@@ -11,7 +11,12 @@ import {
   LinearInterpolator,
   type PickingInfo,
 } from '@deck.gl/core';
-import { GeoJsonLayer, ColumnLayer, ScatterplotLayer } from '@deck.gl/layers';
+import {
+  BitmapLayer,
+  GeoJsonLayer,
+  ColumnLayer,
+  ScatterplotLayer,
+} from '@deck.gl/layers';
 import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import { SphereGeometry } from '@luma.gl/engine';
 import { H3HexagonLayer } from '@deck.gl/geo-layers';
@@ -46,27 +51,6 @@ const SPHERE_MESH = new SphereGeometry({
   nlat: 18,
   nlong: 36,
 });
-
-/**
- * Higher-resolution sphere for the Blue Marble satellite texture.
- * Flips UV horizontally so the texture isn't mirrored — luma.gl's
- * SphereGeometry uses u=x/nlong which maps east-west reversed
- * relative to deck.gl's GlobeView coordinate system.
- */
-const SPHERE_MESH_HI = (() => {
-  const geo = new SphereGeometry({
-    radius: EARTH_RADIUS_METERS,
-    nlat: 36,
-    nlong: 72,
-  });
-  const uv = geo.attributes.TEXCOORD_0?.value;
-  if (uv instanceof Float32Array) {
-    for (let i = 0; i < uv.length; i += 2) {
-      uv[i] = 1 - uv[i]; // flip U
-    }
-  }
-  return geo;
-})();
 
 /** Base height of the user location beam in meters — overridden when extruded layers are tall */
 const USER_PIN_HEIGHT_BASE = 1_200_000;
@@ -338,14 +322,11 @@ export const GlobeMap = memo(function GlobeMap({
       }),
 
       // 2. Blue Marble satellite texture (initially hidden, toggled via LayerPanel)
-      new SimpleMeshLayer({
+      // BitmapLayer maps directly to lat/lng — correct projection, unaffected by lighting.
+      new BitmapLayer({
         id: BASE_SATELLITE_ID,
-        data: [0],
-        mesh: SPHERE_MESH_HI,
-        texture: EARTH_TEXTURE,
-        coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-        getPosition: () => [0, 0, 0],
-        getColor: [255, 255, 255],
+        image: EARTH_TEXTURE,
+        bounds: [-180, -90, 180, 90] as [number, number, number, number],
         visible: baseControls?.[BASE_SATELLITE_ID]?.visible ?? false,
         opacity: baseControls?.[BASE_SATELLITE_ID]?.opacity ?? 0.8,
       }),
