@@ -284,11 +284,12 @@ export const GlobeMap = memo(function GlobeMap({
   }, []);
 
   // deck.gl manages internal state — animates to new position on change.
-  // On first render, use URL override (no transition); afterwards fly-to.
-  // Render-time state adjustment (same pattern as GlobeExplorer section resets).
-  const [usedOverride, setUsedOverride] = useState(false);
+  // On first render, use URL override (no transition); afterwards fly-to
+  // only when targetViewState actually changes (i.e. section switch).
+  const usedOverrideRef = useRef(false);
   const initialViewState = useMemo(() => {
-    if (!usedOverride && initialViewStateOverride) {
+    if (!usedOverrideRef.current && initialViewStateOverride) {
+      usedOverrideRef.current = true;
       return {
         longitude: initialViewStateOverride.longitude,
         latitude: initialViewStateOverride.latitude,
@@ -303,17 +304,12 @@ export const GlobeMap = memo(function GlobeMap({
       transitionDuration: 1500,
       transitionInterpolator: TRANSITION_INTERPOLATOR,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     targetViewState.longitude,
     targetViewState.latitude,
     targetViewState.zoom,
-    initialViewStateOverride,
-    usedOverride,
   ]);
-  // Mark override as consumed after first render
-  if (!usedOverride && initialViewStateOverride) {
-    setUsedOverride(true);
-  }
 
   const effects = useMemo(
     () => [
@@ -531,22 +527,41 @@ export const GlobeMap = memo(function GlobeMap({
   );
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
-  const handleTooltip = useMemo(() => {
-    return ({ object }: PickingInfo) => {
-      if (!object) return null;
-      const d = object as Record<string, unknown>;
-      if (formatTooltip) return formatTooltip(d);
-      return d.h3_index ? `H3: ${d.h3_index}` : null;
-    };
-  }, [formatTooltip]);
+  // ── Custom reactive tooltip ──
+  // deck.gl's getTooltip only fires on pointer-move. During timeseries
+  // playback the data changes under a stationary cursor, so we track
+  // the hovered H3 index + screen position and derive tooltip text from
+  // the current layerData reactively.
+  const [hoverInfo, setHoverInfo] = useState<{
+    h3: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
-  // Detect whether cursor is over the globe surface (any layer picked = on globe)
   const handleHover = useCallback(
     (info: PickingInfo) => {
       onCursorOverGlobe?.(info.coordinate != null);
+      if (info.object) {
+        const d = info.object as Record<string, unknown>;
+        const h3 = getHexagon(d);
+        if (h3) {
+          setHoverInfo({ h3, x: info.x, y: info.y });
+          return;
+        }
+      }
+      setHoverInfo(null);
     },
-    [onCursorOverGlobe]
+    [onCursorOverGlobe, getHexagon]
   );
+
+  // Re-derive tooltip from current layerData whenever data or hover changes
+  const tooltipText = useMemo(() => {
+    if (!hoverInfo) return null;
+    const row = layerData.find((r) => getHexagon(r) === hoverInfo.h3);
+    if (!row) return null;
+    if (formatTooltip) return formatTooltip(row);
+    return `H3: ${hoverInfo.h3}`;
+  }, [hoverInfo, layerData, getHexagon, formatTooltip]);
 
   return (
     <div
@@ -576,9 +591,20 @@ export const GlobeMap = memo(function GlobeMap({
         layers={layers}
         onHover={handleHover}
         onAfterRender={handleAfterRender}
-        getTooltip={handleTooltip}
         style={{ width: '100%', height: '100%' }}
       />
+      {tooltipText && hoverInfo && (
+        <div
+          className="border-border bg-popover text-popover-foreground pointer-events-none absolute z-50 max-w-xs rounded border px-2.5 py-2.5 whitespace-pre-line shadow-lg backdrop-blur-sm"
+          style={{
+            left: hoverInfo.x + 12,
+            top: hoverInfo.y,
+            transform: 'translateY(-50%)',
+          }}
+        >
+          {tooltipText}
+        </div>
+      )}
     </div>
   );
 });
