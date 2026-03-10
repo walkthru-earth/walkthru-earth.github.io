@@ -31,6 +31,7 @@ export interface ColorRange {
 
 /* ── Base layer IDs (used in the unified layer-state dict) ───────── */
 
+export const BASE_SATELLITE_ID = 'base-satellite';
 export const BASE_LAND_ID = 'base-land';
 export const BASE_BORDERS_ID = 'base-borders';
 

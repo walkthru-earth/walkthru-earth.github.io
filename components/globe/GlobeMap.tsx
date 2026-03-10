@@ -16,7 +16,11 @@ import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import { SphereGeometry } from '@luma.gl/engine';
 import { H3HexagonLayer } from '@deck.gl/geo-layers';
 import type { ViewState, ColorRange } from './data/sections';
-import { BASE_LAND_ID, BASE_BORDERS_ID } from './data/constants';
+import {
+  BASE_SATELLITE_ID,
+  BASE_LAND_ID,
+  BASE_BORDERS_ID,
+} from './data/constants';
 import type { UserLocation } from './hooks/useUserLocation';
 
 /* ------------------------------------------------------------------ */
@@ -24,6 +28,7 @@ import type { UserLocation } from './hooks/useUserLocation';
 /* ------------------------------------------------------------------ */
 
 const EARTH_RADIUS_METERS = 6.3e6;
+const EARTH_TEXTURE = '/textures/earth-blue-marble.jpg';
 const LAND_GEOJSON = '/geo/ne_50m_land.geojson';
 const COUNTRY_BORDERS = '/geo/ne_50m_admin_0_boundary_lines_land.geojson';
 
@@ -40,6 +45,13 @@ const SPHERE_MESH = new SphereGeometry({
   radius: EARTH_RADIUS_METERS,
   nlat: 18,
   nlong: 36,
+});
+
+/** Higher-resolution sphere for the Blue Marble satellite texture */
+const SPHERE_MESH_HI = new SphereGeometry({
+  radius: EARTH_RADIUS_METERS,
+  nlat: 36,
+  nlong: 72,
 });
 
 /** Base height of the user location beam in meters — overridden when extruded layers are tall */
@@ -311,7 +323,20 @@ export const GlobeMap = memo(function GlobeMap({
         pickable: true,
       }),
 
-      // 2. Land masses
+      // 2. Blue Marble satellite texture (initially hidden, toggled via LayerPanel)
+      new SimpleMeshLayer({
+        id: BASE_SATELLITE_ID,
+        data: [0],
+        mesh: SPHERE_MESH_HI,
+        texture: EARTH_TEXTURE,
+        coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+        getPosition: () => [0, 0, 0],
+        getColor: [255, 255, 255],
+        visible: baseControls?.[BASE_SATELLITE_ID]?.visible ?? false,
+        opacity: baseControls?.[BASE_SATELLITE_ID]?.opacity ?? 0.8,
+      }),
+
+      // 3. Land masses
       new GeoJsonLayer({
         id: 'earth-land',
         data: LAND_GEOJSON,
@@ -323,7 +348,7 @@ export const GlobeMap = memo(function GlobeMap({
         getFillColor: palette.land,
       }),
 
-      // 3. Country borders
+      // 4. Country borders
       new GeoJsonLayer({
         id: 'country-borders',
         data: COUNTRY_BORDERS,
@@ -337,7 +362,7 @@ export const GlobeMap = memo(function GlobeMap({
       }),
     ];
 
-    // 4. H3 data layer
+    // 5. H3 data layer
     console.log(
       `[Globe:Map] baseLayers rebuild: layerData=${layerData.length} visible=${layerVisible} opacity=${layerOpacity} extruded=${extruded}`
     );

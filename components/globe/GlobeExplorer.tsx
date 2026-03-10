@@ -32,7 +32,12 @@ import {
   type ColorRange,
   type ParquetInfo,
 } from './data/sections';
-import { BASE_LAND_ID, BASE_BORDERS_ID, computeRange } from './data/constants';
+import {
+  BASE_SATELLITE_ID,
+  BASE_LAND_ID,
+  BASE_BORDERS_ID,
+  computeRange,
+} from './data/constants';
 import { useUserLocation } from './hooks/useUserLocation';
 import { UserLocationCard } from './UserLocationCard';
 import { LayerPanel, type LayerControl } from './LayerPanel';
@@ -396,6 +401,7 @@ export function GlobeExplorer({
   // ── Base layer controls for GlobeMap ──
   const baseControls = useMemo(
     () => ({
+      [BASE_SATELLITE_ID]: layerState[BASE_SATELLITE_ID] ?? DEFAULT_BASE,
       [BASE_LAND_ID]: layerState[BASE_LAND_ID] ?? DEFAULT_BASE,
       [BASE_BORDERS_ID]: layerState[BASE_BORDERS_ID] ?? DEFAULT_BASE,
     }),
@@ -418,6 +424,15 @@ export function GlobeExplorer({
     ];
 
     // Base layers (initially hidden)
+    const satellite = layerState[BASE_SATELLITE_ID] ?? DEFAULT_BASE;
+    entries.push({
+      id: BASE_SATELLITE_ID,
+      label: 'Satellite',
+      color: 'rgb(60,100,160)',
+      visible: satellite.visible,
+      opacity: satellite.opacity,
+      rowCount: 0,
+    });
     const land = layerState[BASE_LAND_ID] ?? DEFAULT_BASE;
     entries.push({
       id: BASE_LAND_ID,
