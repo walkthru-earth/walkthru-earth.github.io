@@ -51,6 +51,9 @@ export function useUserLocation() {
         const lat = parseFloat(data.latitude);
         const lng = parseFloat(data.longitude);
         if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          console.log(
+            `[UserLocation] IP geolocation: ${lat}, ${lng} (${data.city}, ${data.country})`
+          );
           setLocation({
             latitude: lat,
             longitude: lng,

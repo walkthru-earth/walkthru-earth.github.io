@@ -532,11 +532,12 @@ export const GlobeMap = memo(function GlobeMap({
   // playback the data changes under a stationary cursor, so we track
   // the hovered H3 index + screen position and derive tooltip text from
   // the current layerData reactively.
-  const [hoverInfo, setHoverInfo] = useState<{
-    h3: string;
-    x: number;
-    y: number;
-  } | null>(null);
+  //
+  // We use a ref + forceUpdate to avoid re-render loops: the 60fps
+  // pulseTick loop reconstructs layers, which can re-trigger onHover —
+  // using setState here would create an infinite render cascade.
+  const hoverRef = useRef<{ h3: string; x: number; y: number } | null>(null);
+  const [, forceTooltip] = useState(0);
 
   const handleHover = useCallback(
     (info: PickingInfo) => {
@@ -545,16 +546,29 @@ export const GlobeMap = memo(function GlobeMap({
         const d = info.object as Record<string, unknown>;
         const h3 = getHexagon(d);
         if (h3) {
-          setHoverInfo({ h3, x: info.x, y: info.y });
+          const prev = hoverRef.current;
+          if (
+            !prev ||
+            prev.h3 !== h3 ||
+            prev.x !== info.x ||
+            prev.y !== info.y
+          ) {
+            hoverRef.current = { h3, x: info.x, y: info.y };
+            forceTooltip((n) => n + 1);
+          }
           return;
         }
       }
-      setHoverInfo(null);
+      if (hoverRef.current) {
+        hoverRef.current = null;
+        forceTooltip((n) => n + 1);
+      }
     },
     [onCursorOverGlobe, getHexagon]
   );
 
   // Re-derive tooltip from current layerData whenever data or hover changes
+  const hoverInfo = hoverRef.current;
   const tooltipText = useMemo(() => {
     if (!hoverInfo) return null;
     const row = layerData.find((r) => getHexagon(r) === hoverInfo.h3);

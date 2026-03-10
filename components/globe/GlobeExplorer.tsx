@@ -561,6 +561,15 @@ export function GlobeExplorer({
     return currentSection.description;
   }, [isLoading, currentSection, allRows]);
 
+  // Stable reference — avoids breaking GlobeMap's memo on every render.
+  const memoizedViewOverride = useMemo(
+    () =>
+      initialZoom != null && initialLat != null && initialLng != null
+        ? { zoom: initialZoom, latitude: initialLat, longitude: initialLng }
+        : undefined,
+    [initialZoom, initialLat, initialLng]
+  );
+
   return (
     <div ref={containerRef} className="relative h-dvh w-full overflow-hidden">
       <GlobeMap
@@ -581,11 +590,7 @@ export function GlobeExplorer({
         layerOpacity={singleLS.opacity}
         layerVisible={singleLS.visible}
         baseControls={baseControls}
-        initialViewStateOverride={
-          initialZoom != null && initialLat != null && initialLng != null
-            ? { zoom: initialZoom, latitude: initialLat, longitude: initialLng }
-            : undefined
-        }
+        initialViewStateOverride={memoizedViewOverride}
       />
 
       {!embed && (
