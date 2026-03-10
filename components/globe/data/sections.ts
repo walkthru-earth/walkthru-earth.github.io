@@ -181,7 +181,7 @@ export const SECTIONS: GlobeSection[] = [
           'wind_speed_10m_ms',
           'pressure_msl_hPa',
         ],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, temperature_2m_C,
@@ -210,7 +210,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
     defaultH3Res: 1,
-    h3ResRange: [1, 4],
+    h3ResRange: [0, 5],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -240,7 +240,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
           'wind_direction_10m_deg',
           'temperature_2m_C',
         ],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, wind_speed_10m_ms,
@@ -269,7 +269,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
     defaultH3Res: 1,
-    h3ResRange: [1, 4],
+    h3ResRange: [0, 5],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -294,7 +294,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
       loadParquet(
         `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
         ['h3_index', 'elev', 'slope', 'aspect', 'tri'],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, elev, slope, aspect, tri
@@ -324,7 +324,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/dem-terrain',
     githubUrl: 'https://github.com/walkthru-earth/dem-terrain',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [1, 10],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -355,11 +355,13 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
             'building_density',
             'avg_height_m',
             'total_volume_m3',
-          ]
+          ],
+          ctx.h3Ranges
         ),
         loadParquet(
           `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'pop_2025', 'pop_2050']
+          ['h3_index', 'pop_2025', 'pop_2050'],
+          ctx.h3Ranges
         ),
       ]);
       const popMap = new Map(pResult.rows.map((p) => [String(p.h3_index), p]));
@@ -406,7 +408,7 @@ JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/building',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [3, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -431,7 +433,8 @@ JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
     loadData: async (ctx, _onProgress) => {
       const result = await loadParquet(
         `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
-        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100']
+        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100'],
+        ctx.h3Ranges
       );
       return {
         rows: result.rows.map((r) => ({
@@ -473,7 +476,7 @@ FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/population',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-pop-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [1, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -505,7 +508,7 @@ FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
           'coverage_ratio',
           'total_volume_m3',
         ],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, building_count,
@@ -538,7 +541,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/building',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [3, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -566,11 +569,13 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
       const [bResult, pResult] = await Promise.all([
         loadParquet(
           `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'building_count']
+          ['h3_index', 'building_count'],
+          ctx.h3Ranges
         ),
         loadParquet(
           `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'pop_2025', 'pop_2100']
+          ['h3_index', 'pop_2025', 'pop_2100'],
+          ctx.h3Ranges
         ),
       ]);
       const bMap = new Map(bResult.rows.map((b) => [String(b.h3_index), b]));
@@ -627,7 +632,7 @@ WHERE p.pop_2025 > 0`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [3, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -653,11 +658,13 @@ WHERE p.pop_2025 > 0`,
       const [bResult, tResult] = await Promise.all([
         loadParquet(
           `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'building_count', 'avg_height_m']
+          ['h3_index', 'building_count', 'avg_height_m'],
+          ctx.h3Ranges
         ),
         loadParquet(
           `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'elev', 'slope', 'tri']
+          ['h3_index', 'elev', 'slope', 'tri'],
+          ctx.h3Ranges
         ),
       ]);
       const bMap = new Map(bResult.rows.map((b) => [String(b.h3_index), b]));
@@ -709,7 +716,7 @@ WHERE b.building_count > 0`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
     githubUrl: 'https://github.com/walkthru-earth/dem-terrain',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [1, 10],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -738,11 +745,13 @@ WHERE b.building_count > 0`,
       const [bResult, pResult] = await Promise.all([
         loadParquet(
           `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'building_count', 'avg_height_m']
+          ['h3_index', 'building_count', 'avg_height_m'],
+          ctx.h3Ranges
         ),
         loadParquet(
           `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'pop_2025']
+          ['h3_index', 'pop_2025'],
+          ctx.h3Ranges
         ),
       ]);
       const pMap = new Map(pResult.rows.map((p) => [String(p.h3_index), p]));
@@ -799,7 +808,7 @@ WHERE p.pop_2025 > 0 AND b.building_count > 0`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [3, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -826,7 +835,8 @@ WHERE p.pop_2025 > 0 AND b.building_count > 0`,
     loadData: async (ctx, _onProgress) => {
       const result = await loadParquet(
         `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
-        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100']
+        ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100'],
+        ctx.h3Ranges
       );
       return {
         rows: result.rows.map((r) => ({
@@ -870,7 +880,7 @@ FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/population',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-pop-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [1, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -900,7 +910,7 @@ FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
           'temperature_2m_C',
           'wind_speed_10m_ms',
         ],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, pressure_msl_hPa,
@@ -929,7 +939,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
     defaultH3Res: 1,
-    h3ResRange: [1, 4],
+    h3ResRange: [0, 5],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -953,7 +963,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
       loadParquet(
         `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
         ['h3_index', 'elev', 'slope', 'aspect', 'tri'],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, elev, slope, aspect, tri
@@ -984,7 +994,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/dem-terrain',
     githubUrl: 'https://github.com/walkthru-earth/dem-terrain',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [1, 10],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -1008,7 +1018,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
       loadParquet(
         `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
         ['h3_index', 'elev', 'slope', 'tri'],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, elev, slope, tri
@@ -1036,7 +1046,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/dem-terrain',
     githubUrl: 'https://github.com/walkthru-earth/dem-terrain',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [1, 10],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -1068,7 +1078,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
           'avg_height_m',
           'coverage_ratio',
         ],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, building_count,
@@ -1102,7 +1112,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/building',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [3, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -1134,7 +1144,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
           'avg_footprint_m2',
           'building_density',
         ],
-        undefined,
+        ctx.h3Ranges,
         onProgress
       ),
     buildQuery: (ctx) => `SELECT h3_index, building_count,
@@ -1168,7 +1178,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/building',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [3, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -1196,11 +1206,13 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
       const [bResult, pResult] = await Promise.all([
         loadParquet(
           `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'building_count', 'total_volume_m3', 'avg_height_m']
+          ['h3_index', 'building_count', 'total_volume_m3', 'avg_height_m'],
+          ctx.h3Ranges
         ),
         loadParquet(
           `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
-          ['h3_index', 'pop_2025']
+          ['h3_index', 'pop_2025'],
+          ctx.h3Ranges
         ),
       ]);
       const pMap = new Map(pResult.rows.map((p) => [String(p.h3_index), p]));
@@ -1258,6 +1270,6 @@ WHERE p.pop_2025 > 0 AND b.total_volume_m3 > 0`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
     defaultH3Res: 3,
-    h3ResRange: [1, 7],
+    h3ResRange: [3, 8],
   },
 ];

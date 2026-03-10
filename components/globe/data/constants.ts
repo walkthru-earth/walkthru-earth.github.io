@@ -20,6 +20,8 @@ export interface ViewState {
 export interface QueryContext {
   weatherPrefix: string;
   h3Res: number;
+  /** Hex-encoded BigInt [min, max] pairs for viewport H3 filtering. Null = load everything. */
+  h3Ranges?: [string, string][] | null;
 }
 
 export interface ColorRange {

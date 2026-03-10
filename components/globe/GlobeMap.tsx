@@ -94,8 +94,13 @@ interface GlobeMapProps {
   elevationScale?: number;
   /** Called when cursor enters/leaves the globe surface. */
   onCursorOverGlobe?: (isOver: boolean) => void;
-  /** Called with current zoom level as user interacts with the globe. */
-  onZoomChange?: (zoom: number) => void;
+  /** Called with current viewport state as user interacts with the globe. */
+  onViewportChange?: (state: {
+    zoom: number;
+    longitude: number;
+    latitude: number;
+    bounds: [number, number, number, number] | null;
+  }) => void;
   /** Called when the globe canvas is tapped (short touch, not a drag). */
   onTap?: () => void;
   /** User's resolved location — renders a pin on the globe when set. */
@@ -125,7 +130,7 @@ export const GlobeMap = memo(function GlobeMap({
   extruded,
   elevationScale = 1,
   onCursorOverGlobe,
-  onZoomChange,
+  onViewportChange,
   onTap,
   userLocation,
   onUserPinScreen,
@@ -172,43 +177,92 @@ export const GlobeMap = memo(function GlobeMap({
     extrudedRef.current = extruded;
   }, [extruded]);
 
-  // Project user pin to screen coords after each render frame
-  const handleAfterRender = useCallback(() => {
-    const loc = userLocationRef.current;
-    const cb = onUserPinScreenRef.current;
-    if (!cb) return;
-    if (!loc) {
-      cb(null);
-      return;
-    }
+  const onViewportChangeRef = useRef(onViewportChange);
+  useEffect(() => {
+    onViewportChangeRef.current = onViewportChange;
+  }, [onViewportChange]);
 
+  const lastReportedViewport = useRef<{
+    zoom: number;
+    longitude: number;
+    latitude: number;
+  } | null>(null);
+
+  // Project user pin to screen coords + report viewport bounds after each frame
+  const handleAfterRender = useCallback(() => {
     const deck = deckRef.current?.deck;
     if (!deck) return;
     const viewport = deck.getViewports?.()?.[0];
     if (!viewport) return;
 
-    const pinH = extrudedRef.current
-      ? USER_PIN_HEIGHT_EXTRUDED
-      : USER_PIN_HEIGHT_BASE;
+    // ── User pin projection ──
+    const loc = userLocationRef.current;
+    const pinCb = onUserPinScreenRef.current;
+    if (pinCb) {
+      if (!loc) {
+        pinCb(null);
+      } else {
+        const pinH = extrudedRef.current
+          ? USER_PIN_HEIGHT_EXTRUDED
+          : USER_PIN_HEIGHT_BASE;
+        try {
+          const [x, y] = viewport.project([
+            loc.longitude,
+            loc.latitude,
+            pinH + 120_000,
+          ]);
+          const [bx, by] = viewport.project([loc.longitude, loc.latitude, 0]);
+          const [lng2, lat2] = viewport.unproject([bx, by]);
+          const dLng = Math.abs(lng2 - loc.longitude);
+          const dLat = Math.abs(lat2 - loc.latitude);
+          const visible =
+            dLng < 20 && dLat < 20 && Number.isFinite(x) && Number.isFinite(y);
+          pinCb({ x, y, visible });
+        } catch {
+          pinCb(null);
+        }
+      }
+    }
 
-    try {
-      const [x, y] = viewport.project([
-        loc.longitude,
-        loc.latitude,
-        pinH + 120_000, // top of the head marker
-      ]);
-      // Also project the base at surface level for the round-trip check
-      const [bx, by] = viewport.project([loc.longitude, loc.latitude, 0]);
-      const [lng2, lat2] = viewport.unproject([bx, by]);
-      const dLng = Math.abs(lng2 - loc.longitude);
-      const dLat = Math.abs(lat2 - loc.latitude);
-      // Wider threshold (20°) — the unproject round-trip diverges when
-      // the point is on the far side of the globe
-      const visible =
-        dLng < 20 && dLat < 20 && Number.isFinite(x) && Number.isFinite(y);
-      cb({ x, y, visible });
-    } catch {
-      cb(null);
+    // ── Viewport bounds reporting (for H3 viewport filtering) ──
+    const vpCb = onViewportChangeRef.current;
+    if (vpCb) {
+      try {
+        const z = viewport.zoom ?? 0;
+        const lng = viewport.longitude ?? 0;
+        const lat = viewport.latitude ?? 0;
+        const last = lastReportedViewport.current;
+        if (
+          !last ||
+          Math.abs(z - last.zoom) > 0.01 ||
+          Math.abs(lng - last.longitude) > 0.01 ||
+          Math.abs(lat - last.latitude) > 0.01
+        ) {
+          lastReportedViewport.current = {
+            zoom: z,
+            longitude: lng,
+            latitude: lat,
+          };
+          const bounds = viewport.getBounds?.() as
+            | [number, number, number, number]
+            | undefined;
+          console.log(
+            `[Globe:Map] viewport z=${z.toFixed(2)} lng=${lng.toFixed(1)} lat=${lat.toFixed(1)} bounds=${
+              bounds
+                ? `[${bounds.map((v) => v.toFixed(1)).join(', ')}]`
+                : 'null'
+            }`
+          );
+          vpCb({
+            zoom: z,
+            longitude: lng,
+            latitude: lat,
+            bounds: bounds ?? null,
+          });
+        }
+      } catch {
+        /* viewport may not support getBounds */
+      }
     }
   }, []);
 
@@ -240,7 +294,11 @@ export const GlobeMap = memo(function GlobeMap({
   );
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  const layers = useMemo((): any[] => {
+
+  // Base layers: earth sphere, land, borders, H3 hexagon layer.
+  // Separated from pin layers so pulseTick (60fps) does not cause
+  // expensive H3HexagonLayer reconstruction every frame.
+  const baseLayers = useMemo((): any[] => {
     const result: any[] = [
       // 1. Earth sphere — ocean background (pickable for cursor detection)
       new SimpleMeshLayer({
@@ -280,6 +338,9 @@ export const GlobeMap = memo(function GlobeMap({
     ];
 
     // 4. H3 data layer
+    console.log(
+      `[Globe:Map] baseLayers rebuild: layerData=${layerData.length} visible=${layerVisible} opacity=${layerOpacity} extruded=${extruded}`
+    );
     if (layerData.length > 0 && layerVisible) {
       result.push(
         new H3HexagonLayer({
@@ -312,90 +373,6 @@ export const GlobeMap = memo(function GlobeMap({
       );
     }
 
-    // 5. User location pin — pulse rings + beam + head
-    if (userLocation) {
-      const pinPos = [userLocation.longitude, userLocation.latitude] as [
-        number,
-        number,
-      ];
-      const pinH = extruded ? USER_PIN_HEIGHT_EXTRUDED : USER_PIN_HEIGHT_BASE;
-
-      // Expanding pulse rings (3 staggered waves)
-      const PULSE_COUNT = 3;
-      for (let i = 0; i < PULSE_COUNT; i++) {
-        const phase = (pulseTick + i / PULSE_COUNT) % 1;
-        const radius = 40_000 + phase * 300_000;
-        const alpha = Math.round((1 - phase) * 180);
-        result.push(
-          new ScatterplotLayer({
-            id: `user-pulse-${i}`,
-            data: [{ position: pinPos }],
-            getPosition: (d: { position: [number, number] }) => d.position,
-            getRadius: radius,
-            getFillColor: [255, 200, 0, Math.round(alpha * 0.15)],
-            getLineColor: [255, 200, 0, alpha],
-            stroked: true,
-            filled: true,
-            lineWidthMinPixels: 1.5,
-            radiusMinPixels: 4,
-            radiusMaxPixels: 60,
-          })
-        );
-      }
-
-      // Static base dot
-      result.push(
-        new ScatterplotLayer({
-          id: 'user-pin-center',
-          data: [{ position: pinPos }],
-          getPosition: (d: { position: [number, number] }) => d.position,
-          getRadius: 35_000,
-          getFillColor: [255, 220, 40, 200],
-          radiusMinPixels: 5,
-          radiusMaxPixels: 14,
-        })
-      );
-
-      // Vertical column beam — amber/gold
-      result.push(
-        new ColumnLayer({
-          id: 'user-pin-column',
-          data: [{ position: pinPos }],
-          getPosition: (d: { position: [number, number] }) => d.position,
-          getElevation: pinH,
-          diskResolution: 12,
-          radius: 10_000,
-          getFillColor: [255, 200, 0, 130],
-          extruded: true,
-          material: {
-            ambient: 0.9,
-            diffuse: 0.3,
-            shininess: 32,
-          },
-        })
-      );
-
-      // Top marker — hexagonal head in bright yellow
-      result.push(
-        new ColumnLayer({
-          id: 'user-pin-head',
-          data: [{ position: pinPos }],
-          getPosition: (d: { position: [number, number] }) => d.position,
-          getElevation: pinH + 120_000,
-          offset: [0, 0],
-          diskResolution: 6,
-          radius: 40_000,
-          getFillColor: [255, 220, 40, 230],
-          extruded: true,
-          material: {
-            ambient: 0.95,
-            diffuse: 0.5,
-            shininess: 64,
-          },
-        })
-      );
-    }
-
     return result;
   }, [
     layerData,
@@ -406,12 +383,106 @@ export const GlobeMap = memo(function GlobeMap({
     extruded,
     elevationScale,
     palette,
-    userLocation,
-    pulseTick,
     layerOpacity,
     layerVisible,
     baseControls,
   ]);
+
+  // Pin layers: user location pulse rings, center dot, beam, and head.
+  // These depend on pulseTick (60fps) but are cheap to reconstruct.
+  const pinLayers = useMemo((): any[] => {
+    if (!userLocation) return [];
+
+    const pinPos = [userLocation.longitude, userLocation.latitude] as [
+      number,
+      number,
+    ];
+    const pinH = extruded ? USER_PIN_HEIGHT_EXTRUDED : USER_PIN_HEIGHT_BASE;
+    const result: any[] = [];
+
+    // Expanding pulse rings (3 staggered waves)
+    const PULSE_COUNT = 3;
+    for (let i = 0; i < PULSE_COUNT; i++) {
+      const phase = (pulseTick + i / PULSE_COUNT) % 1;
+      const radius = 40_000 + phase * 300_000;
+      const alpha = Math.round((1 - phase) * 180);
+      result.push(
+        new ScatterplotLayer({
+          id: `user-pulse-${i}`,
+          data: [{ position: pinPos }],
+          getPosition: (d: { position: [number, number] }) => d.position,
+          getRadius: radius,
+          getFillColor: [255, 200, 0, Math.round(alpha * 0.15)],
+          getLineColor: [255, 200, 0, alpha],
+          stroked: true,
+          filled: true,
+          lineWidthMinPixels: 1.5,
+          radiusMinPixels: 4,
+          radiusMaxPixels: 60,
+        })
+      );
+    }
+
+    // Static base dot
+    result.push(
+      new ScatterplotLayer({
+        id: 'user-pin-center',
+        data: [{ position: pinPos }],
+        getPosition: (d: { position: [number, number] }) => d.position,
+        getRadius: 35_000,
+        getFillColor: [255, 220, 40, 200],
+        radiusMinPixels: 5,
+        radiusMaxPixels: 14,
+      })
+    );
+
+    // Vertical column beam — amber/gold
+    result.push(
+      new ColumnLayer({
+        id: 'user-pin-column',
+        data: [{ position: pinPos }],
+        getPosition: (d: { position: [number, number] }) => d.position,
+        getElevation: pinH,
+        diskResolution: 12,
+        radius: 10_000,
+        getFillColor: [255, 200, 0, 130],
+        extruded: true,
+        material: {
+          ambient: 0.9,
+          diffuse: 0.3,
+          shininess: 32,
+        },
+      })
+    );
+
+    // Top marker — hexagonal head in bright yellow
+    result.push(
+      new ColumnLayer({
+        id: 'user-pin-head',
+        data: [{ position: pinPos }],
+        getPosition: (d: { position: [number, number] }) => d.position,
+        getElevation: pinH + 120_000,
+        offset: [0, 0],
+        diskResolution: 6,
+        radius: 40_000,
+        getFillColor: [255, 220, 40, 230],
+        extruded: true,
+        material: {
+          ambient: 0.95,
+          diffuse: 0.5,
+          shininess: 64,
+        },
+      })
+    );
+
+    return result;
+  }, [pulseTick, userLocation, extruded]);
+
+  // Combined layers — pin layers render on top of base layers.
+  const layers = useMemo(
+    () => [...baseLayers, ...pinLayers],
+    [baseLayers, pinLayers]
+  );
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   const handleTooltip = useMemo(() => {
@@ -430,15 +501,6 @@ export const GlobeMap = memo(function GlobeMap({
     },
     [onCursorOverGlobe]
   );
-
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const handleViewStateChange = useCallback(
-    ({ viewState }: any) => {
-      onZoomChange?.(viewState.zoom);
-    },
-    [onZoomChange]
-  );
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
     <div
@@ -467,7 +529,6 @@ export const GlobeMap = memo(function GlobeMap({
         effects={effects}
         layers={layers}
         onHover={handleHover}
-        onViewStateChange={handleViewStateChange}
         onAfterRender={handleAfterRender}
         getTooltip={handleTooltip}
         style={{ width: '100%', height: '100%' }}

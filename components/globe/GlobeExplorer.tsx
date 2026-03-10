@@ -37,6 +37,7 @@ import { useUserLocation } from './hooks/useUserLocation';
 import { UserLocationCard } from './UserLocationCard';
 import { LayerPanel, type LayerControl } from './LayerPanel';
 import type { PinScreenPos } from './GlobeMap';
+import { viewportToH3Ranges } from './utils/h3-viewport';
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
 
@@ -88,6 +89,9 @@ export function GlobeExplorer({
   const [parquetInfo, setParquetInfo] = useState<ParquetInfo | null>(null);
   const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
   const [zoom, setZoom] = useState(sections[0]?.viewState.zoom ?? 1.5);
+  const [viewportBounds, setViewportBounds] = useState<
+    [number, number, number, number] | null
+  >(null);
   const [timeStepIndex, setTimeStepIndex] = useState(0);
   const handleGlobeTap = useCallback(() => {
     window.dispatchEvent(new Event('globe:tap'));
@@ -106,17 +110,76 @@ export function GlobeExplorer({
   // Keys: 'h3-layer', 'base-land', 'base-borders'
   const [layerState, setLayerState] = useState<Record<string, LayerState>>({});
 
-  // Per-section h3Res overrides (sparse — only stores user changes)
+  // Per-section h3Res overrides (sparse — only stores manual user changes)
   const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
     {}
   );
   const [pendingH3Res, setPendingH3Res] = useState<number | null>(null);
   const currentSection = sections[activeSection];
-  const h3Res = h3ResOverrides[activeSection] ?? currentSection.defaultH3Res;
+
+  // Debounced viewport bounds for H3 range computation.
+  const [debouncedBounds, setDebouncedBounds] = useState<
+    [number, number, number, number] | null
+  >(null);
+
+  // Reset zoom + bounds when switching sections so autoH3Res is correct
+  // immediately (before the fly-to animation completes).
+  // Render-time state adjustment: no useEffect, no refs during render.
+  const [prevSection, setPrevSection] = useState(activeSection);
+  if (prevSection !== activeSection) {
+    console.log(
+      `[Globe:Explorer] section change → #${activeSection} "${currentSection.id}" zoom=${currentSection.viewState.zoom} h3Range=[${currentSection.h3ResRange}]`
+    );
+    setPrevSection(activeSection);
+    setZoom(currentSection.viewState.zoom);
+    setViewportBounds(null);
+    setDebouncedBounds(null);
+  }
+
+  // Auto H3 resolution from zoom level (clamped to section's range)
+  const autoH3Res = useMemo(() => {
+    const [min, max] = currentSection.h3ResRange;
+    const mapped = Math.round(zoom * 0.8);
+    const clamped = Math.max(min, Math.min(max, mapped));
+    console.log(
+      `[Globe:Explorer] autoH3Res: zoom=${zoom.toFixed(2)} → mapped=${mapped} → clamped=${clamped} (range=[${min},${max}])`
+    );
+    return clamped;
+  }, [zoom, currentSection.h3ResRange]);
+
+  // Manual override takes priority; otherwise auto from zoom
+  const h3Res = h3ResOverrides[activeSection] ?? autoH3Res;
+
+  // When h3Res changes, flush bounds immediately (render-time adjustment).
+  const [prevH3Res, setPrevH3Res] = useState(h3Res);
+  if (prevH3Res !== h3Res) {
+    setPrevH3Res(h3Res);
+    console.log(`[Globe:Explorer] h3Res changed → flush bounds immediately`);
+    setDebouncedBounds(viewportBounds);
+  }
+
+  // Debounce viewport bound changes (only fires on viewportBounds change).
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedBounds(viewportBounds), 400);
+    return () => clearTimeout(timer);
+  }, [viewportBounds]);
+
+  // Compute H3 viewport ranges from debounced bounds
+  const h3Ranges = useMemo(() => {
+    if (!debouncedBounds) {
+      console.log(`[Globe:Explorer] h3Ranges: null (no bounds yet)`);
+      return null;
+    }
+    const result = viewportToH3Ranges(debouncedBounds, h3Res);
+    console.log(
+      `[Globe:Explorer] h3Ranges: h3Res=${h3Res} bounds=[${debouncedBounds.map((v) => v.toFixed(1)).join(', ')}] → ${result ? `${result.length} ranges` : 'null (full file)'}`
+    );
+    return result;
+  }, [debouncedBounds, h3Res]);
 
   const queryCtx = useMemo<QueryContext | null>(
-    () => (weatherPrefix ? { weatherPrefix, h3Res } : null),
-    [weatherPrefix, h3Res]
+    () => (weatherPrefix ? { weatherPrefix, h3Res, h3Ranges } : null),
+    [weatherPrefix, h3Res, h3Ranges]
   );
 
   // ── Timestamps ──
@@ -133,13 +196,23 @@ export function GlobeExplorer({
   }, [allRows]);
 
   const layerData = useMemo(() => {
-    if (timestamps.length <= 1) return allRows;
+    if (timestamps.length <= 1) {
+      console.log(
+        `[Globe:Explorer] layerData: ${allRows.length} rows (no timestamp filter, ${timestamps.length} timestamps)`
+      );
+      return allRows;
+    }
     const targetMs = timestamps[timeStepIndex] ?? timestamps[0];
-    return allRows.filter((r) => tsToMs(r.timestamp) === targetMs);
+    const filtered = allRows.filter((r) => tsToMs(r.timestamp) === targetMs);
+    console.log(
+      `[Globe:Explorer] layerData: ${allRows.length} → ${filtered.length} rows (ts step ${timeStepIndex}/${timestamps.length})`
+    );
+    return filtered;
   }, [allRows, timestamps, timeStepIndex]);
 
   // ── Refs ──
   const activeSectionRef = useRef(0);
+  const loadGenRef = useRef(0);
   useEffect(() => {
     activeSectionRef.current = activeSection;
   }, [activeSection]);
@@ -189,20 +262,40 @@ export function GlobeExplorer({
   // ── Data loading ──
   const loadSection = useCallback(
     (sectionIdx: number, section: GlobeSection, ctx: QueryContext) => {
-      const cacheKey = `${sectionIdx}:${ctx.h3Res}`;
-      let loadPromise = cacheRef.current.get(cacheKey);
+      const gen = ++loadGenRef.current;
+      const isFiltered = ctx.h3Ranges != null && ctx.h3Ranges.length > 0;
+      // Unfiltered loads are cached; filtered (viewport) loads always re-fetch
+      const cacheKey = isFiltered ? null : `${sectionIdx}:${ctx.h3Res}`;
+      let loadPromise = cacheKey ? cacheRef.current.get(cacheKey) : undefined;
+
+      console.log(
+        `[Globe:Explorer] loadSection #${sectionIdx} "${section.id}" gen=${gen} h3Res=${ctx.h3Res} ` +
+          `filtered=${isFiltered} ranges=${ctx.h3Ranges?.length ?? 0} ` +
+          `cacheKey=${cacheKey ?? 'none'} cached=${!!loadPromise}`
+      );
 
       if (!loadPromise) {
-        Promise.resolve().then(() => {
-          if (activeSectionRef.current !== sectionIdx) return;
-          setIsLoading(true);
-          setError(null);
-          setParquetInfo(null);
+        // Schedule loading UI update asynchronously to avoid synchronous
+        // setState within effects (react-hooks/set-state-in-effect).
+        queueMicrotask(() => {
+          if (
+            gen === loadGenRef.current &&
+            activeSectionRef.current === sectionIdx
+          ) {
+            setIsLoading(true);
+            setError(null);
+            if (!isFiltered) setParquetInfo(null);
+          }
         });
 
         const start = performance.now();
         const onProgress = (partialRows: Record<string, unknown>[]) => {
-          if (activeSectionRef.current !== sectionIdx) return;
+          if (gen !== loadGenRef.current) {
+            console.log(
+              `[Globe:Explorer] onProgress STALE gen=${gen} current=${loadGenRef.current} — skipped ${partialRows.length} rows`
+            );
+            return;
+          }
           setAllRows(partialRows);
           setRowCount(partialRows.length);
         };
@@ -210,15 +303,28 @@ export function GlobeExplorer({
         loadPromise = section.loadData(ctx, onProgress).then((result) => {
           const duration = performance.now() - start;
           const range = computeRange(result.rows, section.colorColumn);
+          console.log(
+            `[Globe:Explorer] loadData resolved gen=${gen} rows=${result.rows.length} ` +
+              `duration=${duration.toFixed(0)}ms colorRange=[${range.min.toFixed(2)}, ${range.max.toFixed(2)}]`
+          );
           return { rows: result.rows, duration, range, info: result.info };
         });
-        cacheRef.current.set(cacheKey, loadPromise);
-        loadPromise.catch(() => cacheRef.current.delete(cacheKey));
+        if (cacheKey) cacheRef.current.set(cacheKey, loadPromise);
+        if (cacheKey)
+          loadPromise.catch(() => cacheRef.current.delete(cacheKey));
       }
 
       loadPromise
         .then((result) => {
-          if (activeSectionRef.current !== sectionIdx) return;
+          if (gen !== loadGenRef.current) {
+            console.log(
+              `[Globe:Explorer] .then() STALE gen=${gen} current=${loadGenRef.current} — discarding ${result.rows.length} rows`
+            );
+            return;
+          }
+          console.log(
+            `[Globe:Explorer] ✓ RENDER gen=${gen} rows=${result.rows.length} duration=${result.duration.toFixed(0)}ms`
+          );
           setAllRows(result.rows);
           setColorRange(result.range);
           setQueryDuration(result.duration);
@@ -227,8 +333,14 @@ export function GlobeExplorer({
           setIsLoading(false);
         })
         .catch((err) => {
-          if (activeSectionRef.current !== sectionIdx) return;
+          if (gen !== loadGenRef.current) {
+            console.log(
+              `[Globe:Explorer] .catch() STALE gen=${gen} current=${loadGenRef.current}`
+            );
+            return;
+          }
           const msg = err instanceof Error ? err.message : String(err);
+          console.error(`[Globe:Explorer] ✗ ERROR gen=${gen}:`, msg);
           setError(msg);
           setAllRows([]);
           setQueryDuration(null);
@@ -246,13 +358,18 @@ export function GlobeExplorer({
 
     loadSection(activeSection, currentSection, queryCtx);
 
-    const cacheKey = `${activeSection}:${queryCtx.h3Res}`;
-    const currentPromise = cacheRef.current.get(cacheKey);
+    // Prefetch next section (unfiltered — no viewport ranges for unseen sections)
+    const isFiltered =
+      queryCtx.h3Ranges != null && queryCtx.h3Ranges.length > 0;
+    const cacheKey = isFiltered ? null : `${activeSection}:${queryCtx.h3Res}`;
+    const currentPromise = cacheKey
+      ? cacheRef.current.get(cacheKey)
+      : undefined;
     const nextIdx = activeSection + 1;
     if (currentPromise && nextIdx < sections.length) {
       const next = sections[nextIdx];
       const nextRes = h3ResOverrides[nextIdx] ?? next.defaultH3Res;
-      const nextCtx = { ...queryCtx, h3Res: nextRes };
+      const nextCtx = { ...queryCtx, h3Res: nextRes, h3Ranges: null };
       const nextKey = `${nextIdx}:${nextRes}`;
       currentPromise.then(() => {
         if (activeSectionRef.current !== activeSection) return;
@@ -345,24 +462,45 @@ export function GlobeExplorer({
   // ── Single-layer props (derived from layer state) ──
   const singleLS = layerState['h3-layer'] ?? DEFAULT_LAYER;
 
+  // Zoom at the time of the last manual h3Res override — used to auto-clear
+  const [overrideZoom, setOverrideZoom] = useState(zoom);
+
   const handleH3ResChange = useCallback(
     (delta: number) => {
       const [min, max] = currentSection.h3ResRange;
-      const cur = h3ResOverrides[activeSection] ?? currentSection.defaultH3Res;
+      const cur = h3Res;
       const next = Math.max(min, Math.min(max, cur + delta));
       if (next === cur) return;
       if (next >= 4 && delta > 0) {
         setPendingH3Res(next);
         return;
       }
+      setOverrideZoom(zoom);
       setH3ResOverrides((prev) => ({ ...prev, [activeSection]: next }));
     },
-    [activeSection, currentSection, h3ResOverrides]
+    [activeSection, currentSection, h3Res, zoom]
   );
 
-  const handleZoomChange = useCallback((z: number) => {
-    requestAnimationFrame(() => setZoom(z));
-  }, []);
+  // Clear manual override when user zooms away from where it was set
+  // (render-time state adjustment — avoids useEffect + synchronous setState)
+  if (Math.abs(zoom - overrideZoom) > 0.5 && activeSection in h3ResOverrides) {
+    const next = { ...h3ResOverrides };
+    delete next[activeSection];
+    setH3ResOverrides(next);
+  }
+
+  const handleViewportChange = useCallback(
+    (state: {
+      zoom: number;
+      longitude: number;
+      latitude: number;
+      bounds: [number, number, number, number] | null;
+    }) => {
+      setZoom(state.zoom);
+      setViewportBounds(state.bounds);
+    },
+    []
+  );
 
   const resolvedDescription = useMemo(() => {
     if (!isLoading && currentSection.describeData && allRows.length > 0) {
@@ -384,7 +522,7 @@ export function GlobeExplorer({
         extruded={currentSection.extruded}
         elevationScale={currentSection.elevationScale}
         onCursorOverGlobe={handleCursorOverGlobe}
-        onZoomChange={handleZoomChange}
+        onViewportChange={handleViewportChange}
         onTap={handleGlobeTap}
         userLocation={userLocation}
         onUserPinScreen={setPinScreen}
@@ -666,6 +804,7 @@ export function GlobeExplorer({
                 <AlertDialogAction
                   onClick={() => {
                     if (pendingH3Res !== null) {
+                      setOverrideZoom(zoom);
                       setH3ResOverrides((prev) => ({
                         ...prev,
                         [activeSection]: pendingH3Res,

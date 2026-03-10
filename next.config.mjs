@@ -20,11 +20,12 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  // Strip console.log in production builds (keep warnings & errors)
+  // Strip console.log in production builds only (keep warnings & errors)
   compiler: {
-    removeConsole: {
-      exclude: ['error', 'warn'],
-    },
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? { exclude: ['error', 'warn'] }
+        : false,
   },
 
   // Compression
