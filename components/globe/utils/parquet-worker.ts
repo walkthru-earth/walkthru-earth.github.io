@@ -222,12 +222,20 @@ function filterRowsByH3Ranges(
 /** IDs that have been cancelled — checked between row groups to abort early. */
 const cancelledIds = new Set<number>();
 
+/** Prevent cancelledIds from growing unbounded if cancel arrives after completion. */
+const CANCEL_ID_MAX = 50;
+
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const { id, url, columns, h3Ranges: rawH3Ranges, cancel } = e.data;
 
   // Handle cancellation requests
   if (cancel) {
     cancelledIds.add(id);
+    // Prune oldest entries if the set grows too large (cancel arrived after done)
+    if (cancelledIds.size > CANCEL_ID_MAX) {
+      const iter = cancelledIds.values();
+      cancelledIds.delete(iter.next().value!);
+    }
     return;
   }
 

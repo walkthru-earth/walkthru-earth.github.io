@@ -46,6 +46,15 @@ import { viewportToH3Ranges } from './utils/h3-viewport';
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
 
+/** Simple LRU cache — evicts oldest entry when size exceeds max. */
+function lruSet<K, V>(map: Map<K, V>, key: K, value: V, maxSize: number) {
+  if (map.size >= maxSize) {
+    const oldest = map.keys().next().value;
+    if (oldest !== undefined) map.delete(oldest);
+  }
+  map.set(key, value);
+}
+
 /** Convert hyparquet timestamp (BigInt µs, Date, or number) to epoch ms. */
 function tsToMs(v: unknown): number {
   if (typeof v === 'bigint') return Number(v / 1000n);
@@ -255,7 +264,7 @@ export function GlobeExplorer({
     return () => clearTimeout(timer);
   }, [activeSection, sections, zoom, latitude, longitude, h3Res]);
 
-  /** Promise cache keyed by "sectionIdx:h3Res". */
+  /** Promise cache keyed by "sectionIdx:h3Res". LRU-evicted at 6 entries. */
   const cacheRef = useRef<
     Map<
       string,
@@ -267,6 +276,7 @@ export function GlobeExplorer({
       }>
     >
   >(new Map());
+  const CACHE_MAX = 6;
 
   const handleCursorOverGlobe = useCallback((isOver: boolean) => {
     isOverGlobeRef.current = isOver;
@@ -338,7 +348,8 @@ export function GlobeExplorer({
           );
           return { rows: result.rows, duration, range, info: result.info };
         });
-        if (cacheKey) cacheRef.current.set(cacheKey, loadPromise);
+        if (cacheKey)
+          lruSet(cacheRef.current, cacheKey, loadPromise, CACHE_MAX);
         if (cacheKey)
           loadPromise.catch(() => cacheRef.current.delete(cacheKey));
       }
@@ -409,7 +420,7 @@ export function GlobeExplorer({
           const range = computeRange(result.rows, next.colorColumn);
           return { rows: result.rows, duration, range, info: result.info };
         });
-        cacheRef.current.set(nextKey, prefetch);
+        lruSet(cacheRef.current, nextKey, prefetch, CACHE_MAX);
         prefetch.catch(() => cacheRef.current.delete(nextKey));
       });
     }

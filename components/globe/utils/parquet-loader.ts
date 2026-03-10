@@ -72,19 +72,32 @@ function getWorker(): Worker {
         console.log(
           `[Globe:Loader] chunk id=${msg.id} +${msg.rows.length} rows (${before} → ${p.accumulated.length})`
         );
-        // Pass a new array reference so React detects the state change.
-        // Without this, useMemo deps on allRows won't re-fire since the
-        // accumulated array is mutated in place (same reference).
-        p.onChunk?.([...p.accumulated]);
+        // slice() creates a new array reference so React detects the change.
+        p.onChunk?.(p.accumulated.slice());
       } else if (msg.type === 'done') {
         pending.delete(msg.id);
+        // Clean up active request tracking
+        for (const [url, rid] of activeRequestIds) {
+          if (rid === msg.id) {
+            activeRequestIds.delete(url);
+            break;
+          }
+        }
         console.log(
           `[Globe:Loader] done id=${msg.id} total=${p.accumulated.length} rows`
         );
-        // Final result: new array reference for React state update
-        p.resolve({ rows: [...p.accumulated], info: msg.info });
+        // Hand off the accumulated array directly — no copy needed since
+        // we won't mutate it again and each request starts a fresh array.
+        p.resolve({ rows: p.accumulated, info: msg.info });
       } else if (msg.type === 'error') {
         pending.delete(msg.id);
+        // Clean up active request tracking
+        for (const [url, rid] of activeRequestIds) {
+          if (rid === msg.id) {
+            activeRequestIds.delete(url);
+            break;
+          }
+        }
         console.error(`[Globe:Loader] error id=${msg.id}:`, msg.error);
         p.reject(new Error(msg.error));
       }
