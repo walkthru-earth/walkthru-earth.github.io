@@ -69,10 +69,19 @@ export const LayerPanel = memo(function LayerPanel({
               key={layer.id}
               className="hover:bg-accent/50 rounded-lg px-2.5 py-2 transition-colors"
             >
-              <button
-                type="button"
-                className="flex w-full items-center gap-2.5 text-left"
+              {/* Use div[role=button] — Radix Checkbox renders a <button> internally,
+                  so a <button> wrapper would create invalid nested <button> HTML. */}
+              <div
+                role="button"
+                tabIndex={0}
+                className="flex w-full cursor-pointer items-center gap-2.5 text-left"
                 onClick={() => onToggle(layer.id)}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    onToggle(layer.id);
+                  }
+                }}
               >
                 <Checkbox
                   checked={layer.visible}
@@ -89,7 +98,7 @@ export const LayerPanel = memo(function LayerPanel({
                 <span className="text-3xs text-muted-foreground font-mono tabular-nums">
                   {layer.rowCount > 0 ? layer.rowCount.toLocaleString() : ''}
                 </span>
-              </button>
+              </div>
               {layer.visible && (
                 <div className="mt-1.5 flex items-center gap-2.5 pl-6">
                   <svg

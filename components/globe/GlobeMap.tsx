@@ -384,11 +384,11 @@ export const GlobeMap = memo(function GlobeMap({
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
 
-  // Base layers: earth sphere, land, borders, H3 hexagon layer.
-  // Separated from pin layers so pulseTick (60fps) does not cause
-  // expensive H3HexagonLayer reconstruction every frame.
-  const baseLayers = useMemo((): any[] => {
-    const result: any[] = [
+  // Static base layers: earth sphere, satellite tiles, land, borders.
+  // Separated from data layer so timestep changes (every 2s during
+  // autoplay) don't rebuild these expensive layers.
+  const staticLayers = useMemo(
+    (): any[] => [
       // Z-ordering via polygonOffset (higher = further back):
       //   sphere [50,50] → satellite tiles [30,30] → land [20,20] → borders [10,10] → H3 (front)
 
@@ -404,8 +404,7 @@ export const GlobeMap = memo(function GlobeMap({
         parameters: { depthTest: true, polygonOffset: [50, 50] },
       }),
 
-      // 2. ESRI World Imagery satellite tiles (hidden by default, toggled via LayerPanel)
-      // TileLayer fetches 256px satellite tiles at the appropriate zoom level.
+      // 2. ESRI World Imagery satellite tiles (hidden by default)
       new TileLayer({
         id: BASE_SATELLITE_ID,
         data: SATELLITE_TILE_URL,
@@ -440,8 +439,7 @@ export const GlobeMap = memo(function GlobeMap({
       new GeoJsonLayer({
         id: 'earth-land',
         data: LAND_GEOJSON,
-        visible:
-          baseControls?.[BASE_LAND_ID]?.visible ?? layerData.length === 0,
+        visible: baseControls?.[BASE_LAND_ID]?.visible ?? false,
         stroked: false,
         filled: true,
         opacity: baseControls?.[BASE_LAND_ID]?.opacity ?? palette.landOpacity,
@@ -453,8 +451,7 @@ export const GlobeMap = memo(function GlobeMap({
       new GeoJsonLayer({
         id: 'country-borders',
         data: COUNTRY_BORDERS,
-        visible:
-          baseControls?.[BASE_BORDERS_ID]?.visible ?? layerData.length === 0,
+        visible: baseControls?.[BASE_BORDERS_ID]?.visible ?? false,
         stroked: true,
         filled: false,
         lineWidthMinPixels: 0.5,
@@ -462,43 +459,41 @@ export const GlobeMap = memo(function GlobeMap({
         getLineColor: palette.borders,
         parameters: { depthTest: true, polygonOffset: [10, 10] },
       }),
+    ],
+    [palette, baseControls]
+  );
+
+  // H3 data layer — rebuilt when layerData/colors/style change
+  // (e.g. on each timestep tick during autoplay).
+  const dataLayer = useMemo((): any[] => {
+    if (layerData.length === 0 || !layerVisible) return [];
+    return [
+      new H3HexagonLayer({
+        id: 'h3-layer',
+        data: layerData,
+        pickable: true,
+        filled: true,
+        highPrecision: true,
+        extruded,
+        elevationScale,
+        getHexagon: getHexagon as (d: unknown) => string,
+        getFillColor: (d: unknown) =>
+          getFillColor(d as Record<string, unknown>, colorRange),
+        getElevation:
+          (getElevation as ((d: unknown) => number) | undefined) ?? (() => 0),
+        opacity: layerOpacity,
+        coverage: 0.92,
+        material: {
+          ambient: 0.64,
+          diffuse: 0.6,
+          shininess: 32,
+        },
+        updateTriggers: {
+          getFillColor: [getFillColor, colorRange.min, colorRange.max],
+          getElevation: [getElevation],
+        },
+      }),
     ];
-
-    // 5. H3 data layer
-    console.log(
-      `[Globe:Map] baseLayers rebuild: layerData=${layerData.length} visible=${layerVisible} opacity=${layerOpacity} extruded=${extruded}`
-    );
-    if (layerData.length > 0 && layerVisible) {
-      result.push(
-        new H3HexagonLayer({
-          id: 'h3-layer',
-          data: layerData,
-          pickable: true,
-          filled: true,
-          highPrecision: true,
-          extruded,
-          elevationScale,
-          getHexagon: getHexagon as (d: unknown) => string,
-          getFillColor: (d: unknown) =>
-            getFillColor(d as Record<string, unknown>, colorRange),
-          getElevation:
-            (getElevation as ((d: unknown) => number) | undefined) ?? (() => 0),
-          opacity: layerOpacity,
-          coverage: 0.92,
-          material: {
-            ambient: 0.64,
-            diffuse: 0.6,
-            shininess: 32,
-          },
-          updateTriggers: {
-            getFillColor: [getFillColor, colorRange.min, colorRange.max],
-            getElevation: [getElevation],
-          },
-        })
-      );
-    }
-
-    return result;
   }, [
     layerData,
     colorRange,
@@ -507,10 +502,8 @@ export const GlobeMap = memo(function GlobeMap({
     getElevation,
     extruded,
     elevationScale,
-    palette,
     layerOpacity,
     layerVisible,
-    baseControls,
   ]);
 
   // Pin layers: user location pulse rings, center dot, beam, and head.
@@ -603,10 +596,10 @@ export const GlobeMap = memo(function GlobeMap({
     return result;
   }, [pulseTick, userLocation, extruded, h3Res]);
 
-  // Combined layers — pin layers render on top of base layers.
+  // Combined layers — static base → data → pin (front to back via polygonOffset).
   const layers = useMemo(
-    () => [...baseLayers, ...pinLayers],
-    [baseLayers, pinLayers]
+    () => [...staticLayers, ...dataLayer, ...pinLayers],
+    [staticLayers, dataLayer, pinLayers]
   );
   /* eslint-enable @typescript-eslint/no-explicit-any */
 

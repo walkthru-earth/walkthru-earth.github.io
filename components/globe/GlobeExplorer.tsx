@@ -395,10 +395,9 @@ export function GlobeExplorer({
           const msg = err instanceof Error ? err.message : String(err);
           console.error(`[Globe:Explorer] ✗ ERROR gen=${gen}:`, msg);
           setError(msg);
-          setAllRows([]);
-          setQueryDuration(null);
-          setRowCount(0);
-          setParquetInfo(null);
+          // Keep existing data visible — don't blank the globe on transient
+          // network errors. The error banner tells the user something went wrong
+          // while they can still see the last successful render.
           setIsLoading(false);
         });
     },

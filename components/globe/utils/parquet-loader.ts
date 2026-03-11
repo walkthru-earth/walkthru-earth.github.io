@@ -43,10 +43,28 @@ const fileCache = new Map<string, Promise<LoadResult>>();
 
 /** Track the active request ID per URL so we can cancel superseded loads. */
 const activeRequestIds = new Map<string, number>();
+/** Reverse map: id → url for O(1) cleanup when requests complete. */
+const idToUrl = new Map<number, string>();
 
 /** Short URL for logging (last 3 path segments). */
 function shortUrl(url: string): string {
   return url.split('/').slice(-3).join('/');
+}
+
+/** Register a request ID ↔ URL mapping. */
+function trackRequest(url: string, id: number) {
+  activeRequestIds.set(url, id);
+  idToUrl.set(id, url);
+}
+
+/** Clean up request tracking on completion/error. O(1) via reverse map. */
+function untrackRequest(id: number) {
+  const url = idToUrl.get(id);
+  if (url !== undefined) {
+    // Only clear if this ID is still the active one for that URL
+    if (activeRequestIds.get(url) === id) activeRequestIds.delete(url);
+    idToUrl.delete(id);
+  }
 }
 
 function getWorker(): Worker {
@@ -68,37 +86,23 @@ function getWorker(): Worker {
 
       if (msg.type === 'chunk') {
         const before = p.accumulated.length;
-        for (let i = 0; i < msg.rows.length; i++)
-          p.accumulated.push(msg.rows[i]);
+        // concat returns a NEW array — React detects the reference change
+        // without needing an extra .slice() copy.
+        p.accumulated = p.accumulated.concat(msg.rows);
         console.log(
           `[Globe:Loader] chunk id=${msg.id} +${msg.rows.length} rows (${before} → ${p.accumulated.length})`
         );
-        // slice() creates a new array reference so React detects the change.
-        p.onChunk?.(p.accumulated.slice());
+        p.onChunk?.(p.accumulated);
       } else if (msg.type === 'done') {
         pending.delete(msg.id);
-        // Clean up active request tracking
-        for (const [url, rid] of activeRequestIds) {
-          if (rid === msg.id) {
-            activeRequestIds.delete(url);
-            break;
-          }
-        }
+        untrackRequest(msg.id);
         console.log(
           `[Globe:Loader] done id=${msg.id} total=${p.accumulated.length} rows`
         );
-        // Hand off the accumulated array directly — no copy needed since
-        // we won't mutate it again and each request starts a fresh array.
         p.resolve({ rows: p.accumulated, info: msg.info });
       } else if (msg.type === 'error') {
         pending.delete(msg.id);
-        // Clean up active request tracking
-        for (const [url, rid] of activeRequestIds) {
-          if (rid === msg.id) {
-            activeRequestIds.delete(url);
-            break;
-          }
-        }
+        untrackRequest(msg.id);
         console.error(`[Globe:Loader] error id=${msg.id}:`, msg.error);
         p.reject(new Error(msg.error));
       }
@@ -112,6 +116,7 @@ function cancelRequest(id: number) {
   const p = pending.get(id);
   if (p) {
     pending.delete(id);
+    untrackRequest(id);
     console.log(
       `[Globe:Loader] cancel id=${id} (had ${p.accumulated.length} rows accumulated)`
     );
@@ -160,7 +165,7 @@ export function loadParquet(
     }
 
     const id = nextId++;
-    activeRequestIds.set(url, id);
+    trackRequest(url, id);
     console.log(
       `[Globe:Loader] UNFILTERED id=${id} ${sUrl} cols=[${columns?.join(',') ?? '*'}]`
     );
@@ -183,7 +188,7 @@ export function loadParquet(
 
   // Viewport-filtered load — no file-level caching
   const id = nextId++;
-  activeRequestIds.set(url, id);
+  trackRequest(url, id);
 
   console.log(
     `[Globe:Loader] FILTERED id=${id} ${sUrl} ranges=${h3Ranges!.length} cols=[${columns?.join(',') ?? '*'}]`

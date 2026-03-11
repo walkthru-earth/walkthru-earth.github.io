@@ -71,8 +71,9 @@ const fullFileCache = new Map<string, Promise<ArrayBuffer | null>>();
 const rangeBufferCache = new Map<string, Promise<AsyncBuffer>>();
 const metadataCache = new Map<string, Promise<FileMetaData>>();
 
-/** URLs known to be large — avoids repeated GET + cancel cycles. */
+/** URLs known to be large — avoids repeated GET + cancel cycles. Capped to prevent unbounded growth. */
 const knownLargeFiles = new Set<string>();
+const KNOWN_LARGE_MAX = 30;
 
 /**
  * Smart fetch: starts a GET, checks Content-Length from response headers.
@@ -96,6 +97,9 @@ function smartFetch(url: string): Promise<ArrayBuffer | null> {
     const cl = Number(res.headers.get('content-length') || 0);
     if (cl > FULL_FETCH_THRESHOLD) {
       await res.body?.cancel();
+      if (knownLargeFiles.size >= KNOWN_LARGE_MAX) {
+        knownLargeFiles.delete(knownLargeFiles.values().next().value!);
+      }
       knownLargeFiles.add(url);
       return null;
     }
