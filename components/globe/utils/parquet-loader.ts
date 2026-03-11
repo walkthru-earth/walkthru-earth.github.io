@@ -7,9 +7,10 @@ import type {
   WorkerRequest,
   WorkerResponse,
   ParquetInfo,
+  RowFilter,
 } from './parquet-worker';
 
-export type { ParquetInfo } from './parquet-worker';
+export type { ParquetInfo, RowFilter } from './parquet-worker';
 
 let worker: Worker | null = null;
 let nextId = 0;
@@ -126,7 +127,8 @@ export function loadParquet(
   url: string,
   columns?: string[],
   h3Ranges?: [string, string][] | null,
-  onChunk?: (rows: Record<string, unknown>[]) => void
+  onChunk?: (rows: Record<string, unknown>[]) => void,
+  rowFilter?: RowFilter
 ): Promise<LoadResult> {
   const isFiltered = h3Ranges != null && h3Ranges.length > 0;
   const sUrl = shortUrl(url);
@@ -134,7 +136,8 @@ export function loadParquet(
   // Filtered (viewport) loads are ephemeral — skip file-level cache.
   // The worker still caches the AsyncBuffer + metadata internally.
   if (!isFiltered) {
-    const cacheKey = `${url}|${columns?.join(',') ?? '*'}`;
+    const filterKey = rowFilter ? `|${rowFilter.column}>${rowFilter.gt}` : '';
+    const cacheKey = `${url}|${columns?.join(',') ?? '*'}${filterKey}`;
 
     const cached = fileCache.get(cacheKey);
     if (cached && onChunk) {
@@ -163,7 +166,7 @@ export function loadParquet(
     );
     const promise = new Promise<LoadResult>((resolve, reject) => {
       pending.set(id, { resolve, reject, onChunk, accumulated: [] });
-      getWorker().postMessage({ id, url, columns } as WorkerRequest);
+      getWorker().postMessage({ id, url, columns, rowFilter } as WorkerRequest);
     });
 
     lruSet(fileCache, cacheKey, promise, 6);
@@ -193,6 +196,7 @@ export function loadParquet(
       url,
       columns,
       h3Ranges: h3Ranges ?? undefined,
+      rowFilter,
     } as WorkerRequest);
   });
 }

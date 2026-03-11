@@ -8,6 +8,7 @@ import {
   WIND_SPEED_COLORS,
   POPULATION_DENSITY_COLORS,
   PRESSURE_COLORS,
+  PRECIPITATION_COLORS,
   SLOPE_COLORS,
   RUGGEDNESS_COLORS,
   HOUSING_PRESSURE_COLORS,
@@ -166,7 +167,7 @@ export const SECTIONS: GlobeSection[] = [
       const lo = col(rows, 'temperature_2m_C', 'min');
       const hi = col(rows, 'temperature_2m_C', 'max');
       const ts = new Set(rows.map((r) => r.timestamp)).size;
-      return `${fmt(rows.length)} cells loaded across ${ts} timesteps. Temperature range: ${lo.toFixed(1)}\u00B0C to ${hi.toFixed(1)}\u00B0C.a ${(hi - lo).toFixed(0)}\u00B0 span on one grid. AI-powered by NOAA GraphCast, topographically corrected with our 30m terrain model.`;
+      return `${fmt(rows.length)} cells loaded across ${ts} timesteps. Temperature range: ${lo.toFixed(1)}\u00B0C to ${hi.toFixed(1)}\u00B0C. A ${(hi - lo).toFixed(0)}\u00B0 span on one grid. AI-powered by NOAA GraphCast, topographically corrected with our 30m terrain model.`;
     },
     stat: { label: 'Forecast Horizon', value: '5 days' },
     viewState: { latitude: 20, longitude: 30, zoom: 1.5 },
@@ -221,11 +222,11 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     title: 'Wind Patterns',
     subtitle: 'AI Weather · 10m Winds',
     description:
-      'Surface wind speeds at 10m above ground. Trade winds, westerlies, and storm systems.each hexagon carries speed and direction vectors.',
+      'Surface wind speeds at 10m above ground. Trade winds, westerlies, and storm systems. Each hexagon carries speed and direction vectors.',
     describeData: (rows) => {
       const maxWind = col(rows, 'wind_speed_10m_ms', 'max');
       const maxKmh = (maxWind * 3.6).toFixed(0);
-      return `${fmt(rows.length)} cells loaded. Strongest wind: ${maxWind.toFixed(1)} m/s (${maxKmh} km/h). Trade winds, westerlies, and storm systems.each hexagon carries speed and direction vectors from NOAA GraphCast AI.`;
+      return `${fmt(rows.length)} cells loaded. Strongest wind: ${maxWind.toFixed(1)} m/s (${maxKmh} km/h). Trade winds, westerlies, and storm systems. Each hexagon carries speed and direction vectors from NOAA GraphCast AI.`;
     },
     stat: { label: 'Update Frequency', value: '12 hrs' },
     viewState: { latitude: 30, longitude: -30, zoom: 1.8 },
@@ -280,7 +281,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     title: 'Terrain & Elevation',
     subtitle: 'Himalayas',
     description:
-      'Elevation from the GEDTM-30m global terrain model. Five metrics per hexagon: elevation, slope, aspect, TRI, and TPI. 287 GB across 10.5 billion cells.',
+      'Elevation from the GEDTM-30m global terrain model. Five metrics per hexagon: elevation, slope, aspect, TRI, and TPI. 183 GB across 10.5 billion cells.',
     describeData: (rows) => {
       const hi = col(rows, 'elev', 'max');
       const lo = col(rows, 'elev', 'min');
@@ -419,7 +420,7 @@ JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
     title: 'Population Growth 2025→2100',
     subtitle: 'Sub-Saharan Africa',
     description:
-      'Population projections under SSP2 from WorldPop. Sub-Saharan Africa shows the most dramatic growth.some hexagons tripling by 2100.',
+      'Population projections under SSP2 from WorldPop. Sub-Saharan Africa shows the most dramatic growth. Some hexagons tripling by 2100.',
     describeData: (rows) => {
       const totalPop = col(rows, 'pop_2025', 'sum');
       const totalPop2100 = col(rows, 'pop_2100', 'sum');
@@ -437,20 +438,23 @@ JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
         ctx.h3Ranges
       );
       return {
-        rows: result.rows.map((r) => ({
-          ...r,
-          growth_ratio:
-            Number(r.pop_2025) !== 0
-              ? Number(r.pop_2100) / Number(r.pop_2025)
-              : null,
-        })),
+        rows: result.rows
+          .filter((r) => Number(r.pop_2025) >= 10)
+          .map((r) => ({
+            ...r,
+            growth_ratio:
+              Number(r.pop_2025) > 0
+                ? Number(r.pop_2100) / Number(r.pop_2025)
+                : null,
+          })),
         info: result.info,
       };
     },
     buildQuery: (ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
        (pop_2100 / NULLIF(pop_2025, 0))
          AS growth_ratio
-FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet'`,
+FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet'
+WHERE pop_2025 >= 10`,
     getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const ratio = Number(d.growth_ratio) || 1;
@@ -553,7 +557,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     title: 'Housing Pressure 2025→2100',
     subtitle: 'Sub-Saharan Africa',
     description:
-      'Where population will grow fastest with the fewest buildings per person. Cross-index joining buildings with SSP2 projections.revealing future housing crises decades in advance.',
+      'Where population will grow fastest with the fewest buildings per person. Cross-index joining buildings with SSP2 projections. Revealing future housing crises decades in advance.',
     describeData: (rows) => {
       const maxGrowth = col(rows, 'growth_ratio', 'max');
       const minBpp = rows.reduce((m, r) => {
@@ -562,7 +566,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
       }, Infinity);
       return `${fmt(rows.length)} cells. Fastest growth: ${maxGrowth.toFixed(1)}x. Fewest buildings/person: ${minBpp === Infinity ? 'N/A' : minBpp.toFixed(3)}. Cross-index joining 2.75B buildings with SSP2 population projections.`;
     },
-    stat: { label: 'Max Growth', value: '7.3x' },
+    stat: { label: 'Max Growth', value: '524x' },
     viewState: { latitude: 8, longitude: 7, zoom: 3.5 },
     colorColumn: 'growth_ratio',
     loadData: async (ctx, _onProgress) => {
@@ -580,7 +584,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
       ]);
       const bMap = new Map(bResult.rows.map((b) => [String(b.h3_index), b]));
       const rows = pResult.rows
-        .filter((p) => Number(p.pop_2025) > 0)
+        .filter((p) => Number(p.pop_2025) >= 10)
         .map((p) => {
           const b = bMap.get(String(p.h3_index));
           const pop2025 = Number(p.pop_2025);
@@ -604,7 +608,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
 FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet' p
 LEFT JOIN '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet' b
   ON p.h3_index = b.h3_index
-WHERE p.pop_2025 > 0`,
+WHERE p.pop_2025 >= 10`,
     getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const ratio = Number(d.growth_ratio) || 1;
@@ -644,14 +648,14 @@ WHERE p.pop_2025 > 0`,
     title: 'Buildings on Unstable Ground',
     subtitle: 'Himalayan Risk',
     description:
-      'Cross-joining buildings with terrain slope to find structures on dangerous ground.the steepest inhabited terrain on Earth.',
+      'Cross-joining buildings with terrain slope to find structures on dangerous ground. The steepest inhabited terrain on Earth.',
     describeData: (rows) => {
       const maxSlope = col(rows, 'slope', 'max');
       const maxBldg = col(rows, 'building_count', 'max');
       const total = col(rows, 'building_count', 'sum');
       return `${fmt(rows.length)} cells with buildings on terrain. Steepest: ${maxSlope.toFixed(1)}\u00B0. Most buildings on slope: ${fmt(maxBldg)}. Total structures on terrain: ${fmt(total)}.`;
     },
-    stat: { label: 'Max Slope', value: '36.4\u00B0' },
+    stat: { label: 'Max Slope', value: '37.2\u00B0' },
     viewState: { latitude: 28, longitude: 85, zoom: 3.5 },
     colorColumn: 'slope',
     loadData: async (ctx, _onProgress) => {
@@ -716,7 +720,7 @@ WHERE b.building_count > 0`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
     githubUrl: 'https://github.com/walkthru-earth/dem-terrain',
     defaultH3Res: 3,
-    h3ResRange: [1, 10],
+    h3ResRange: [3, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -728,7 +732,7 @@ WHERE b.building_count > 0`,
     title: 'Vertical Living Index',
     subtitle: 'Pearl River Delta',
     description:
-      'Buildings per person.a proxy for how vertically compressed human living is. Low ratios mean more people sharing each structure, reshaping daily stress, social interaction, and mental health.',
+      'Buildings per person. A proxy for how vertically compressed human living is. Low ratios mean more people sharing each structure, reshaping daily stress, social interaction, and mental health.',
     describeData: (rows) => {
       const minBpp = rows.reduce((m, r) => {
         const v = Number(r.bldg_per_person);
@@ -738,7 +742,7 @@ WHERE b.building_count > 0`,
       const maxPop = col(rows, 'pop_2025', 'max');
       return `${fmt(rows.length)} cells. Most compressed: ${minBpp === Infinity ? 'N/A' : minBpp.toFixed(3)} buildings/person.one building for every ${ppb} people. Most populated cell: ${fmt(Math.round(maxPop))}.`;
     },
-    stat: { label: 'Min Bldg/Person', value: '0.019' },
+    stat: { label: 'Min Bldg/Person', value: '0.0003' },
     viewState: { latitude: 23, longitude: 114, zoom: 3.5 },
     colorColumn: 'bldg_per_person',
     loadData: async (ctx, _onProgress) => {
@@ -829,7 +833,7 @@ WHERE p.pop_2025 > 0 AND b.building_count > 0`,
       const total2100 = col(rows, 'pop_2100', 'sum');
       return `${fmt(rows.length)} cells. Steepest decline: ${minRatio === Infinity ? 'N/A' : minRatio.toFixed(2)}x. Total population: ${(totalNow / 1e9).toFixed(2)}B \u2192 ${(total2100 / 1e9).toFixed(2)}B by 2100.`;
     },
-    stat: { label: 'Steepest Decline', value: '0.39x' },
+    stat: { label: 'Steepest Decline', value: '0.0x' },
     viewState: { latitude: 32, longitude: 112, zoom: 3 },
     colorColumn: 'growth_ratio',
     loadData: async (ctx, _onProgress) => {
@@ -839,20 +843,23 @@ WHERE p.pop_2025 > 0 AND b.building_count > 0`,
         ctx.h3Ranges
       );
       return {
-        rows: result.rows.map((r) => ({
-          ...r,
-          growth_ratio:
-            Number(r.pop_2025) !== 0
-              ? Number(r.pop_2100) / Number(r.pop_2025)
-              : null,
-        })),
+        rows: result.rows
+          .filter((r) => Number(r.pop_2025) >= 10)
+          .map((r) => ({
+            ...r,
+            growth_ratio:
+              Number(r.pop_2025) > 0
+                ? Number(r.pop_2100) / Number(r.pop_2025)
+                : null,
+          })),
         info: result.info,
       };
     },
     buildQuery: (ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
        (pop_2100 / NULLIF(pop_2025, 0))
          AS growth_ratio
-FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet'`,
+FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet'
+WHERE pop_2025 >= 10`,
     getHexagon: h3ToHex,
     getFillColor: (d, range) => {
       const ratio = Number(d.growth_ratio) || 1;
@@ -891,7 +898,7 @@ FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
     title: 'Atmospheric Pressure',
     subtitle: 'AI Weather · Sea Level',
     description:
-      'Mean sea level pressure from GraphCast AI. Low pressure brings storms and barometric changes.a known trigger for migraines and mood shifts. High pressure brings calm.',
+      'Mean sea level pressure from GraphCast AI. Low pressure brings storms and barometric changes. A known trigger for migraines and mood shifts. High pressure brings calm.',
     describeData: (rows) => {
       const lo = col(rows, 'pressure_msl_hPa', 'min');
       const hi = col(rows, 'pressure_msl_hPa', 'max');
@@ -943,7 +950,72 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 12: Terrain Slope — Global Surface Gradient
+   * Section 12: Precipitation — Rain Only (filtered)
+   * ──────────────────────────────────────────────────────────────── */
+  {
+    id: 'weather-precipitation',
+    title: 'Precipitation',
+    subtitle: 'AI Weather · Rain Only',
+    description:
+      'Accumulated precipitation (mm/6hr) from GraphCast AI with orographic correction. Only raining hexagons (>0.1 mm) are shown — dry cells hidden. Validated against Open-Meteo. Updated every 12 hours.',
+    describeData: (rows) => {
+      const maxPrecip = col(rows, 'precipitation_mm_6hr', 'max');
+      const avgPrecip = col(rows, 'precipitation_mm_6hr', 'sum') / rows.length;
+      const totalCells = rows.length;
+      return `${fmt(totalCells)} raining cells shown. Heaviest: ${maxPrecip.toFixed(1)} mm/6hr. Average: ${avgPrecip.toFixed(1)} mm/6hr. Dry hexagons hidden.`;
+    },
+    stat: { label: 'Forecast Horizon', value: '5 days' },
+    viewState: { latitude: 10, longitude: 100, zoom: 1.5 },
+    colorColumn: 'precipitation_mm_6hr',
+    loadData: async (ctx, onProgress) =>
+      loadParquet(
+        weatherParquet(ctx.weatherPrefix, ctx.h3Res),
+        [
+          'h3_index',
+          'timestamp',
+          'precipitation_mm_6hr',
+          'temperature_2m_C',
+          'wind_speed_10m_ms',
+        ],
+        ctx.h3Ranges,
+        onProgress,
+        { column: 'precipitation_mm_6hr', gt: 0.1 }
+      ),
+    buildQuery: (ctx) => `SELECT h3_index, precipitation_mm_6hr,
+       temperature_2m_C, wind_speed_10m_ms
+FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
+WHERE precipitation_mm_6hr > 0.1`,
+    getHexagon: h3ToHex,
+    getFillColor: (d, range) => {
+      const precip = Math.max(0, Number(d.precipitation_mm_6hr) || 0);
+      return interpolateColor(
+        normalize(precip, range.min, range.max),
+        PRECIPITATION_COLORS
+      );
+    },
+    formatTooltip: (d) => {
+      const p = Number(d.precipitation_mm_6hr);
+      const label = p >= 20 ? 'Heavy' : p >= 5 ? 'Moderate' : 'Light';
+      return [
+        `Precip: ${p.toFixed(1)} mm/6hr (${label})`,
+        `Temp: ${Number(d.temperature_2m_C).toFixed(1)} °C`,
+        `Wind: ${Number(d.wind_speed_10m_ms).toFixed(1)} m/s`,
+      ].join('\n');
+    },
+    extruded: false,
+    colorLegend: [
+      { label: '0.1 mm', color: 'rgb(255,255,204)' },
+      { label: '10 mm', color: 'rgb(65,182,196)' },
+      { label: '50+ mm', color: 'rgb(37,52,148)' },
+    ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
+    defaultH3Res: 1,
+    h3ResRange: [0, 5],
+  },
+
+  /* ────────────────────────────────────────────────────────────────
+   * Section 13: Terrain Slope — Global Surface Gradient
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'terrain-slope',
@@ -956,7 +1028,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
       const avgSlope = col(rows, 'slope', 'sum') / rows.length;
       return `${fmt(rows.length)} cells. Steepest: ${maxSlope.toFixed(1)}\u00B0. Average: ${avgSlope.toFixed(1)}\u00B0. Slope determines walkability, buildability, and landslide risk.`;
     },
-    stat: { label: 'Steepest Cell', value: '36.4\u00B0' },
+    stat: { label: 'Steepest Cell', value: '52.5\u00B0' },
     viewState: { latitude: -15, longitude: -70, zoom: 3 },
     colorColumn: 'slope',
     loadData: async (ctx, onProgress) =>
@@ -1005,13 +1077,13 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     title: 'Terrain Ruggedness',
     subtitle: 'Karakoram · TRI Index',
     description:
-      'Terrain Ruggedness Index (TRI).measuring elevation variability within each cell. High TRI means gorges, ridgelines, and cliff faces. Rugged terrain shapes accessibility and isolation.',
+      'Terrain Ruggedness Index (TRI). Measuring elevation variability within each cell. High TRI means gorges, ridgelines, and cliff faces. Rugged terrain shapes accessibility and isolation.',
     describeData: (rows) => {
       const maxTri = col(rows, 'tri', 'max');
       const avgTri = col(rows, 'tri', 'sum') / rows.length;
       return `${fmt(rows.length)} cells. Max TRI: ${maxTri.toFixed(1)}. Average: ${avgTri.toFixed(1)}. High ruggedness = gorges, ridgelines, cliff faces, geographic isolation.`;
     },
-    stat: { label: 'Max TRI', value: '299.8' },
+    stat: { label: 'Max TRI', value: '305.4' },
     viewState: { latitude: 36, longitude: 76, zoom: 3.5 },
     colorColumn: 'tri',
     loadData: async (ctx, onProgress) =>
@@ -1057,14 +1129,14 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     title: 'Built Volume',
     subtitle: 'Pearl River Delta · Concrete Mass',
     description:
-      'Total building volume (footprint \u00D7 height) per hexagon.the physical mass of the built environment made visible.',
+      'Total building volume (footprint \u00D7 height) per hexagon. The physical mass of the built environment made visible.',
     describeData: (rows) => {
       const maxVol = col(rows, 'total_volume_m3', 'max');
       const totalVol = col(rows, 'total_volume_m3', 'sum');
       const maxCov = col(rows, 'coverage_ratio', 'max');
       return `${fmt(rows.length)} cells. Largest: ${(maxVol / 1e9).toFixed(2)}B m\u00B3 in one cell. Total: ${(totalVol / 1e9).toFixed(1)}B m\u00B3. Max coverage: ${(maxCov * 100).toFixed(1)}%.`;
     },
-    stat: { label: 'Max Volume', value: '3.88B m\u00B3' },
+    stat: { label: 'Max Volume', value: '13.6B m\u00B3' },
     viewState: { latitude: 23, longitude: 114, zoom: 3.5 },
     colorColumn: 'total_volume_m3',
     loadData: async (ctx, onProgress) =>
@@ -1130,7 +1202,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
       const maxFp = col(rows, 'total_footprint_m2', 'max');
       return `${fmt(rows.length)} cells. Max ground coverage: ${(maxCov * 100).toFixed(1)}%. Densest: ${maxDensity.toFixed(0)}/km\u00B2. Largest footprint: ${(maxFp / 1e6).toFixed(1)}M m\u00B2.`;
     },
-    stat: { label: 'Max Coverage', value: '27%' },
+    stat: { label: 'Max Coverage', value: '42%' },
     viewState: { latitude: -6.3, longitude: 107, zoom: 4 },
     colorColumn: 'coverage_ratio',
     loadData: async (ctx, onProgress) =>
@@ -1190,7 +1262,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     title: 'Built Volume Per Person',
     subtitle: 'Kinshasa \u00B7 4.8 m\u00B3/person',
     description:
-      'Total building volume divided by population.how much built space exists per person. These numbers quantify the spatial compression that shapes stress, sleep, and social behavior.',
+      'Total building volume divided by population. How much built space exists per person. These numbers quantify the spatial compression that shapes stress, sleep, and social behavior.',
     describeData: (rows) => {
       const minVpp = rows.reduce((m, r) => {
         const v = Number(r.vol_per_person);
@@ -1199,7 +1271,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
       const maxPop = col(rows, 'pop_2025', 'max');
       return `${fmt(rows.length)} cells. Least space: ${minVpp === Infinity ? 'N/A' : minVpp.toFixed(1)} m\u00B3/person. Most populated cell: ${fmt(Math.round(maxPop))}. Built volume \u00F7 population = the physical space each person has.`;
     },
-    stat: { label: 'Min Volume', value: '4.8 m\u00B3/person' },
+    stat: { label: 'Min Volume', value: '0.001 m\u00B3/person' },
     viewState: { latitude: -4, longitude: 16, zoom: 4 },
     colorColumn: 'vol_per_person',
     loadData: async (ctx, _onProgress) => {

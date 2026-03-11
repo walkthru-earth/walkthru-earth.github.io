@@ -27,12 +27,20 @@ function lruSet<K, V>(map: Map<K, V>, key: K, value: V, maxSize: number) {
 /** Files under this threshold are read from a single GET response. */
 const FULL_FETCH_THRESHOLD = 5 * 1024 * 1024; // 5 MB
 
+/** Row-level filter: keep only rows where column > threshold. */
+export interface RowFilter {
+  column: string;
+  gt: number;
+}
+
 export interface WorkerRequest {
   id: number;
   url: string;
   columns?: string[];
   /** Hex-encoded BigInt [min, max] pairs for viewport H3 filtering. */
   h3Ranges?: [string, string][];
+  /** Optional row-level filter applied inside the worker before posting. */
+  rowFilter?: RowFilter;
   /** Set to true to cancel an in-flight request with the given id. */
   cancel?: boolean;
 }
@@ -219,6 +227,15 @@ function filterRowsByH3Ranges(
   });
 }
 
+/** Apply a row-level column filter (keep rows where column > threshold). */
+function applyRowFilter(
+  rows: Record<string, unknown>[],
+  filter: RowFilter | undefined
+): Record<string, unknown>[] {
+  if (!filter) return rows;
+  return rows.filter((r) => Number(r[filter.column]) > filter.gt);
+}
+
 /** IDs that have been cancelled — checked between row groups to abort early. */
 const cancelledIds = new Set<number>();
 
@@ -226,7 +243,7 @@ const cancelledIds = new Set<number>();
 const CANCEL_ID_MAX = 50;
 
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
-  const { id, url, columns, h3Ranges: rawH3Ranges, cancel } = e.data;
+  const { id, url, columns, h3Ranges: rawH3Ranges, rowFilter, cancel } = e.data;
 
   // Handle cancellation requests
   if (cancel) {
@@ -273,6 +290,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
           `[Worker] ${shortUrl}: viewport filter ${before} → ${rows.length} rows`
         );
       }
+      rows = applyRowFilter(rows, rowFilter);
       console.log(
         `[Worker] ${shortUrl}: ${rows.length} rows parsed in ${(performance.now() - t1).toFixed(0)}ms (total ${(performance.now() - t0).toFixed(0)}ms)`
       );
@@ -320,6 +338,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         compressors,
       })) as Record<string, unknown>[];
       if (h3Ranges) rows = filterRowsByH3Ranges(rows, h3Ranges);
+      rows = applyRowFilter(rows, rowFilter);
       console.log(`[Worker] ${shortUrl}: ${rows.length} rows (single group)`);
       post({ id, type: 'chunk', rows });
       post({ id, type: 'done', info });
@@ -366,6 +385,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
 
       // Fine-grained filter within kept row groups
       if (h3Ranges) rows = filterRowsByH3Ranges(rows, h3Ranges);
+      rows = applyRowFilter(rows, rowFilter);
 
       if (rows.length > 0) {
         sentRows += rows.length;
