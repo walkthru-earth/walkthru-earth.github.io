@@ -69,27 +69,27 @@ export const LayerPanel = memo(function LayerPanel({
               key={layer.id}
               className="hover:bg-accent/50 rounded-lg px-2.5 py-2 transition-colors"
             >
-              <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                className="flex w-full items-center gap-2.5 text-left"
+                onClick={() => onToggle(layer.id)}
+              >
                 <Checkbox
-                  id={`layer-${layer.id}`}
                   checked={layer.visible}
-                  onCheckedChange={() => onToggle(layer.id)}
-                  className="border-muted-foreground/40 h-3.5 w-3.5 rounded-[3px]"
+                  tabIndex={-1}
+                  className="border-muted-foreground/40 pointer-events-none h-3.5 w-3.5 rounded-[3px]"
                 />
                 <div
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: layer.color }}
                 />
-                <label
-                  htmlFor={`layer-${layer.id}`}
-                  className="text-foreground flex-1 cursor-pointer text-xs leading-none font-medium"
-                >
+                <span className="text-foreground flex-1 text-xs leading-none font-medium">
                   {layer.label}
-                </label>
+                </span>
                 <span className="text-3xs text-muted-foreground font-mono tabular-nums">
                   {layer.rowCount > 0 ? layer.rowCount.toLocaleString() : ''}
                 </span>
-              </div>
+              </button>
               {layer.visible && (
                 <div className="mt-1.5 flex items-center gap-2.5 pl-6">
                   <svg

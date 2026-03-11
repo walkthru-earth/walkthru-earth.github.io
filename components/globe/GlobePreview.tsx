@@ -5,6 +5,7 @@ import { GlobeMap } from './GlobeMap';
 import {
   SECTIONS,
   resolveWeatherPrefix,
+  h3ToHex,
   type QueryContext,
 } from './data/sections';
 import { computeRange, type ColorRange } from './data/constants';
@@ -87,7 +88,7 @@ export function GlobePreview({
         targetViewState={section.viewState}
         layerData={rows}
         colorRange={colorRange}
-        getHexagon={section.getHexagon}
+        getHexagon={section.getHexagon ?? h3ToHex}
         getFillColor={section.getFillColor}
         getElevation={section.getElevation}
         formatTooltip={nonInteractive ? undefined : section.formatTooltip}

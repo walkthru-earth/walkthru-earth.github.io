@@ -2,7 +2,7 @@
 
 import { memo, useMemo } from 'react';
 import type { UserLocation } from './hooks/useUserLocation';
-import type { GlobeSection } from './data/sections';
+import { h3ToHex, type GlobeSection } from './data/sections';
 import type { PinScreenPos } from './GlobeMap';
 
 interface UserLocationCardProps {
@@ -27,7 +27,7 @@ export const UserLocationCard = memo(function UserLocationCard({
     if (!userH3 || layerData.length === 0) return null;
     return (
       layerData.find((row) => {
-        const rowH3 = section.getHexagon(row);
+        const rowH3 = (section.getHexagon ?? h3ToHex)(row);
         return rowH3 === userH3;
       }) ?? null
     );

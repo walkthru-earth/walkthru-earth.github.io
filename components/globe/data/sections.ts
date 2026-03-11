@@ -42,7 +42,8 @@ export interface GlobeSection {
     onProgress?: (rows: Record<string, unknown>[]) => void
   ) => Promise<LoadResult>;
   buildQuery: (ctx: QueryContext) => string;
-  getHexagon: (d: Record<string, unknown>) => string;
+  /** Convert row to H3 hex string. Defaults to h3ToHex if omitted. */
+  getHexagon?: (d: Record<string, unknown>) => string;
   getFillColor: (
     d: Record<string, unknown>,
     range: ColorRange
@@ -115,8 +116,19 @@ export function resolveWeatherPrefix(): Promise<string> {
   return _weatherPrefixPromise;
 }
 
+/* ── Parquet URL builders ──────────────────────────────────────────── */
+
 const weatherParquet = (prefix: string, res: number) =>
   `${prefix}/h3_res=${res}/data.parquet`;
+
+const buildingParquet = (res: number) =>
+  `${S3_BASE}/indices/building/v2/h3/h3_res=${res}/data.parquet`;
+
+const populationParquet = (res: number, scenario = 'SSP2') =>
+  `${S3_BASE}/indices/population/v2/scenario=${scenario}/h3_res=${res}/data.parquet`;
+
+const terrainParquet = (res: number) =>
+  `${S3_BASE}/dem-terrain/v2/h3/h3_res=${res}/data.parquet`;
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
@@ -185,10 +197,10 @@ export const SECTIONS: GlobeSection[] = [
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, temperature_2m_C,
-       wind_speed_10m_ms, pressure_msl_hPa
-FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
-    getHexagon: h3ToHex,
+    buildQuery: (ctx) => `FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
+SELECT h3_index, temperature_2m_C,
+       wind_speed_10m_ms, pressure_msl_hPa`,
+
     getFillColor: (d, range) => {
       const temp = Number(d.temperature_2m_C) || 15;
       return interpolateColor(
@@ -244,10 +256,10 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, wind_speed_10m_ms,
-       wind_direction_10m_deg, temperature_2m_C
-FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
-    getHexagon: h3ToHex,
+    buildQuery: (ctx) => `FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
+SELECT h3_index, wind_speed_10m_ms,
+       wind_direction_10m_deg, temperature_2m_C`,
+
     getFillColor: (d, range) => {
       const wind = Number(d.wind_speed_10m_ms) || 0;
       return interpolateColor(
@@ -293,14 +305,14 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     colorColumn: 'elev',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+        terrainParquet(ctx.h3Res),
         ['h3_index', 'elev', 'slope', 'aspect', 'tri'],
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, elev, slope, aspect, tri
-FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
-    getHexagon: h3ToHex,
+    buildQuery: (ctx) => `FROM '${terrainParquet(ctx.h3Res)}'
+SELECT h3_index, elev, slope, aspect, tri`,
+
     getFillColor: (d, range) => {
       const elev = Number(d.elev) || 0;
       return interpolateColor(
@@ -329,7 +341,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 4: Buildings + Population — Nile Delta / Cairo (zoom ~4)
+   * Section 3: Buildings + Population — Nile Delta / Cairo (zoom ~4)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'urban-density',
@@ -349,7 +361,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     loadData: async (ctx, _onProgress) => {
       const [bResult, pResult] = await Promise.all([
         loadParquet(
-          `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+          buildingParquet(ctx.h3Res),
           [
             'h3_index',
             'building_count',
@@ -360,7 +372,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
           ctx.h3Ranges
         ),
         loadParquet(
-          `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
+          populationParquet(ctx.h3Res),
           ['h3_index', 'pop_2025', 'pop_2050'],
           ctx.h3Ranges
         ),
@@ -376,14 +388,13 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
       });
       return { rows, info: bResult.info };
     },
-    buildQuery: (ctx) => `SELECT b.h3_index, b.building_count,
+    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}' b
+JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
+SELECT b.h3_index, b.building_count,
        b.building_density, b.avg_height_m,
        b.total_volume_m3,
-       p.pop_2025, p.pop_2050
-FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet' b
-JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet' p
-  ON b.h3_index = p.h3_index`,
-    getHexagon: h3ToHex,
+       p.pop_2025, p.pop_2050`,
+
     getFillColor: (d, range) => {
       const pop = Number(d.pop_2025) || 0;
       return interpolateColor(
@@ -413,7 +424,7 @@ JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 5: Population Growth — Sub-Saharan Africa (zoom ~3.5)
+   * Section 4: Population Growth — Sub-Saharan Africa (zoom ~3.5)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'population-growth',
@@ -433,7 +444,7 @@ JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
     colorColumn: 'growth_ratio',
     loadData: async (ctx, _onProgress) => {
       const result = await loadParquet(
-        `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
+        populationParquet(ctx.h3Res),
         ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100'],
         ctx.h3Ranges
       );
@@ -450,12 +461,11 @@ JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.pa
         info: result.info,
       };
     },
-    buildQuery: (ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
-       (pop_2100 / NULLIF(pop_2025, 0))
-         AS growth_ratio
-FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet'
+    buildQuery: (ctx) => `FROM '${populationParquet(ctx.h3Res)}'
+SELECT h3_index, pop_2025, pop_2050, pop_2100,
+       pop_2100 / NULLIF(pop_2025, 0) AS growth_ratio
 WHERE pop_2025 >= 10`,
-    getHexagon: h3ToHex,
+
     getFillColor: (d, range) => {
       const ratio = Number(d.growth_ratio) || 1;
       return interpolateColor(
@@ -484,7 +494,7 @@ WHERE pop_2025 >= 10`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 6: Buildings — Tokyo (zoom ~4, building height)
+   * Section 5: Buildings — Tokyo (zoom ~4, building height)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'building-density',
@@ -503,7 +513,7 @@ WHERE pop_2025 >= 10`,
     colorColumn: 'avg_height_m',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+        buildingParquet(ctx.h3Res),
         [
           'h3_index',
           'building_count',
@@ -515,11 +525,11 @@ WHERE pop_2025 >= 10`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, building_count,
+    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}'
+SELECT h3_index, building_count,
        building_density, avg_height_m,
-       coverage_ratio, total_volume_m3
-FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
-    getHexagon: h3ToHex,
+       coverage_ratio, total_volume_m3`,
+
     getFillColor: (d, range) => {
       const height = Number(d.avg_height_m) || 0;
       return interpolateColor(
@@ -549,7 +559,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 7: Housing Pressure — Pop Growth × Low Buildings/Person
+   * Section 6: Housing Pressure — Pop Growth × Low Buildings/Person
    * Cross-index: population + building
    * ──────────────────────────────────────────────────────────────── */
   {
@@ -572,12 +582,12 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     loadData: async (ctx, _onProgress) => {
       const [bResult, pResult] = await Promise.all([
         loadParquet(
-          `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+          buildingParquet(ctx.h3Res),
           ['h3_index', 'building_count'],
           ctx.h3Ranges
         ),
         loadParquet(
-          `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
+          populationParquet(ctx.h3Res),
           ['h3_index', 'pop_2025', 'pop_2100'],
           ctx.h3Ranges
         ),
@@ -600,16 +610,14 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
         });
       return { rows, info: pResult.info };
     },
-    buildQuery: (ctx) => `SELECT p.h3_index, p.pop_2025, p.pop_2100,
-       (p.pop_2100 / NULLIF(p.pop_2025, 0)) AS growth_ratio,
+    buildQuery: (ctx) => `FROM '${populationParquet(ctx.h3Res)}' p
+LEFT JOIN '${buildingParquet(ctx.h3Res)}' b USING (h3_index)
+SELECT p.h3_index, p.pop_2025, p.pop_2100,
+       p.pop_2100 / NULLIF(p.pop_2025, 0) AS growth_ratio,
        b.building_count,
-       (b.building_count::FLOAT / NULLIF(p.pop_2025, 0))
-         AS bldg_per_person
-FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet' p
-LEFT JOIN '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet' b
-  ON p.h3_index = b.h3_index
+       b.building_count::FLOAT / NULLIF(p.pop_2025, 0) AS bldg_per_person
 WHERE p.pop_2025 >= 10`,
-    getHexagon: h3ToHex,
+
     getFillColor: (d, range) => {
       const ratio = Number(d.growth_ratio) || 1;
       return interpolateColor(
@@ -640,7 +648,7 @@ WHERE p.pop_2025 >= 10`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 8: Landslide Vulnerability — Buildings on Steep Terrain
+   * Section 7: Landslide Vulnerability — Buildings on Steep Terrain
    * Cross-index: building + terrain
    * ──────────────────────────────────────────────────────────────── */
   {
@@ -661,12 +669,12 @@ WHERE p.pop_2025 >= 10`,
     loadData: async (ctx, _onProgress) => {
       const [bResult, tResult] = await Promise.all([
         loadParquet(
-          `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+          buildingParquet(ctx.h3Res),
           ['h3_index', 'building_count', 'avg_height_m'],
           ctx.h3Ranges
         ),
         loadParquet(
-          `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+          terrainParquet(ctx.h3Res),
           ['h3_index', 'elev', 'slope', 'tri'],
           ctx.h3Ranges
         ),
@@ -687,13 +695,12 @@ WHERE p.pop_2025 >= 10`,
         });
       return { rows, info: tResult.info };
     },
-    buildQuery: (ctx) => `SELECT t.h3_index, t.elev, t.slope, t.tri,
+    buildQuery: (ctx) => `FROM '${terrainParquet(ctx.h3Res)}' t
+JOIN '${buildingParquet(ctx.h3Res)}' b USING (h3_index)
+SELECT t.h3_index, t.elev, t.slope, t.tri,
        b.building_count, b.avg_height_m
-FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet' t
-JOIN '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet' b
-  ON t.h3_index = b.h3_index
 WHERE b.building_count > 0`,
-    getHexagon: h3ToHex,
+
     getFillColor: (d, range) => {
       const slope = Number(d.slope) || 0;
       return interpolateColor(
@@ -724,7 +731,7 @@ WHERE b.building_count > 0`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 9: Vertical Living — Most Compressed Human Density
+   * Section 8: Vertical Living — Most Compressed Human Density
    * Cross-index: building + population
    * ──────────────────────────────────────────────────────────────── */
   {
@@ -740,7 +747,7 @@ WHERE b.building_count > 0`,
       }, Infinity);
       const ppb = minBpp > 0 ? Math.round(1 / minBpp) : 0;
       const maxPop = col(rows, 'pop_2025', 'max');
-      return `${fmt(rows.length)} cells. Most compressed: ${minBpp === Infinity ? 'N/A' : minBpp.toFixed(3)} buildings/person.one building for every ${ppb} people. Most populated cell: ${fmt(Math.round(maxPop))}.`;
+      return `${fmt(rows.length)} cells. Most compressed: ${minBpp === Infinity ? 'N/A' : minBpp.toFixed(3)} buildings/person. One building for every ${ppb} people. Most populated cell: ${fmt(Math.round(maxPop))}.`;
     },
     stat: { label: 'Min Bldg/Person', value: '0.0003' },
     viewState: { latitude: 23, longitude: 114, zoom: 3.5 },
@@ -748,12 +755,12 @@ WHERE b.building_count > 0`,
     loadData: async (ctx, _onProgress) => {
       const [bResult, pResult] = await Promise.all([
         loadParquet(
-          `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+          buildingParquet(ctx.h3Res),
           ['h3_index', 'building_count', 'avg_height_m'],
           ctx.h3Ranges
         ),
         loadParquet(
-          `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
+          populationParquet(ctx.h3Res),
           ['h3_index', 'pop_2025'],
           ctx.h3Ranges
         ),
@@ -776,15 +783,13 @@ WHERE b.building_count > 0`,
         });
       return { rows, info: bResult.info };
     },
-    buildQuery: (ctx) => `SELECT b.h3_index, b.building_count,
+    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}' b
+JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
+SELECT b.h3_index, b.building_count,
        b.avg_height_m, p.pop_2025,
-       (b.building_count::FLOAT / p.pop_2025)
-         AS bldg_per_person
-FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet' b
-JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet' p
-  ON b.h3_index = p.h3_index
+       b.building_count::FLOAT / p.pop_2025 AS bldg_per_person
 WHERE p.pop_2025 > 0 AND b.building_count > 0`,
-    getHexagon: h3ToHex,
+
     getFillColor: (d, range) => {
       const bpp = Number(d.bldg_per_person) || 0;
       // Invert: low bldg/person = high color value (more compressed = red)
@@ -816,7 +821,7 @@ WHERE p.pop_2025 > 0 AND b.building_count > 0`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 10: Shrinking Cities — Population Decline by 2100
+   * Section 9: Shrinking Cities — Population Decline by 2100
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'shrinking-cities',
@@ -838,7 +843,7 @@ WHERE p.pop_2025 > 0 AND b.building_count > 0`,
     colorColumn: 'growth_ratio',
     loadData: async (ctx, _onProgress) => {
       const result = await loadParquet(
-        `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
+        populationParquet(ctx.h3Res),
         ['h3_index', 'pop_2025', 'pop_2050', 'pop_2100'],
         ctx.h3Ranges
       );
@@ -855,12 +860,11 @@ WHERE p.pop_2025 > 0 AND b.building_count > 0`,
         info: result.info,
       };
     },
-    buildQuery: (ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
-       (pop_2100 / NULLIF(pop_2025, 0))
-         AS growth_ratio
-FROM '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet'
+    buildQuery: (ctx) => `FROM '${populationParquet(ctx.h3Res)}'
+SELECT h3_index, pop_2025, pop_2050, pop_2100,
+       pop_2100 / NULLIF(pop_2025, 0) AS growth_ratio
 WHERE pop_2025 >= 10`,
-    getHexagon: h3ToHex,
+
     getFillColor: (d, range) => {
       const ratio = Number(d.growth_ratio) || 1;
       // Invert: low ratio (declining) = red
@@ -891,7 +895,7 @@ WHERE pop_2025 >= 10`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 11: Atmospheric Pressure — Sea Level Pressure Patterns
+   * Section 10: Atmospheric Pressure — Sea Level Pressure Patterns
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'weather-pressure',
@@ -920,10 +924,10 @@ WHERE pop_2025 >= 10`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, pressure_msl_hPa,
-       temperature_2m_C, wind_speed_10m_ms
-FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
-    getHexagon: h3ToHex,
+    buildQuery: (ctx) => `FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
+SELECT h3_index, pressure_msl_hPa,
+       temperature_2m_C, wind_speed_10m_ms`,
+
     getFillColor: (d, range) => {
       const pressure = Number(d.pressure_msl_hPa) || 1013;
       return interpolateColor(
@@ -950,7 +954,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 12: Precipitation — Rain Only (filtered)
+   * Section 11: Precipitation — Rain Only (filtered)
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'weather-precipitation',
@@ -981,11 +985,11 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
         onProgress,
         { column: 'precipitation_mm_6hr', gt: 0.1 }
       ),
-    buildQuery: (ctx) => `SELECT h3_index, precipitation_mm_6hr,
+    buildQuery: (ctx) => `FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
+SELECT h3_index, precipitation_mm_6hr,
        temperature_2m_C, wind_speed_10m_ms
-FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
 WHERE precipitation_mm_6hr > 0.1`,
-    getHexagon: h3ToHex,
+
     getFillColor: (d, range) => {
       const precip = Math.max(0, Number(d.precipitation_mm_6hr) || 0);
       return interpolateColor(
@@ -1015,14 +1019,14 @@ WHERE precipitation_mm_6hr > 0.1`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 13: Terrain Slope — Global Surface Gradient
+   * Section 12: Terrain Slope — Global Surface Gradient
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'terrain-slope',
     title: 'Terrain Slope',
     subtitle: 'Global Surface Gradient',
     description:
-      'Average slope in degrees per cell. Slope determines walkability, buildability, flood drainage, and landslide risk.the invisible topography beneath every city.',
+      'Average slope in degrees per cell. Slope determines walkability, buildability, flood drainage, and landslide risk. The invisible topography beneath every city.',
     describeData: (rows) => {
       const maxSlope = col(rows, 'slope', 'max');
       const avgSlope = col(rows, 'slope', 'sum') / rows.length;
@@ -1033,14 +1037,14 @@ WHERE precipitation_mm_6hr > 0.1`,
     colorColumn: 'slope',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+        terrainParquet(ctx.h3Res),
         ['h3_index', 'elev', 'slope', 'aspect', 'tri'],
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, elev, slope, aspect, tri
-FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
-    getHexagon: h3ToHex,
+    buildQuery: (ctx) => `FROM '${terrainParquet(ctx.h3Res)}'
+SELECT h3_index, elev, slope, aspect, tri`,
+
     getFillColor: (d, range) => {
       const slope = Number(d.slope) || 0;
       return interpolateColor(
@@ -1088,14 +1092,14 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     colorColumn: 'tri',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        `${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+        terrainParquet(ctx.h3Res),
         ['h3_index', 'elev', 'slope', 'tri'],
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, elev, slope, tri
-FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
-    getHexagon: h3ToHex,
+    buildQuery: (ctx) => `FROM '${terrainParquet(ctx.h3Res)}'
+SELECT h3_index, elev, slope, tri`,
+
     getFillColor: (d, range) => {
       const tri = Number(d.tri) || 0;
       return interpolateColor(
@@ -1122,7 +1126,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 14: Built Volume — Total Building Volume per Cell
+   * Section 14: Built Volume — Total Building Volume Per Cell
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'built-volume',
@@ -1141,7 +1145,7 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     colorColumn: 'total_volume_m3',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+        buildingParquet(ctx.h3Res),
         [
           'h3_index',
           'building_count',
@@ -1153,11 +1157,11 @@ FROM '${S3_BASE}/dem-terrain/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, building_count,
+    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}'
+SELECT h3_index, building_count,
        total_volume_m3, volume_density_m3_per_km2,
-       avg_height_m, coverage_ratio
-FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
-    getHexagon: h3ToHex,
+       avg_height_m, coverage_ratio`,
+
     getFillColor: (d, range) => {
       const vol = Number(d.total_volume_m3) || 0;
       return interpolateColor(
@@ -1188,8 +1192,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 15: Ground Coverage — Building Footprint Ratio
-   * ──────────────────────────────────────────────────────────────── */
+   * Section 15: Ground Coverage — Building Footprint Ratio   * ──────────────────────────────────────────────────────────────── */
   {
     id: 'ground-coverage',
     title: 'Ground Coverage',
@@ -1207,7 +1210,7 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     colorColumn: 'coverage_ratio',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+        buildingParquet(ctx.h3Res),
         [
           'h3_index',
           'building_count',
@@ -1219,11 +1222,11 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `SELECT h3_index, building_count,
+    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}'
+SELECT h3_index, building_count,
        coverage_ratio, total_footprint_m2,
-       avg_footprint_m2, building_density
-FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
-    getHexagon: h3ToHex,
+       avg_footprint_m2, building_density`,
+
     getFillColor: (d, range) => {
       const cover = Number(d.coverage_ratio) || 0;
       return interpolateColor(
@@ -1277,12 +1280,12 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
     loadData: async (ctx, _onProgress) => {
       const [bResult, pResult] = await Promise.all([
         loadParquet(
-          `${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet`,
+          buildingParquet(ctx.h3Res),
           ['h3_index', 'building_count', 'total_volume_m3', 'avg_height_m'],
           ctx.h3Ranges
         ),
         loadParquet(
-          `${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet`,
+          populationParquet(ctx.h3Res),
           ['h3_index', 'pop_2025'],
           ctx.h3Ranges
         ),
@@ -1305,16 +1308,14 @@ FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet'`,
         });
       return { rows, info: bResult.info };
     },
-    buildQuery: (ctx) => `SELECT b.h3_index, b.building_count,
+    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}' b
+JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
+SELECT b.h3_index, b.building_count,
        b.total_volume_m3, b.avg_height_m,
        p.pop_2025,
-       (b.total_volume_m3 / NULLIF(p.pop_2025, 0))
-         AS vol_per_person
-FROM '${S3_BASE}/indices/building/v2/h3/h3_res=${ctx.h3Res}/data.parquet' b
-JOIN '${S3_BASE}/indices/population/v2/scenario=SSP2/h3_res=${ctx.h3Res}/data.parquet' p
-  ON b.h3_index = p.h3_index
+       b.total_volume_m3 / NULLIF(p.pop_2025, 0) AS vol_per_person
 WHERE p.pop_2025 > 0 AND b.total_volume_m3 > 0`,
-    getHexagon: h3ToHex,
+
     getFillColor: (d, range) => {
       const vpp = Number(d.vol_per_person) || 0;
       // Invert: low volume/person = red (more compressed)

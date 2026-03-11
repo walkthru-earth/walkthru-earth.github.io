@@ -27,6 +27,7 @@ import { useGlobeScroll } from './hooks/useGlobeScroll';
 import {
   SECTIONS,
   resolveWeatherPrefix,
+  h3ToHex,
   type GlobeSection,
   type QueryContext,
   type ColorRange,
@@ -596,7 +597,7 @@ export function GlobeExplorer({
         targetViewState={effectiveViewState}
         layerData={layerData}
         colorRange={colorRange}
-        getHexagon={currentSection.getHexagon}
+        getHexagon={currentSection.getHexagon ?? h3ToHex}
         getFillColor={currentSection.getFillColor}
         getElevation={currentSection.getElevation}
         formatTooltip={currentSection.formatTooltip}
