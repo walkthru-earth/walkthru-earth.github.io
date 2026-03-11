@@ -162,16 +162,28 @@ export function viewportToH3Ranges(
     return null;
   }
 
-  // Pad bounds to compensate for GlobeView's 3D projection — getBounds()
-  // returns a 2D bounding box that underestimates the visible spherical
-  // surface area, especially at medium zoom levels.
+  // Pad bounds slightly to compensate for GlobeView projection edges.
+  // The bounds from GlobeMap are already clamped to the visible hemisphere,
+  // so only a small additional pad is needed for edge coverage.
   const latSpan = north - south;
-  const pad = Math.max(latSpan * 0.5, 15);
+  const pad = Math.min(20, Math.max(10, latSpan * 0.15));
   const origBounds = `[${west.toFixed(1)}, ${south.toFixed(1)}, ${east.toFixed(1)}, ${north.toFixed(1)}]`;
   south = Math.max(-90, south - pad);
   north = Math.min(90, north + pad);
   west -= pad;
   east += pad;
+
+  // Safeguard: never query more than one hemisphere (180° lon span).
+  // If padded bounds exceed this, clamp to 180° centered on the midpoint.
+  const lonSpanPadded = east - west;
+  if (lonSpanPadded > 180) {
+    const mid = (west + east) / 2;
+    west = mid - 90;
+    east = mid + 90;
+    console.log(
+      `[Globe:H3Viewport] SAFEGUARD: clamped lon span from ${lonSpanPadded.toFixed(1)}° to 180° centered at ${mid.toFixed(1)}°`
+    );
+  }
 
   // If padded span covers the full globe, skip filtering
   if (east - west >= 360 || north - south > 160) {

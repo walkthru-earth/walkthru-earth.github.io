@@ -19,7 +19,7 @@ import {
 } from '@deck.gl/layers';
 import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import { SphereGeometry } from '@luma.gl/engine';
-import { H3HexagonLayer } from '@deck.gl/geo-layers';
+import { H3HexagonLayer, TileLayer } from '@deck.gl/geo-layers';
 import type { ViewState, ColorRange } from './data/sections';
 import {
   BASE_SATELLITE_ID,
@@ -33,7 +33,9 @@ import type { UserLocation } from './hooks/useUserLocation';
 /* ------------------------------------------------------------------ */
 
 const EARTH_RADIUS_METERS = 6.3e6;
-const EARTH_TEXTURE = '/textures/earth-blue-marble.jpg';
+/** ESRI World Imagery — free open satellite tile service. */
+const SATELLITE_TILE_URL =
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 const LAND_GEOJSON = '/geo/ne_50m_land.geojson';
 const COUNTRY_BORDERS = '/geo/ne_50m_admin_0_boundary_lines_land.geojson';
 
@@ -129,6 +131,8 @@ interface GlobeMapProps {
     latitude: number;
     longitude: number;
   };
+  /** Called when the user starts manually interacting (drag/pinch) with the globe. */
+  onInteraction?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -154,6 +158,7 @@ export const GlobeMap = memo(function GlobeMap({
   layerVisible = true,
   baseControls,
   initialViewStateOverride,
+  onInteraction,
 }: GlobeMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== 'light';
@@ -260,9 +265,30 @@ export const GlobeMap = memo(function GlobeMap({
             longitude: lng,
             latitude: lat,
           };
-          const bounds = viewport.getBounds?.() as
+          let bounds = viewport.getBounds?.() as
             | [number, number, number, number]
             | undefined;
+
+          // Clamp bounds to the visible hemisphere — GlobeView's getBounds()
+          // can return coordinates from the back side of the globe, causing
+          // the H3 viewport filter to query the wrong hemisphere.
+          if (bounds) {
+            // Max visible angular radius from center — generous enough to
+            // cover the full visible globe surface but prevents wrapping to
+            // the opposite hemisphere.  h3-viewport.ts adds its own padding.
+            const maxHalf = Math.min(
+              90,
+              180 / Math.pow(2, Math.max(0, z - 1.5))
+            );
+            const [bW, bS, bE, bN] = bounds;
+            bounds = [
+              Math.max(bW, lng - maxHalf),
+              Math.max(bS, lat - maxHalf),
+              Math.min(bE, lng + maxHalf),
+              Math.min(bN, lat + maxHalf),
+            ];
+          }
+
           console.log(
             `[Globe:Map] viewport z=${z.toFixed(2)} lng=${lng.toFixed(1)} lat=${lat.toFixed(1)} bounds=${
               bounds
@@ -330,6 +356,9 @@ export const GlobeMap = memo(function GlobeMap({
   // expensive H3HexagonLayer reconstruction every frame.
   const baseLayers = useMemo((): any[] => {
     const result: any[] = [
+      // Z-ordering via polygonOffset (higher = further back):
+      //   sphere [50,50] → satellite tiles [30,30] → land [20,20] → borders [10,10] → H3 (front)
+
       // 1. Earth sphere — ocean background (pickable for cursor detection)
       new SimpleMeshLayer({
         id: 'earth-sphere',
@@ -339,18 +368,39 @@ export const GlobeMap = memo(function GlobeMap({
         getPosition: () => [0, 0, 0],
         getColor: palette.sphere,
         pickable: true,
+        parameters: { depthTest: true, polygonOffset: [50, 50] },
       }),
 
-      // 2. Blue Marble satellite texture (initially hidden, toggled via LayerPanel)
-      // BitmapLayer maps directly to lat/lng — correct projection, unaffected by lighting.
-      // Stacking order via polygonOffset: satellite (back) → land → borders → H3 (front)
-      new BitmapLayer({
+      // 2. ESRI World Imagery satellite tiles (hidden by default, toggled via LayerPanel)
+      // TileLayer fetches 256px satellite tiles at the appropriate zoom level.
+      new TileLayer({
         id: BASE_SATELLITE_ID,
-        image: EARTH_TEXTURE,
-        bounds: [-180, -90, 180, 90] as [number, number, number, number],
+        data: SATELLITE_TILE_URL,
+        minZoom: 0,
+        maxZoom: 18,
+        tileSize: 256,
         visible: baseControls?.[BASE_SATELLITE_ID]?.visible ?? false,
         opacity: baseControls?.[BASE_SATELLITE_ID]?.opacity ?? 0.8,
-        parameters: { depthTest: true, polygonOffset: [30, 30] },
+        renderSubLayers: (props: Record<string, unknown>) => {
+          const tile = props.tile as {
+            boundingBox: [[number, number], [number, number]];
+          };
+          const {
+            boundingBox: [[west, south], [east, north]],
+          } = tile;
+          return new BitmapLayer({
+            ...props,
+            data: undefined,
+            image: props.data as string,
+            bounds: [west, south, east, north] as [
+              number,
+              number,
+              number,
+              number,
+            ],
+            parameters: { depthTest: true, polygonOffset: [30, 30] },
+          });
+        },
       }),
 
       // 3. Land masses
@@ -582,6 +632,7 @@ export const GlobeMap = memo(function GlobeMap({
       className="globe-bg absolute inset-0"
       onPointerDown={(e) => {
         tapRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+        onInteraction?.();
       }}
       onPointerUp={(e) => {
         const s = tapRef.current;

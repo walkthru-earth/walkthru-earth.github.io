@@ -137,6 +137,13 @@ export function GlobeExplorer({
 
   const [pinScreen, setPinScreen] = useState<PinScreenPos | null>(null);
 
+  // Track whether the user has manually panned/zoomed the globe.
+  // When true, section switches keep the user's viewport instead of flying-to.
+  const [userInteracted, setUserInteracted] = useState(false);
+  const handleGlobeInteraction = useCallback(() => {
+    setUserInteracted(true);
+  }, []);
+
   // ── Unified layer state dict ──
   // Keys: 'h3-layer', 'base-land', 'base-borders'
   const [layerState, setLayerState] = useState<Record<string, LayerState>>({});
@@ -155,16 +162,21 @@ export function GlobeExplorer({
 
   // Reset zoom + bounds when switching sections so autoH3Res is correct
   // immediately (before the fly-to animation completes).
-  // Render-time state adjustment: no useEffect, no refs during render.
+  // When the user has panned/zoomed, keep their current viewport instead.
   const [prevSection, setPrevSection] = useState(activeSection);
   if (prevSection !== activeSection) {
     console.log(
-      `[Globe:Explorer] section change → #${activeSection} "${currentSection.id}" zoom=${currentSection.viewState.zoom} h3Range=[${currentSection.h3ResRange}]`
+      `[Globe:Explorer] section change → #${activeSection} "${currentSection.id}" zoom=${currentSection.viewState.zoom} h3Range=[${currentSection.h3ResRange}] userInteracted=${userInteracted}`
     );
     setPrevSection(activeSection);
-    setZoom(currentSection.viewState.zoom);
-    setViewportBounds(null);
-    setDebouncedBounds(null);
+    if (!userInteracted) {
+      // First-time navigation: fly to section default and reset bounds
+      setZoom(currentSection.viewState.zoom);
+      setViewportBounds(null);
+      setDebouncedBounds(null);
+    }
+    // When user has interacted: keep current zoom, longitude, latitude
+    // and viewport bounds so data loads for the current visible area.
   }
 
   // Auto H3 resolution from zoom level (clamped to section's range)
@@ -570,10 +582,18 @@ export function GlobeExplorer({
     [initialZoom, initialLat, initialLng]
   );
 
+  // When user has interacted, keep their current viewport on section switch
+  // instead of flying to the section's default position.
+  const effectiveViewState = useMemo(
+    () =>
+      userInteracted ? { longitude, latitude, zoom } : currentSection.viewState,
+    [userInteracted, currentSection.viewState, longitude, latitude, zoom]
+  );
+
   return (
     <div ref={containerRef} className="relative h-dvh w-full overflow-hidden">
       <GlobeMap
-        targetViewState={currentSection.viewState}
+        targetViewState={effectiveViewState}
         layerData={layerData}
         colorRange={colorRange}
         getHexagon={currentSection.getHexagon}
@@ -591,6 +611,7 @@ export function GlobeExplorer({
         layerVisible={singleLS.visible}
         baseControls={baseControls}
         initialViewStateOverride={memoizedViewOverride}
+        onInteraction={handleGlobeInteraction}
       />
 
       {!embed && (
