@@ -607,6 +607,7 @@ export function GlobeExplorer({
         onTap={handleGlobeTap}
         userLocation={userLocation}
         onUserPinScreen={setPinScreen}
+        h3Res={h3Res}
         layerOpacity={singleLS.opacity}
         layerVisible={singleLS.visible}
         baseControls={baseControls}

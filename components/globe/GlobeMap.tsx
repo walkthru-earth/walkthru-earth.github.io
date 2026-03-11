@@ -54,9 +54,41 @@ const SPHERE_MESH = new SphereGeometry({
   nlong: 36,
 });
 
-/** Base height of the user location beam in meters — overridden when extruded layers are tall */
-const USER_PIN_HEIGHT_BASE = 1_200_000;
-const USER_PIN_HEIGHT_EXTRUDED = 3_500_000;
+/**
+ * Approximate H3 cell edge length in meters by resolution.
+ * Source: H3 documentation — average edge length per resolution.
+ */
+const H3_EDGE_LENGTH_M: Record<number, number> = {
+  0: 1_107_713,
+  1: 418_676,
+  2: 158_244,
+  3: 59_811,
+  4: 22_606,
+  5: 8_544,
+  6: 3_229,
+  7: 1_220,
+  8: 461,
+};
+
+/**
+ * Compute user pin dimensions scaled to the current H3 resolution so the
+ * pin matches the size of a single H3 hexagon cell.
+ *
+ * H3 circumradius ≈ edge length.  The H3HexagonLayer uses coverage=0.92,
+ * so the displayed hex radius = edge * 0.92.  We match that for the head.
+ */
+function pinMetrics(h3Res: number, extruded: boolean) {
+  const edge = H3_EDGE_LENGTH_M[h3Res] ?? 59_811 / Math.pow(2.6, h3Res - 3);
+  const hexRadius = edge * 0.92; // match H3HexagonLayer coverage
+  return {
+    height: edge * (extruded ? 2 : 1),
+    beamRadius: hexRadius * 0.08,
+    headRadius: hexRadius, // same footprint as one hex cell
+    dotRadius: hexRadius * 0.35,
+    pulseBase: hexRadius * 0.3,
+    pulseRange: hexRadius * 2.5,
+  };
+}
 
 /* Theme palettes — colors for globe rendering (matched to site branding) */
 const THEMES = {
@@ -119,6 +151,8 @@ interface GlobeMapProps {
   userLocation?: UserLocation | null;
   /** Reports the screen-space position of the user pin top each frame. */
   onUserPinScreen?: (pos: PinScreenPos | null) => void;
+  /** Current H3 resolution — used to scale user pin to match hexagon size. */
+  h3Res?: number;
   /** Opacity for the H3 layer (controlled by LayerPanel). */
   layerOpacity?: number;
   /** Visibility for the H3 layer (controlled by LayerPanel). */
@@ -154,6 +188,7 @@ export const GlobeMap = memo(function GlobeMap({
   onTap,
   userLocation,
   onUserPinScreen,
+  h3Res = 3,
   layerOpacity = 0.95,
   layerVisible = true,
   baseControls,
@@ -224,14 +259,12 @@ export const GlobeMap = memo(function GlobeMap({
       if (!loc) {
         pinCb(null);
       } else {
-        const pinH = extrudedRef.current
-          ? USER_PIN_HEIGHT_EXTRUDED
-          : USER_PIN_HEIGHT_BASE;
+        const pm = pinMetrics(h3Res, extrudedRef.current);
         try {
           const [x, y] = viewport.project([
             loc.longitude,
             loc.latitude,
-            pinH + 120_000,
+            pm.height * 1.15,
           ]);
           const [bx, by] = viewport.project([loc.longitude, loc.latitude, 0]);
           const [lng2, lat2] = viewport.unproject([bx, by]);
@@ -481,7 +514,7 @@ export const GlobeMap = memo(function GlobeMap({
   ]);
 
   // Pin layers: user location pulse rings, center dot, beam, and head.
-  // These depend on pulseTick (60fps) but are cheap to reconstruct.
+  // All sizes scale with zoom so the pin stays proportional to H3 hexagons.
   const pinLayers = useMemo((): any[] => {
     if (!userLocation) return [];
 
@@ -489,14 +522,14 @@ export const GlobeMap = memo(function GlobeMap({
       number,
       number,
     ];
-    const pinH = extruded ? USER_PIN_HEIGHT_EXTRUDED : USER_PIN_HEIGHT_BASE;
+    const pm = pinMetrics(h3Res, extruded);
     const result: any[] = [];
 
     // Expanding pulse rings (3 staggered waves)
     const PULSE_COUNT = 3;
     for (let i = 0; i < PULSE_COUNT; i++) {
       const phase = (pulseTick + i / PULSE_COUNT) % 1;
-      const radius = 40_000 + phase * 300_000;
+      const radius = pm.pulseBase + phase * pm.pulseRange;
       const alpha = Math.round((1 - phase) * 180);
       result.push(
         new ScatterplotLayer({
@@ -521,7 +554,7 @@ export const GlobeMap = memo(function GlobeMap({
         id: 'user-pin-center',
         data: [{ position: pinPos }],
         getPosition: (d: { position: [number, number] }) => d.position,
-        getRadius: 35_000,
+        getRadius: pm.dotRadius,
         getFillColor: [255, 220, 40, 200],
         radiusMinPixels: 5,
         radiusMaxPixels: 14,
@@ -534,9 +567,9 @@ export const GlobeMap = memo(function GlobeMap({
         id: 'user-pin-column',
         data: [{ position: pinPos }],
         getPosition: (d: { position: [number, number] }) => d.position,
-        getElevation: pinH,
+        getElevation: pm.height,
         diskResolution: 12,
-        radius: 10_000,
+        radius: pm.beamRadius,
         getFillColor: [255, 200, 0, 130],
         extruded: true,
         material: {
@@ -553,10 +586,10 @@ export const GlobeMap = memo(function GlobeMap({
         id: 'user-pin-head',
         data: [{ position: pinPos }],
         getPosition: (d: { position: [number, number] }) => d.position,
-        getElevation: pinH + 120_000,
+        getElevation: pm.height * 1.1,
         offset: [0, 0],
         diskResolution: 6,
-        radius: 40_000,
+        radius: pm.headRadius,
         getFillColor: [255, 220, 40, 230],
         extruded: true,
         material: {
@@ -568,7 +601,7 @@ export const GlobeMap = memo(function GlobeMap({
     );
 
     return result;
-  }, [pulseTick, userLocation, extruded]);
+  }, [pulseTick, userLocation, extruded, h3Res]);
 
   // Combined layers — pin layers render on top of base layers.
   const layers = useMemo(
