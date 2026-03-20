@@ -197,9 +197,9 @@ export const SECTIONS: GlobeSection[] = [
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
-SELECT h3_index, temperature_2m_C,
-       wind_speed_10m_ms, pressure_msl_hPa`,
+    buildQuery: (ctx) => `SELECT h3_index, temperature_2m_C,
+       wind_speed_10m_ms, pressure_msl_hPa
+FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const temp = Number(d.temperature_2m_C) || 15;
@@ -256,9 +256,9 @@ SELECT h3_index, temperature_2m_C,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
-SELECT h3_index, wind_speed_10m_ms,
-       wind_direction_10m_deg, temperature_2m_C`,
+    buildQuery: (ctx) => `SELECT h3_index, wind_speed_10m_ms,
+       wind_direction_10m_deg, temperature_2m_C
+FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const wind = Number(d.wind_speed_10m_ms) || 0;
@@ -310,8 +310,8 @@ SELECT h3_index, wind_speed_10m_ms,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${terrainParquet(ctx.h3Res)}'
-SELECT h3_index, elev, slope, aspect, tri`,
+    buildQuery: (ctx) => `SELECT h3_index, elev, slope, aspect, tri
+FROM '${terrainParquet(ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const elev = Number(d.elev) || 0;
@@ -388,12 +388,12 @@ SELECT h3_index, elev, slope, aspect, tri`,
       });
       return { rows, info: bResult.info };
     },
-    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}' b
-JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
-SELECT b.h3_index, b.building_count,
+    buildQuery: (ctx) => `SELECT b.h3_index, b.building_count,
        b.building_density, b.avg_height_m,
        b.total_volume_m3,
-       p.pop_2025, p.pop_2050`,
+       p.pop_2025, p.pop_2050
+FROM '${buildingParquet(ctx.h3Res)}' b
+JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)`,
 
     getFillColor: (d, range) => {
       const pop = Number(d.pop_2025) || 0;
@@ -461,9 +461,9 @@ SELECT b.h3_index, b.building_count,
         info: result.info,
       };
     },
-    buildQuery: (ctx) => `FROM '${populationParquet(ctx.h3Res)}'
-SELECT h3_index, pop_2025, pop_2050, pop_2100,
+    buildQuery: (ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
        pop_2100 / NULLIF(pop_2025, 0) AS growth_ratio
+FROM '${populationParquet(ctx.h3Res)}'
 WHERE pop_2025 >= 10`,
 
     getFillColor: (d, range) => {
@@ -525,10 +525,10 @@ WHERE pop_2025 >= 10`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}'
-SELECT h3_index, building_count,
+    buildQuery: (ctx) => `SELECT h3_index, building_count,
        building_density, avg_height_m,
-       coverage_ratio, total_volume_m3`,
+       coverage_ratio, total_volume_m3
+FROM '${buildingParquet(ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const height = Number(d.avg_height_m) || 0;
@@ -610,12 +610,12 @@ SELECT h3_index, building_count,
         });
       return { rows, info: pResult.info };
     },
-    buildQuery: (ctx) => `FROM '${populationParquet(ctx.h3Res)}' p
-LEFT JOIN '${buildingParquet(ctx.h3Res)}' b USING (h3_index)
-SELECT p.h3_index, p.pop_2025, p.pop_2100,
+    buildQuery: (ctx) => `SELECT p.h3_index, p.pop_2025, p.pop_2100,
        p.pop_2100 / NULLIF(p.pop_2025, 0) AS growth_ratio,
        b.building_count,
        b.building_count::FLOAT / NULLIF(p.pop_2025, 0) AS bldg_per_person
+FROM '${populationParquet(ctx.h3Res)}' p
+LEFT JOIN '${buildingParquet(ctx.h3Res)}' b USING (h3_index)
 WHERE p.pop_2025 >= 10`,
 
     getFillColor: (d, range) => {
@@ -695,10 +695,10 @@ WHERE p.pop_2025 >= 10`,
         });
       return { rows, info: tResult.info };
     },
-    buildQuery: (ctx) => `FROM '${terrainParquet(ctx.h3Res)}' t
-JOIN '${buildingParquet(ctx.h3Res)}' b USING (h3_index)
-SELECT t.h3_index, t.elev, t.slope, t.tri,
+    buildQuery: (ctx) => `SELECT t.h3_index, t.elev, t.slope, t.tri,
        b.building_count, b.avg_height_m
+FROM '${terrainParquet(ctx.h3Res)}' t
+JOIN '${buildingParquet(ctx.h3Res)}' b USING (h3_index)
 WHERE b.building_count > 0`,
 
     getFillColor: (d, range) => {
@@ -783,11 +783,11 @@ WHERE b.building_count > 0`,
         });
       return { rows, info: bResult.info };
     },
-    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}' b
-JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
-SELECT b.h3_index, b.building_count,
+    buildQuery: (ctx) => `SELECT b.h3_index, b.building_count,
        b.avg_height_m, p.pop_2025,
        b.building_count::FLOAT / p.pop_2025 AS bldg_per_person
+FROM '${buildingParquet(ctx.h3Res)}' b
+JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
 WHERE p.pop_2025 > 0 AND b.building_count > 0`,
 
     getFillColor: (d, range) => {
@@ -860,9 +860,9 @@ WHERE p.pop_2025 > 0 AND b.building_count > 0`,
         info: result.info,
       };
     },
-    buildQuery: (ctx) => `FROM '${populationParquet(ctx.h3Res)}'
-SELECT h3_index, pop_2025, pop_2050, pop_2100,
+    buildQuery: (ctx) => `SELECT h3_index, pop_2025, pop_2050, pop_2100,
        pop_2100 / NULLIF(pop_2025, 0) AS growth_ratio
+FROM '${populationParquet(ctx.h3Res)}'
 WHERE pop_2025 >= 10`,
 
     getFillColor: (d, range) => {
@@ -924,9 +924,9 @@ WHERE pop_2025 >= 10`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
-SELECT h3_index, pressure_msl_hPa,
-       temperature_2m_C, wind_speed_10m_ms`,
+    buildQuery: (ctx) => `SELECT h3_index, pressure_msl_hPa,
+       temperature_2m_C, wind_speed_10m_ms
+FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const pressure = Number(d.pressure_msl_hPa) || 1013;
@@ -985,9 +985,9 @@ SELECT h3_index, pressure_msl_hPa,
         onProgress,
         { column: 'precipitation_mm_6hr', gt: 0.1 }
       ),
-    buildQuery: (ctx) => `FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
-SELECT h3_index, precipitation_mm_6hr,
+    buildQuery: (ctx) => `SELECT h3_index, precipitation_mm_6hr,
        temperature_2m_C, wind_speed_10m_ms
+FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'
 WHERE precipitation_mm_6hr > 0.1`,
 
     getFillColor: (d, range) => {
@@ -1042,8 +1042,8 @@ WHERE precipitation_mm_6hr > 0.1`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${terrainParquet(ctx.h3Res)}'
-SELECT h3_index, elev, slope, aspect, tri`,
+    buildQuery: (ctx) => `SELECT h3_index, elev, slope, aspect, tri
+FROM '${terrainParquet(ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const slope = Number(d.slope) || 0;
@@ -1097,8 +1097,8 @@ SELECT h3_index, elev, slope, aspect, tri`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${terrainParquet(ctx.h3Res)}'
-SELECT h3_index, elev, slope, tri`,
+    buildQuery: (ctx) => `SELECT h3_index, elev, slope, tri
+FROM '${terrainParquet(ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const tri = Number(d.tri) || 0;
@@ -1157,10 +1157,10 @@ SELECT h3_index, elev, slope, tri`,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}'
-SELECT h3_index, building_count,
+    buildQuery: (ctx) => `SELECT h3_index, building_count,
        total_volume_m3, volume_density_m3_per_km2,
-       avg_height_m, coverage_ratio`,
+       avg_height_m, coverage_ratio
+FROM '${buildingParquet(ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const vol = Number(d.total_volume_m3) || 0;
@@ -1222,10 +1222,10 @@ SELECT h3_index, building_count,
         ctx.h3Ranges,
         onProgress
       ),
-    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}'
-SELECT h3_index, building_count,
+    buildQuery: (ctx) => `SELECT h3_index, building_count,
        coverage_ratio, total_footprint_m2,
-       avg_footprint_m2, building_density`,
+       avg_footprint_m2, building_density
+FROM '${buildingParquet(ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const cover = Number(d.coverage_ratio) || 0;
@@ -1308,12 +1308,12 @@ SELECT h3_index, building_count,
         });
       return { rows, info: bResult.info };
     },
-    buildQuery: (ctx) => `FROM '${buildingParquet(ctx.h3Res)}' b
-JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
-SELECT b.h3_index, b.building_count,
+    buildQuery: (ctx) => `SELECT b.h3_index, b.building_count,
        b.total_volume_m3, b.avg_height_m,
        p.pop_2025,
        b.total_volume_m3 / NULLIF(p.pop_2025, 0) AS vol_per_person
+FROM '${buildingParquet(ctx.h3Res)}' b
+JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
 WHERE p.pop_2025 > 0 AND b.total_volume_m3 > 0`,
 
     getFillColor: (d, range) => {
