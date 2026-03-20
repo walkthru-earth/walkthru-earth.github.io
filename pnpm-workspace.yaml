@@ -1,2 +1,3 @@
 allowBuilds:
   '@evilmartians/lefthook': true
+  core-js: true
