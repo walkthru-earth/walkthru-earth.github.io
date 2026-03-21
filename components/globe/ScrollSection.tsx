@@ -19,6 +19,7 @@ interface ScrollSectionProps {
   sectionIndex: number;
   totalSections: number;
   onSwipe?: (direction: -1 | 1) => void;
+  onNavigateTo?: (index: number) => void;
   queryPanel?: React.ReactNode;
   timeControls?: React.ReactNode;
   isLoading?: boolean;
@@ -31,22 +32,28 @@ function SectionDots({
   current,
   total,
   size = 'md',
+  onNavigateTo,
 }: {
   current: number;
   total: number;
   size?: 'sm' | 'md';
+  onNavigateTo?: (index: number) => void;
 }) {
   const active = size === 'sm' ? 'w-3 bg-primary' : 'w-7 bg-primary';
   const past =
     size === 'sm' ? 'w-1 bg-foreground/15' : 'w-2.5 bg-foreground/25';
   const future =
     size === 'sm' ? 'w-1 bg-foreground/10' : 'w-2.5 bg-foreground/10';
+  const clickable = onNavigateTo ? 'cursor-pointer hover:scale-150' : '';
   return (
     <div className="flex items-center gap-1">
       {Array.from({ length: total }).map((_, i) => (
-        <div
+        <button
           key={i}
-          className={`${size === 'sm' ? 'h-1' : 'h-1.5'} rounded-full transition-all duration-500 ${
+          type="button"
+          aria-label={`Go to section ${i + 1}`}
+          onClick={onNavigateTo ? () => onNavigateTo(i) : undefined}
+          className={`${size === 'sm' ? 'h-1' : 'h-1.5'} min-w-0 appearance-none rounded-full border-none p-0 transition-all duration-500 ${clickable} ${
             i === current ? active : i < current ? past : future
           }`}
         />
@@ -98,6 +105,7 @@ function SectionContent({
   sectionIndex,
   totalSections,
   onSwipe,
+  onNavigateTo,
   queryPanel,
 }: ScrollSectionProps) {
   const description = resolvedDescription ?? section.description;
@@ -110,7 +118,11 @@ function SectionContent({
         aria-valuemin={1}
         aria-valuemax={totalSections}
       >
-        <SectionDots current={sectionIndex} total={totalSections} />
+        <SectionDots
+          current={sectionIndex}
+          total={totalSections}
+          onNavigateTo={onNavigateTo}
+        />
       </div>
 
       {section.subtitle && (
@@ -347,6 +359,7 @@ function MobileDrawerContent({
   sectionIndex,
   totalSections,
   onSwipe,
+  onNavigateTo,
   queryPanel,
   isLoading,
   rowCount,
@@ -364,7 +377,11 @@ function MobileDrawerContent({
         aria-valuemin={1}
         aria-valuemax={totalSections}
       >
-        <SectionDots current={sectionIndex} total={totalSections} />
+        <SectionDots
+          current={sectionIndex}
+          total={totalSections}
+          onNavigateTo={onNavigateTo}
+        />
       </div>
 
       {section.subtitle && (
@@ -561,17 +578,18 @@ function MobileDrawer(props: ScrollSectionProps) {
               size="sm"
             />
 
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="flex min-w-0 flex-1 flex-col items-center gap-1 px-3"
-            >
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-1 px-3">
               <SectionDots
                 current={sectionIndex}
                 total={totalSections}
                 size="sm"
+                onNavigateTo={props.onNavigateTo}
               />
-              <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="flex items-center gap-1.5"
+              >
                 {isLoading && (
                   <span className="relative flex h-2 w-2 flex-shrink-0">
                     <span className="bg-success absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
@@ -599,8 +617,8 @@ function MobileDrawer(props: ScrollSectionProps) {
                     d="M5 15l7-7 7 7"
                   />
                 </svg>
-              </div>
-            </button>
+              </button>
+            </div>
 
             <NavArrow
               direction={1}

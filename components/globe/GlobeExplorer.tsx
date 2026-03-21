@@ -98,7 +98,7 @@ export function GlobeExplorer({
   embed = false,
 }: GlobeExplorerProps) {
   const isOverGlobeRef = useRef(false);
-  const { containerRef, activeSection, navigate } = useGlobeScroll(
+  const { containerRef, activeSection, navigate, navigateTo } = useGlobeScroll(
     sections.length,
     isOverGlobeRef,
     initialSection
@@ -623,6 +623,10 @@ export function GlobeExplorer({
           totalSections={sections.length}
           onSwipe={(dir) => {
             navigate(dir);
+            setTimeStepIndex(0);
+          }}
+          onNavigateTo={(index) => {
+            navigateTo(index);
             setTimeStepIndex(0);
           }}
           isLoading={isLoading}

@@ -38,6 +38,19 @@ export function useGlobeScroll(
     [sectionCount]
   );
 
+  const navigateTo = useCallback(
+    (index: number) => {
+      if (cooldownRef.current) return;
+      if (index < 0 || index >= sectionCount) return;
+      cooldownRef.current = true;
+      setTimeout(() => {
+        cooldownRef.current = false;
+      }, 600);
+      setActiveSection(index);
+    },
+    [sectionCount]
+  );
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -61,5 +74,5 @@ export function useGlobeScroll(
     };
   }, [navigate, isOverGlobeRef]);
 
-  return { containerRef, activeSection, navigate };
+  return { containerRef, activeSection, navigate, navigateTo };
 }
