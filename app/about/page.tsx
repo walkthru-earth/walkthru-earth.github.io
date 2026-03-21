@@ -17,6 +17,8 @@ import {
   CloudSun,
   Hexagon,
   ExternalLink,
+  Linkedin,
+  Mail,
 } from 'lucide-react';
 import { DataFlowDiagram } from '@/components/shared/data-flow';
 
@@ -92,6 +94,77 @@ export default function AboutPage() {
                 child is thriving, a resident is chronically stressed, or a
                 neighborhood is truly livable.
               </p>
+            </motion.div>
+          </Container>
+        </section>
+
+        {/* Who's Behind */}
+        <section className="py-14 md:py-20">
+          <Container>
+            <motion.div {...fade} className="mx-auto max-w-3xl text-center">
+              <h2 className="mb-8 text-2xl font-semibold tracking-tight md:text-3xl">
+                Who&apos;s behind walkthru.earth
+              </h2>
+              <div className="flex items-center justify-center gap-8 sm:gap-12">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="border-primary/20 relative h-28 w-28 overflow-hidden rounded-full border-2 sm:h-32 sm:w-32">
+                    <Image
+                      src="/youssef-harby.jpg"
+                      alt="Youssef Harby"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <span className="text-sm font-medium sm:text-base">
+                    Youssef Harby
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <a
+                      href="https://www.linkedin.com/in/yharby/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Linkedin className="h-4 w-4" />
+                    </a>
+                    <a
+                      href="mailto:yharby@walkthru.earth"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Mail className="h-4 w-4" />
+                    </a>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="border-primary/20 relative h-28 w-28 overflow-hidden rounded-full border-2 sm:h-32 sm:w-32">
+                    <Image
+                      src="/mishka-mendbayar.jpg"
+                      alt="Myagmarjargal Mendbayar (Mishka)"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <span className="text-sm font-medium sm:text-base">
+                    Mishka Mendbayar
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <a
+                      href="https://www.linkedin.com/in/myagmarjargal-mendbayar001/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Linkedin className="h-4 w-4" />
+                    </a>
+                    <a
+                      href="mailto:mishka@walkthru.earth"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Mail className="h-4 w-4" />
+                    </a>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </Container>
         </section>
