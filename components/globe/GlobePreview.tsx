@@ -5,6 +5,7 @@ import { GlobeMap } from './GlobeMap';
 import {
   SECTIONS,
   resolveWeatherPrefix,
+  resolveOvertureRelease,
   h3ToHex,
   type QueryContext,
 } from './data/sections';
@@ -31,6 +32,7 @@ export function GlobePreview({
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
   const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
+  const [overtureRelease, setOvertureRelease] = useState<string | null>(null);
   const activeSectionRef = useRef(sectionId);
 
   const section = useMemo(
@@ -38,11 +40,14 @@ export function GlobePreview({
     [sectionId]
   );
 
-  // Resolve weather prefix once
+  // Resolve weather prefix and Overture release once
   useEffect(() => {
     let cancelled = false;
     resolveWeatherPrefix().then((prefix) => {
       if (!cancelled) setWeatherPrefix(prefix);
+    });
+    resolveOvertureRelease().then((release) => {
+      if (!cancelled) setOvertureRelease(release);
     });
     return () => {
       cancelled = true;
@@ -55,11 +60,12 @@ export function GlobePreview({
   );
 
   useEffect(() => {
-    if (!weatherPrefix) return;
+    if (!weatherPrefix || !overtureRelease) return;
     activeSectionRef.current = sectionId;
 
     const ctx: QueryContext = {
       weatherPrefix,
+      overtureRelease,
       h3Res: section.defaultH3Res,
     };
 
@@ -77,7 +83,7 @@ export function GlobePreview({
       setRows(data);
       setColorRange(computeRange(data, section.colorColumn));
     });
-  }, [weatherPrefix, sectionId, section]);
+  }, [weatherPrefix, overtureRelease, sectionId, section]);
 
   return (
     <div

@@ -15,6 +15,9 @@ import {
   VERTICAL_DENSITY_COLORS,
   PLACES_COLORS,
   WALKABILITY_COLORS,
+  BIOPHILIC_COLORS,
+  HEAT_VULN_COLORS,
+  WATER_SECURITY_COLORS,
 } from '../utils/color-scales';
 import {
   loadParquet,
@@ -65,6 +68,11 @@ export interface GlobeSection {
 
 /* ── Data source URLs ─────────────────────────────────────────────── */
 
+const WEATHER_STATE_URL =
+  'https://raw.githubusercontent.com/walkthru-earth/walkthru-weather-index/refs/heads/main/state/noaa-last-seen.txt';
+const OVERTURE_STATE_URL =
+  'https://raw.githubusercontent.com/walkthru-earth/walkthru-overture-index/refs/heads/main/state/last-release.txt';
+
 const PROBE_BASE = 'https://data.source.coop/walkthru-earth';
 
 const WEATHER_BASE = `${S3_BASE}/indices/weather/model=GraphCast_GFS`;
@@ -79,34 +87,71 @@ function recentDates(count = 7): string[] {
   return dates;
 }
 
+/**
+ * Parse the NOAA last-seen state file to extract date and hour.
+ * Format: "GRAP_v100_GFS/2026/0320/GRAP_v100_GFS_2026032012_f000_f240_06.nc"
+ * Extracts: date=2026-03-20, hour=12
+ */
+function parseWeatherState(
+  text: string
+): { date: string; hour: number } | null {
+  // Match the timestamp portion: YYYYMMDDHH
+  const match = text.match(
+    /GRAP_v100_GFS_(\d{4})(\d{2})(\d{2})(\d{2})_f\d+_f\d+/
+  );
+  if (!match) return null;
+  const [, year, month, day, hour] = match;
+  return { date: `${year}-${month}-${day}`, hour: parseInt(hour, 10) };
+}
+
 let _weatherPrefixPromise: Promise<string> | null = null;
 export function resolveWeatherPrefix(): Promise<string> {
   if (_weatherPrefixPromise) return _weatherPrefixPromise;
 
   _weatherPrefixPromise = (async () => {
+    // 1. Try the authoritative state file first (single lightweight fetch)
+    try {
+      const res = await fetch(WEATHER_STATE_URL);
+      if (res.ok) {
+        const text = (await res.text()).trim();
+        const parsed = parseWeatherState(text);
+        if (parsed) {
+          const prefix = `${WEATHER_BASE}/date=${parsed.date}/hour=${parsed.hour}`;
+          console.log(
+            `[Weather] State file: date=${parsed.date}/hour=${parsed.hour}`
+          );
+          return prefix;
+        }
+      }
+    } catch {
+      console.warn(
+        '[Weather] State file fetch failed, falling back to probing'
+      );
+    }
+
+    // 2. Fallback: probe recent dates with HEAD requests
     const probe = async (
       date: string,
       hour: number
     ): Promise<string | null> => {
       try {
         const probeUrl = `${PROBE_BASE}/indices/weather/model=GraphCast_GFS/date=${date}/hour=${hour}/h3_res=2/data.parquet`;
-        const res = await fetch(probeUrl, { method: 'HEAD' });
-        return res.ok ? `${WEATHER_BASE}/date=${date}/hour=${hour}` : null;
+        const r = await fetch(probeUrl, { method: 'HEAD' });
+        return r.ok ? `${WEATHER_BASE}/date=${date}/hour=${hour}` : null;
       } catch {
         return null;
       }
     };
 
-    // Probe today's hours in parallel (2 requests), prefer hour=12
     const dates = recentDates(2);
     for (const date of dates) {
       const [h12, h0] = await Promise.all([probe(date, 12), probe(date, 0)]);
       if (h12) {
-        console.log(`[Weather] Found: date=${date}/hour=12`);
+        console.log(`[Weather] Probe found: date=${date}/hour=12`);
         return h12;
       }
       if (h0) {
-        console.log(`[Weather] Found: date=${date}/hour=0`);
+        console.log(`[Weather] Probe found: date=${date}/hour=0`);
         return h0;
       }
     }
@@ -116,6 +161,31 @@ export function resolveWeatherPrefix(): Promise<string> {
   })();
 
   return _weatherPrefixPromise;
+}
+
+const OVERTURE_FALLBACK = '2026-03-18.0';
+
+let _overtureReleasePromise: Promise<string> | null = null;
+export function resolveOvertureRelease(): Promise<string> {
+  if (_overtureReleasePromise) return _overtureReleasePromise;
+
+  _overtureReleasePromise = (async () => {
+    try {
+      const res = await fetch(OVERTURE_STATE_URL);
+      if (res.ok) {
+        const text = (await res.text()).trim();
+        if (text) {
+          console.log(`[Overture] Release from state file: ${text}`);
+          return text;
+        }
+      }
+    } catch {
+      console.warn('[Overture] State file fetch failed, using fallback');
+    }
+    return OVERTURE_FALLBACK;
+  })();
+
+  return _overtureReleasePromise;
 }
 
 /* ── Parquet URL builders ──────────────────────────────────────────── */
@@ -132,11 +202,12 @@ const populationParquet = (res: number, scenario = 'SSP2') =>
 const terrainParquet = (res: number) =>
   `${S3_BASE}/dem-terrain/v2/h3/h3_res=${res}/data.parquet`;
 
-const OVERTURE_RELEASE = '2026-03-18.0';
-const placesParquet = (res: number) =>
-  `${S3_BASE}/indices/places-index/v1/release=${OVERTURE_RELEASE}/h3/h3_res=${res}/data.parquet`;
-const transportParquet = (res: number) =>
-  `${S3_BASE}/indices/transportation-index/v1/release=${OVERTURE_RELEASE}/h3/h3_res=${res}/data.parquet`;
+const placesParquet = (release: string, res: number) =>
+  `${S3_BASE}/indices/places-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
+const transportParquet = (release: string, res: number) =>
+  `${S3_BASE}/indices/transportation-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
+const baseParquet = (release: string, res: number) =>
+  `${S3_BASE}/indices/base-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
@@ -237,6 +308,64 @@ function walkabilityRatio(d: Record<string, unknown>): number {
   for (const k of CAR_SCALE_KEYS) car += Number(d[k]) || 0;
   const total = human + car;
   return total > 0 ? human / total : 0;
+}
+
+/* ── Base-index helpers ───────────────────────────────────────────── */
+
+const NATURE_KEYS = [
+  'n_lu_park',
+  'n_lu_recreation',
+  'n_lu_protected',
+  'n_lu_agriculture',
+  'n_lu_horticulture',
+] as const;
+
+const WATER_KEYS = [
+  'n_river',
+  'n_lake',
+  'n_ocean',
+  'n_stream',
+  'n_canal',
+  'n_pond',
+  'n_reservoir',
+  'n_spring',
+] as const;
+
+const URBAN_KEYS = [
+  'n_lu_residential',
+  'n_lu_developed',
+  'n_lu_construction',
+] as const;
+
+const INFRA_TYPES = [
+  'n_power',
+  'n_barrier',
+  'n_transportation',
+  'n_transit',
+  'n_bridge',
+  'n_pedestrian',
+  'n_emergency',
+  'n_utility',
+  'n_waste_mgmt',
+  'n_water_infra',
+  'n_pier',
+  'n_airport',
+  'n_communication',
+] as const;
+
+/** Sum numeric keys from a row. */
+function sumKeys(d: Record<string, unknown>, keys: readonly string[]): number {
+  let s = 0;
+  for (const k of keys) s += Number(d[k]) || 0;
+  return s;
+}
+
+/** Nature ratio: green + water features vs green + water + urban + infra.  0 = concrete, 1 = pure nature. */
+function natureRatio(d: Record<string, unknown>): number {
+  const nature = sumKeys(d, NATURE_KEYS) + sumKeys(d, WATER_KEYS);
+  const urban = sumKeys(d, URBAN_KEYS) + Number(d.infra_count || 0);
+  const total = nature + urban;
+  return total > 0 ? nature / total : 0;
 }
 
 /* ── Section definitions ──────────────────────────────────────────── */
@@ -1445,7 +1574,7 @@ WHERE p.pop_2025 > 0 AND b.total_volume_m3 > 0`,
     colorColumn: 'place_count',
     loadData: async (ctx, onProgress) =>
       loadParquet(
-        placesParquet(ctx.h3Res),
+        placesParquet(ctx.overtureRelease, ctx.h3Res),
         [
           'h3_index',
           'place_count',
@@ -1479,7 +1608,7 @@ WHERE p.pop_2025 > 0 AND b.total_volume_m3 > 0`,
        n_sports_and_recreation, n_lodging,
        n_arts_and_entertainment, n_geographic_entities,
        n_restaurant, n_hospital, n_school, n_park
-FROM '${placesParquet(ctx.h3Res)}'`,
+FROM '${placesParquet(ctx.overtureRelease, ctx.h3Res)}'`,
 
     getFillColor: (d, range) => {
       const diversity = shannonDiversity(d);
@@ -1538,98 +1667,187 @@ FROM '${placesParquet(ctx.h3Res)}'`,
   },
 
   /* ────────────────────────────────────────────────────────────────
-   * Section 18: Transportation — Walkability Index (Overture Maps)
+   * Section 18: Walkability Index
+   * Cross-index: transport + base + terrain + places
+   * 5 signals across 4 indices
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'walkability',
     title: 'Walkability Index',
-    subtitle: 'Overture Maps \u00B7 343 M Segments',
+    subtitle: '5 Signals \u00B7 4 Indices',
     description:
-      'Human-scale vs car-scale infrastructure. Color = walkability ratio: footways, cycleways, pedestrian streets, and paths divided by those plus motorways, trunks, and arterials. Green hexagons prioritize people; red prioritize cars. Height = total road segments.',
+      'Can you walk here comfortably and usefully? Five signals: (1) road type ratio \u2014 footways, cycleways, paths vs motorways and arterials; (2) pedestrian infrastructure \u2014 crosswalks, sidewalks, signals from base environment; (3) barrier penalty \u2014 fences, walls, gates that block movement; (4) terrain slope \u2014 steep = hard to walk; (5) destination density \u2014 a walkable road to nowhere isn\u2019t walkable. Height = total road segments.',
     describeData: (rows) => {
-      const total = col(rows, 'segment_count', 'sum');
-      let walkSum = 0;
+      let scoreSum = 0;
       let count = 0;
       for (const r of rows) {
-        const w = walkabilityRatio(r);
+        const s = Number(r.walk_score) || 0;
         if (Number(r.segment_count) > 0) {
-          walkSum += w;
+          scoreSum += s;
           count++;
         }
       }
-      const avgWalk = count > 0 ? walkSum / count : 0;
-      const totalRail = col(rows, 'n_rail', 'sum');
-      return `${fmt(rows.length)} cells, ${fmt(Math.round(total))} transport segments. Avg walkability: ${(avgWalk * 100).toFixed(1)}%. Rail: ${fmt(Math.round(totalRail))} segments. Paved: ${fmt(Math.round(col(rows, 'n_paved', 'sum')))}. Unpaved: ${fmt(Math.round(col(rows, 'n_unpaved', 'sum')))}.`;
+      const avg = count > 0 ? scoreSum / count : 0;
+      const totalSegs = col(rows, 'segment_count', 'sum');
+      return `${fmt(rows.length)} cells, ${fmt(Math.round(totalSegs))} segments. Avg walkability score: ${(avg * 100).toFixed(1)}%. Combines road types, pedestrian infra, barriers, terrain, and destinations.`;
     },
     stat: { label: 'Total Segments', value: '343 M' },
     viewState: { latitude: 52.5, longitude: 13.4, zoom: 3.5 },
-    colorColumn: 'segment_count',
-    loadData: async (ctx, onProgress) =>
-      loadParquet(
-        transportParquet(ctx.h3Res),
-        [
-          'h3_index',
-          'segment_count',
-          'n_road',
-          'n_rail',
-          'n_water',
-          'n_motorway',
-          'n_trunk',
-          'n_primary',
-          'n_secondary',
-          'n_tertiary',
-          'n_residential',
-          'n_living_street',
-          'n_service',
-          'n_pedestrian',
-          'n_footway',
-          'n_steps',
-          'n_path',
-          'n_cycleway',
-          'n_bridleway',
-          'n_bridge',
-          'n_tunnel',
-          'n_paved',
-          'n_unpaved',
-        ],
-        ctx.h3Ranges,
-        onProgress
-      ),
-    buildQuery: (ctx) => `SELECT h3_index, segment_count,
-       n_road, n_rail, n_water,
-       n_motorway, n_trunk, n_primary, n_secondary,
-       n_tertiary, n_residential, n_living_street,
-       n_service, n_pedestrian, n_footway, n_steps,
-       n_path, n_cycleway, n_bridleway,
-       n_bridge, n_tunnel, n_paved, n_unpaved
-FROM '${transportParquet(ctx.h3Res)}'`,
+    colorColumn: 'walk_score',
+    loadData: async (ctx, _onProgress) => {
+      const [trResult, baResult, teResult, plResult] = await Promise.all([
+        loadParquet(
+          transportParquet(ctx.overtureRelease, ctx.h3Res),
+          [
+            'h3_index',
+            'segment_count',
+            'n_road',
+            'n_rail',
+            ...HUMAN_SCALE_KEYS,
+            ...CAR_SCALE_KEYS,
+            'n_bridge',
+            'n_tunnel',
+            'n_paved',
+            'n_unpaved',
+          ],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          baseParquet(ctx.overtureRelease, ctx.h3Res),
+          ['h3_index', 'n_pedestrian', 'n_barrier'],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          terrainParquet(ctx.h3Res),
+          ['h3_index', 'avg_slope_deg'],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          placesParquet(ctx.overtureRelease, ctx.h3Res),
+          ['h3_index', 'place_count'],
+          ctx.h3Ranges
+        ),
+      ]);
+
+      const baMap = new Map(baResult.rows.map((r) => [String(r.h3_index), r]));
+      const teMap = new Map(teResult.rows.map((r) => [String(r.h3_index), r]));
+      const plMap = new Map(plResult.rows.map((r) => [String(r.h3_index), r]));
+
+      // Maxima for normalization
+      let maxPedInfra = 1;
+      let maxBarrier = 1;
+      let maxPlaces = 1;
+      for (const r of baResult.rows) {
+        const p = Number(r.n_pedestrian) || 0;
+        if (p > maxPedInfra) maxPedInfra = p;
+        const b = Number(r.n_barrier) || 0;
+        if (b > maxBarrier) maxBarrier = b;
+      }
+      for (const r of plResult.rows) {
+        const p = Number(r.place_count) || 0;
+        if (p > maxPlaces) maxPlaces = p;
+      }
+
+      const rows = trResult.rows
+        .filter((tr) => Number(tr.segment_count) > 0)
+        .map((tr) => {
+          const key = String(tr.h3_index);
+          const ba = baMap.get(key);
+          const te = teMap.get(key);
+          const pl = plMap.get(key);
+
+          // 1. Road type ratio: human-scale / (human + car) [0, 1]
+          const roadRatio = walkabilityRatio(tr);
+
+          // 2. Pedestrian infra: crosswalks, sidewalks (log-normalized) [0, 1]
+          const pedRaw = ba ? Number(ba.n_pedestrian) || 0 : 0;
+          const pedScore =
+            pedRaw > 0
+              ? Math.min(1, Math.log1p(pedRaw) / Math.log1p(maxPedInfra))
+              : 0;
+
+          // 3. Barrier penalty: walls/fences that block movement
+          //    More barriers = less walkable. Invert: 1 = no barriers, 0 = many barriers
+          const barrierRaw = ba ? Number(ba.n_barrier) || 0 : 0;
+          const barrierPenalty =
+            barrierRaw > 0
+              ? 1 - Math.min(1, Math.log1p(barrierRaw) / Math.log1p(maxBarrier))
+              : 1;
+
+          // 4. Terrain: flat = walkable, steep = not [0, 1]
+          const slope = te ? Number(te.avg_slope_deg) || 0 : 0;
+          const slopeFactor = Math.max(0, 1 - slope / 15);
+
+          // 5. Destination density: places per cell (log-normalized) [0, 1]
+          const placesRaw = pl ? Number(pl.place_count) || 0 : 0;
+          const destScore =
+            placesRaw > 0
+              ? Math.min(1, Math.log1p(placesRaw) / Math.log1p(maxPlaces))
+              : 0;
+
+          // Composite: 35% road type + 15% ped infra + 10% barriers + 15% terrain + 25% destinations
+          const walkScore =
+            0.35 * roadRatio +
+            0.15 * pedScore +
+            0.1 * barrierPenalty +
+            0.15 * slopeFactor +
+            0.25 * destScore;
+
+          const human = sumKeys(tr, HUMAN_SCALE_KEYS);
+          const car = sumKeys(tr, CAR_SCALE_KEYS);
+
+          return {
+            h3_index: tr.h3_index,
+            walk_score: walkScore,
+            road_ratio: roadRatio,
+            ped_score: pedScore,
+            ped_count: pedRaw,
+            barrier_penalty: barrierPenalty,
+            barrier_count: barrierRaw,
+            slope_factor: slopeFactor,
+            slope_deg: slope,
+            dest_score: destScore,
+            place_count: placesRaw,
+            segment_count: tr.segment_count,
+            human_count: human,
+            car_count: car,
+            n_rail: tr.n_rail,
+            n_bridge: tr.n_bridge,
+            n_tunnel: tr.n_tunnel,
+            n_paved: tr.n_paved,
+            n_unpaved: tr.n_unpaved,
+          };
+        });
+
+      return { rows, info: trResult.info };
+    },
+    buildQuery: (ctx) => `-- Walkability Index (5-signal composite)
+SELECT tr.h3_index, tr.segment_count, tr.n_road, tr.n_rail,
+       tr.n_footway, tr.n_pedestrian, tr.n_cycleway, tr.n_path,
+       tr.n_motorway, tr.n_trunk, tr.n_primary, tr.n_secondary,
+       tr.n_bridge, tr.n_tunnel, tr.n_paved, tr.n_unpaved,
+       ba.n_pedestrian AS ped_infra, ba.n_barrier,
+       te.avg_slope_deg,
+       pl.place_count
+FROM '${transportParquet(ctx.overtureRelease, ctx.h3Res)}' tr
+LEFT JOIN '${baseParquet(ctx.overtureRelease, ctx.h3Res)}' ba USING (h3_index)
+LEFT JOIN '${terrainParquet(ctx.h3Res)}' te USING (h3_index)
+LEFT JOIN '${placesParquet(ctx.overtureRelease, ctx.h3Res)}' pl USING (h3_index)
+WHERE tr.segment_count > 0`,
 
     getFillColor: (d) => {
-      const w = walkabilityRatio(d);
-      return interpolateColor(w, WALKABILITY_COLORS);
+      const s = Number(d.walk_score) || 0;
+      return interpolateColor(s, WALKABILITY_COLORS);
     },
     getElevation: (d) => Math.max(0, Number(d.segment_count) || 0),
     formatTooltip: (d) => {
-      const w = walkabilityRatio(d);
-      const segments = Number(d.segment_count) || 0;
-      const human =
-        (Number(d.n_footway) || 0) +
-        (Number(d.n_pedestrian) || 0) +
-        (Number(d.n_steps) || 0) +
-        (Number(d.n_path) || 0) +
-        (Number(d.n_cycleway) || 0) +
-        (Number(d.n_living_street) || 0);
-      const car =
-        (Number(d.n_motorway) || 0) +
-        (Number(d.n_trunk) || 0) +
-        (Number(d.n_primary) || 0) +
-        (Number(d.n_secondary) || 0);
+      const s = Number(d.walk_score) || 0;
       const label =
-        w >= 0.7
+        s >= 0.7
           ? 'Highly Walkable'
-          : w >= 0.4
-            ? 'Mixed'
-            : w >= 0.15
+          : s >= 0.5
+            ? 'Walkable'
+            : s >= 0.3
               ? 'Car-Leaning'
               : 'Car-Dominated';
       const paved = Number(d.n_paved) || 0;
@@ -1637,16 +1855,18 @@ FROM '${transportParquet(ctx.h3Res)}'`,
       const pavedPct =
         paved + unpaved > 0
           ? ((paved / (paved + unpaved)) * 100).toFixed(0)
-          : '—';
+          : '\u2014';
       return [
-        `Walkability: ${(w * 100).toFixed(1)}% (${label})`,
-        `Segments: ${fmt(segments)}`,
-        `Human-scale: ${fmt(human)} (foot/cycle/path)`,
-        `Car-scale: ${fmt(car)} (motorway/trunk/arterial)`,
+        `Walkability: ${(s * 100).toFixed(1)}% (${label})`,
+        `Signals:`,
+        `  Road Types: ${(Number(d.road_ratio) * 100).toFixed(0)}% human-scale (${fmt(Number(d.human_count))} vs ${fmt(Number(d.car_count))} car)`,
+        `  Ped Infra: ${(Number(d.ped_score) * 100).toFixed(0)}% (${fmt(Number(d.ped_count))} crosswalks/sidewalks)`,
+        `  Barriers: ${(Number(d.barrier_penalty) * 100).toFixed(0)}% open (${fmt(Number(d.barrier_count))} walls/fences)`,
+        `  Terrain: ${Number(d.slope_deg).toFixed(1)}\u00B0 (${(Number(d.slope_factor) * 100).toFixed(0)}% flat)`,
+        `  Destinations: ${(Number(d.dest_score) * 100).toFixed(0)}% (${fmt(Number(d.place_count))} places)`,
+        `Segments: ${fmt(Number(d.segment_count))} \u00B7 Paved: ${pavedPct}%`,
         Number(d.n_rail) > 0 ? `Rail: ${fmt(Number(d.n_rail))}` : null,
-        `Paved: ${pavedPct}%`,
         Number(d.n_bridge) > 0 ? `Bridges: ${fmt(Number(d.n_bridge))}` : null,
-        Number(d.n_tunnel) > 0 ? `Tunnels: ${fmt(Number(d.n_tunnel))}` : null,
       ]
         .filter(Boolean)
         .join('\n');
@@ -1661,43 +1881,64 @@ FROM '${transportParquet(ctx.h3Res)}'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
     defaultH3Res: 4,
-    h3ResRange: [1, 10],
+    h3ResRange: [3, 8],
   },
 
   /* ────────────────────────────────────────────────────────────────
    * Section 19: 15-Minute City Score
-   * Cross-index: places (diversity) + transportation (walkability) + terrain (slope)
+   * Cross-index: places + transportation + terrain + base
+   * 7 signals across 4 indices
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'fifteen-min-city',
     title: '15-Minute City Score',
-    subtitle: 'Places \u00D7 Walkability \u00D7 Terrain',
+    subtitle: '7 Signals \u00B7 4 Indices',
     description:
-      'Can you reach diverse amenities on foot over walkable, flat terrain? This composite index multiplies three normalized signals: Shannon place diversity (40%), walkability ratio (40%), and slope penalty (20%). A score of 1.0 = perfectly diverse amenities, fully pedestrian infrastructure, on flat ground. The 15-minute city made measurable.',
+      'Carlos Moreno\u2019s 15-minute city: living, working, commerce, healthcare, education, and recreation \u2014 all reachable by foot or bike. Seven signals: (1) amenity diversity, (2) essential services completeness \u2014 penalizes cells missing healthcare, education, food, or shopping, (3) walkability ratio, (4) cycling infrastructure, (5) transit density, (6) green space access, (7) terrain flatness.',
     describeData: (rows) => {
       let scoreSum = 0;
       let best = 0;
+      let perfectEssentials = 0;
       for (const r of rows) {
         const s = Number(r.city15_score) || 0;
         scoreSum += s;
         if (s > best) best = s;
+        if (Number(r.essentials_score) === 1) perfectEssentials++;
       }
       const avg = rows.length > 0 ? scoreSum / rows.length : 0;
-      return `${fmt(rows.length)} cells. Avg score: ${(avg * 100).toFixed(1)}%. Best cell: ${(best * 100).toFixed(1)}%. Combines amenity diversity, walkable infrastructure, and terrain flatness.`;
+      const essPct =
+        rows.length > 0
+          ? ((perfectEssentials / rows.length) * 100).toFixed(0)
+          : '0';
+      return `${fmt(rows.length)} cells. Avg score: ${(avg * 100).toFixed(1)}%. Best: ${(best * 100).toFixed(1)}%. ${essPct}% of cells have all 4 essential services (health, education, food, shopping).`;
     },
-    stat: { label: 'Dimensions', value: '3 indices' },
+    stat: { label: 'Signals', value: '7' },
     viewState: { latitude: 48.8, longitude: 2.3, zoom: 4 },
     colorColumn: 'city15_score',
     loadData: async (ctx, _onProgress) => {
-      const [plResult, trResult, teResult] = await Promise.all([
+      const [plResult, trResult, teResult, baResult] = await Promise.all([
         loadParquet(
-          placesParquet(ctx.h3Res),
-          ['h3_index', 'place_count', ...PLACES_CATEGORIES],
+          placesParquet(ctx.overtureRelease, ctx.h3Res),
+          [
+            'h3_index',
+            'place_count',
+            ...PLACES_CATEGORIES,
+            'n_restaurant',
+            'n_hospital',
+            'n_school',
+            'n_park',
+          ],
           ctx.h3Ranges
         ),
         loadParquet(
-          transportParquet(ctx.h3Res),
-          ['h3_index', 'segment_count', ...HUMAN_SCALE_KEYS, ...CAR_SCALE_KEYS],
+          transportParquet(ctx.overtureRelease, ctx.h3Res),
+          [
+            'h3_index',
+            'segment_count',
+            ...HUMAN_SCALE_KEYS,
+            ...CAR_SCALE_KEYS,
+            'n_cycleway',
+          ],
           ctx.h3Ranges
         ),
         loadParquet(
@@ -1705,11 +1946,37 @@ FROM '${transportParquet(ctx.h3Res)}'`,
           ['h3_index', 'avg_slope_deg'],
           ctx.h3Ranges
         ),
+        loadParquet(
+          baseParquet(ctx.overtureRelease, ctx.h3Res),
+          [
+            'h3_index',
+            'n_transit',
+            'n_pedestrian',
+            'n_lu_park',
+            'n_lu_recreation',
+          ],
+          ctx.h3Ranges
+        ),
       ]);
 
-      // Build lookup maps
       const trMap = new Map(trResult.rows.map((r) => [String(r.h3_index), r]));
       const teMap = new Map(teResult.rows.map((r) => [String(r.h3_index), r]));
+      const baMap = new Map(baResult.rows.map((r) => [String(r.h3_index), r]));
+
+      // Maxima for log-normalization
+      let maxTransit = 1;
+      let maxCycleway = 1;
+      let maxGreen = 1;
+      for (const r of baResult.rows) {
+        const t = Number(r.n_transit) || 0;
+        if (t > maxTransit) maxTransit = t;
+        const g = (Number(r.n_lu_park) || 0) + (Number(r.n_lu_recreation) || 0);
+        if (g > maxGreen) maxGreen = g;
+      }
+      for (const r of trResult.rows) {
+        const c = Number(r.n_cycleway) || 0;
+        if (c > maxCycleway) maxCycleway = c;
+      }
 
       const rows = plResult.rows
         .filter((pl) => {
@@ -1720,26 +1987,76 @@ FROM '${transportParquet(ctx.h3Res)}'`,
           const key = String(pl.h3_index);
           const tr = trMap.get(key)!;
           const te = teMap.get(key);
+          const ba = baMap.get(key);
 
-          // 1. Place diversity: Shannon H' normalized to [0, 1]
+          // 1. Amenity diversity: Shannon H' normalized [0, 1]
           const diversity = shannonDiversity(pl) / MAX_SHANNON;
 
-          // 2. Walkability ratio [0, 1]
+          // 2. Essential services completeness [0, 1]
+          //    Must have: healthcare, education, food & drink, shopping
+          const hasHealth = (Number(pl.n_health_care) || 0) > 0 ? 1 : 0;
+          const hasEducation = (Number(pl.n_education) || 0) > 0 ? 1 : 0;
+          const hasFood = (Number(pl.n_food_and_drink) || 0) > 0 ? 1 : 0;
+          const hasShopping = (Number(pl.n_shopping) || 0) > 0 ? 1 : 0;
+          const essentials =
+            (hasHealth + hasEducation + hasFood + hasShopping) / 4;
+
+          // 3. Walkability: human-scale vs car-scale [0, 1]
           const walk = walkabilityRatio(tr);
 
-          // 3. Slope penalty: flat (0°) = 1.0, steep (15°+) = 0.0
+          // 4. Cycling infra: log-normalized [0, 1]
+          const cycleRaw = Number(tr.n_cycleway) || 0;
+          const cycleScore =
+            cycleRaw > 0
+              ? Math.min(1, Math.log1p(cycleRaw) / Math.log1p(maxCycleway))
+              : 0;
+
+          // 5. Transit density: log-normalized [0, 1]
+          const transitRaw = ba ? Number(ba.n_transit) || 0 : 0;
+          const transitScore =
+            transitRaw > 0
+              ? Math.min(1, Math.log1p(transitRaw) / Math.log1p(maxTransit))
+              : 0;
+
+          // 6. Green space access: parks + recreation, log-normalized [0, 1]
+          const greenRaw = ba
+            ? (Number(ba.n_lu_park) || 0) + (Number(ba.n_lu_recreation) || 0)
+            : 0;
+          const greenScore =
+            greenRaw > 0
+              ? Math.min(1, Math.log1p(greenRaw) / Math.log1p(maxGreen))
+              : 0;
+
+          // 7. Terrain flatness: flat (0°) = 1.0, steep (15°+) = 0.0
           const slope = te ? Number(te.avg_slope_deg) || 0 : 0;
           const slopeFactor = Math.max(0, 1 - slope / 15);
 
-          // Composite: 40% diversity + 40% walkability + 20% terrain
-          const score = 0.4 * diversity + 0.4 * walk + 0.2 * slopeFactor;
+          // Composite — weighted by Moreno's framework priorities:
+          // 20% diversity + 15% essentials + 20% walkability + 10% cycling
+          // + 15% transit + 10% green space + 10% terrain
+          const score =
+            0.2 * diversity +
+            0.15 * essentials +
+            0.2 * walk +
+            0.1 * cycleScore +
+            0.15 * transitScore +
+            0.1 * greenScore +
+            0.1 * slopeFactor;
 
           return {
             h3_index: pl.h3_index,
             city15_score: score,
             place_count: pl.place_count,
             diversity,
+            essentials_score: essentials,
+            essentials_of_4: hasHealth + hasEducation + hasFood + hasShopping,
             walkability: walk,
+            cycle_score: cycleScore,
+            cycle_count: cycleRaw,
+            transit_score: transitScore,
+            transit_count: transitRaw,
+            green_score: greenScore,
+            green_count: greenRaw,
             slope_factor: slopeFactor,
             slope_deg: slope,
             segment_count: tr.segment_count,
@@ -1750,14 +2067,16 @@ FROM '${transportParquet(ctx.h3Res)}'`,
     },
     buildQuery: (
       ctx
-    ) => `-- 15-Minute City composite (places × transport × terrain)
-SELECT pl.h3_index,
-       pl.place_count,
-       tr.segment_count,
-       te.avg_slope_deg
-FROM '${placesParquet(ctx.h3Res)}' pl
-JOIN '${transportParquet(ctx.h3Res)}' tr USING (h3_index)
+    ) => `-- 15-Minute City (7-signal composite across 4 indices)
+SELECT pl.h3_index, pl.place_count,
+       pl.n_health_care, pl.n_education, pl.n_food_and_drink, pl.n_shopping,
+       tr.segment_count, tr.n_cycleway,
+       te.avg_slope_deg,
+       ba.n_transit, ba.n_lu_park, ba.n_lu_recreation
+FROM '${placesParquet(ctx.overtureRelease, ctx.h3Res)}' pl
+JOIN '${transportParquet(ctx.overtureRelease, ctx.h3Res)}' tr USING (h3_index)
 LEFT JOIN '${terrainParquet(ctx.h3Res)}' te USING (h3_index)
+LEFT JOIN '${baseParquet(ctx.overtureRelease, ctx.h3Res)}' ba USING (h3_index)
 WHERE pl.place_count > 0`,
 
     getFillColor: (d, range) => {
@@ -1770,10 +2089,7 @@ WHERE pl.place_count > 0`,
     getElevation: (d) => Math.max(0, Number(d.place_count) || 0),
     formatTooltip: (d) => {
       const score = Number(d.city15_score) || 0;
-      const div = Number(d.diversity) || 0;
-      const walk = Number(d.walkability) || 0;
-      const sf = Number(d.slope_factor) || 0;
-      const slope = Number(d.slope_deg) || 0;
+      const ess = Number(d.essentials_of_4) || 0;
       const grade =
         score >= 0.7
           ? 'A \u2014 Excellent'
@@ -1782,13 +2098,26 @@ WHERE pl.place_count > 0`,
             : score >= 0.3
               ? 'C \u2014 Fair'
               : 'D \u2014 Car-dependent';
+      const missing: string[] = [];
+      if (ess < 4) {
+        if (!((Number(d.essentials_score) || 0) >= 1)) {
+          // Re-check which are missing from raw data — we don't store individual flags,
+          // but essentials_of_4 tells us the count
+          missing.push(
+            `${4 - ess} essential service${4 - ess > 1 ? 's' : ''} missing`
+          );
+        }
+      }
       return [
         `15-Min Score: ${(score * 100).toFixed(1)}% (${grade})`,
-        `Amenity Diversity: ${(div * 100).toFixed(0)}%`,
-        `Walkability: ${(walk * 100).toFixed(0)}%`,
-        `Terrain: ${slope.toFixed(1)}\u00B0 slope (${(sf * 100).toFixed(0)}% flat bonus)`,
-        `Places: ${fmt(Number(d.place_count))}`,
-        `Segments: ${fmt(Number(d.segment_count))}`,
+        `Amenity Diversity: ${(Number(d.diversity) * 100).toFixed(0)}%`,
+        `Essentials: ${ess}/4${missing.length ? ` \u2014 ${missing[0]}` : ' \u2714'}`,
+        `Walkability: ${(Number(d.walkability) * 100).toFixed(0)}%`,
+        `Cycling: ${(Number(d.cycle_score) * 100).toFixed(0)}% (${fmt(Number(d.cycle_count))} cycleways)`,
+        `Transit: ${(Number(d.transit_score) * 100).toFixed(0)}% (${fmt(Number(d.transit_count))} stops)`,
+        `Green Space: ${(Number(d.green_score) * 100).toFixed(0)}% (${fmt(Number(d.green_count))} parks/rec)`,
+        `Terrain: ${Number(d.slope_deg).toFixed(1)}\u00B0 (${(Number(d.slope_factor) * 100).toFixed(0)}% flat)`,
+        `Places: ${fmt(Number(d.place_count))} \u00B7 Segments: ${fmt(Number(d.segment_count))}`,
       ].join('\n');
     },
     extruded: true,
@@ -1801,6 +2130,552 @@ WHERE pl.place_count > 0`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
     defaultH3Res: 4,
+    h3ResRange: [3, 8],
+  },
+
+  /* ────────────────────────────────────────────────────────────────
+   * Section 20: Biophilic Index — Nature Access per Capita
+   * Cross-index: base (nature + water) + population
+   * ──────────────────────────────────────────────────────────────── */
+  {
+    id: 'biophilic',
+    title: 'Biophilic Index',
+    subtitle: 'Nature Access \u00D7 Population',
+    description:
+      'How much nature surrounds each person? Parks, recreation, protected areas, agriculture, and water bodies divided by population. Research shows 120 min/week in nature reduces cortisol 21%. Green = abundant nature per person. Magenta = nature-deprived. Height = population \u2014 tall magenta hexagons are the most nature-starved communities on Earth.',
+    describeData: (rows) => {
+      let avgRatio = 0;
+      let minNpc = Infinity;
+      for (const r of rows) {
+        avgRatio += Number(r.nature_ratio) || 0;
+        const npc = Number(r.nature_per_capita) || 0;
+        if (npc > 0 && npc < minNpc) minNpc = npc;
+      }
+      avgRatio = rows.length > 0 ? avgRatio / rows.length : 0;
+      return `${fmt(rows.length)} cells. Avg nature ratio: ${(avgRatio * 100).toFixed(0)}%. Most nature-deprived: ${minNpc === Infinity ? 'N/A' : minNpc.toFixed(3)} features/person. Combines parks, water, agriculture, protected areas vs urban infrastructure.`;
+    },
+    stat: { label: 'Nature Features', value: '118 M' },
+    viewState: { latitude: 30, longitude: 31, zoom: 3.5 },
+    colorColumn: 'nature_per_capita',
+    loadData: async (ctx, _onProgress) => {
+      const [baResult, popResult] = await Promise.all([
+        loadParquet(
+          baseParquet(ctx.overtureRelease, ctx.h3Res),
+          [
+            'h3_index',
+            'infra_count',
+            ...NATURE_KEYS,
+            ...WATER_KEYS,
+            ...URBAN_KEYS,
+            'water_count',
+          ],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          populationParquet(ctx.h3Res),
+          ['h3_index', 'pop_2025'],
+          ctx.h3Ranges
+        ),
+      ]);
+
+      const popMap = new Map(
+        popResult.rows.map((r) => [String(r.h3_index), r])
+      );
+
+      const rows = baResult.rows
+        .filter((ba) => {
+          const pop = popMap.get(String(ba.h3_index));
+          return pop && Number(pop.pop_2025) > 0;
+        })
+        .map((ba) => {
+          const pop = popMap.get(String(ba.h3_index))!;
+          const population = Number(pop.pop_2025);
+          const nature = sumKeys(ba, NATURE_KEYS) + sumKeys(ba, WATER_KEYS);
+          const nr = natureRatio(ba);
+          const npc = nature / population;
+
+          return {
+            h3_index: ba.h3_index,
+            nature_per_capita: npc,
+            nature_ratio: nr,
+            nature_count: nature,
+            water_count: sumKeys(ba, WATER_KEYS),
+            park_count:
+              (Number(ba.n_lu_park) || 0) + (Number(ba.n_lu_recreation) || 0),
+            pop_2025: population,
+          };
+        });
+
+      return { rows, info: baResult.info };
+    },
+    buildQuery: (ctx) => `-- Biophilic Index: nature features per capita
+SELECT ba.h3_index,
+       (ba.n_lu_park + ba.n_lu_recreation + ba.n_lu_protected
+        + ba.n_lu_agriculture + ba.n_lu_horticulture
+        + ba.water_count) AS nature_count,
+       p.pop_2025,
+       nature_count::FLOAT / NULLIF(p.pop_2025, 0) AS nature_per_capita
+FROM '${baseParquet(ctx.overtureRelease, ctx.h3Res)}' ba
+JOIN '${populationParquet(ctx.h3Res)}' p USING (h3_index)
+WHERE p.pop_2025 > 0`,
+
+    getFillColor: (d, range) => {
+      const npc = Number(d.nature_per_capita) || 0;
+      // Log scale for better distribution
+      const logNpc = npc > 0 ? Math.log1p(npc * 1000) : 0;
+      const logMax = Math.log1p(range.max * 1000);
+      return interpolateColor(normalize(logNpc, 0, logMax), BIOPHILIC_COLORS);
+    },
+    getElevation: (d) => Math.max(0, Number(d.pop_2025) || 0),
+    formatTooltip: (d) => {
+      const npc = Number(d.nature_per_capita) || 0;
+      const nr = Number(d.nature_ratio) || 0;
+      const label =
+        nr >= 0.7
+          ? 'Nature-rich'
+          : nr >= 0.4
+            ? 'Balanced'
+            : nr >= 0.15
+              ? 'Nature-poor'
+              : 'Nature-deprived';
+      return [
+        `Nature/Person: ${npc.toFixed(3)} features (${label})`,
+        `Nature Ratio: ${(nr * 100).toFixed(0)}% of mapped features`,
+        `Nature Features: ${fmt(Number(d.nature_count))}`,
+        `  Water: ${fmt(Number(d.water_count))}`,
+        `  Parks & Rec: ${fmt(Number(d.park_count))}`,
+        `Population: ${fmt(Number(d.pop_2025))}`,
+      ].join('\n');
+    },
+    extruded: true,
+    elevationScale: 0.02,
+    colorLegend: [
+      { label: 'Deprived', color: 'rgb(158,1,66)' },
+      { label: 'Balanced', color: 'rgb(230,245,152)' },
+      { label: 'Nature-rich', color: 'rgb(0,104,55)' },
+    ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
+    defaultH3Res: 4,
+    h3ResRange: [3, 8],
+  },
+
+  /* ────────────────────────────────────────────────────────────────
+   * Section 21: Urban Heat Vulnerability
+   * Cross-index: building (volume + coverage) + transport (paved) +
+   *              base (nature deficit) + weather (temp + wind)
+   * ──────────────────────────────────────────────────────────────── */
+  {
+    id: 'heat-vulnerability',
+    title: 'Urban Heat Vulnerability',
+    subtitle:
+      '6 Indices \u00B7 Concrete \u00D7 Asphalt \u00D7 Nature \u00D7 Weather',
+    description:
+      'Where urban heat islands form. Six physical signals: (1) building volume \u2014 concrete thermal mass absorbs and re-radiates heat; (2) ground coverage \u2014 sealed surface blocks evapotranspiration; (3) paved roads \u2014 asphalt absorbs solar radiation and creates urban canyons; (4) nature deficit \u2014 no trees, parks, agriculture, or water for cooling; (5) air temperature; (6) low wind \u2014 stagnant air traps heat. Height = building volume.',
+    describeData: (rows) => {
+      let avgScore = 0;
+      let maxScore = 0;
+      for (const r of rows) {
+        const s = Number(r.heat_vuln) || 0;
+        avgScore += s;
+        if (s > maxScore) maxScore = s;
+      }
+      avgScore = rows.length > 0 ? avgScore / rows.length : 0;
+      return `${fmt(rows.length)} cells. Avg heat vulnerability: ${(avgScore * 100).toFixed(0)}%. Worst cell: ${(maxScore * 100).toFixed(0)}%. Six signals: building volume, ground seal, pavement, nature deficit, temperature, stagnant air.`;
+    },
+    stat: { label: 'Risk Factors', value: '6' },
+    viewState: { latitude: 25, longitude: 55, zoom: 3 },
+    colorColumn: 'heat_vuln',
+    loadData: async (ctx, _onProgress) => {
+      const [baResult, bldResult, trResult, wxResult] = await Promise.all([
+        loadParquet(
+          baseParquet(ctx.overtureRelease, ctx.h3Res),
+          [
+            'h3_index',
+            'infra_count',
+            ...NATURE_KEYS,
+            ...WATER_KEYS,
+            ...URBAN_KEYS,
+          ],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          buildingParquet(ctx.h3Res),
+          [
+            'h3_index',
+            'building_count',
+            'building_density',
+            'total_volume_m3',
+            'coverage_ratio',
+          ],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          transportParquet(ctx.overtureRelease, ctx.h3Res),
+          ['h3_index', 'segment_count', 'n_paved', 'n_unpaved'],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          weatherParquet(ctx.weatherPrefix, ctx.h3Res),
+          ['h3_index', 'temperature_2m_C', 'wind_speed_10m_ms'],
+          ctx.h3Ranges
+        ),
+      ]);
+
+      const baMap = new Map(baResult.rows.map((r) => [String(r.h3_index), r]));
+      const trMap = new Map(trResult.rows.map((r) => [String(r.h3_index), r]));
+      const wxMap = new Map(wxResult.rows.map((r) => [String(r.h3_index), r]));
+
+      // Find maxima for log-normalization
+      let maxVolume = 1;
+      for (const r of bldResult.rows) {
+        const v = Number(r.total_volume_m3) || 0;
+        if (v > maxVolume) maxVolume = v;
+      }
+
+      const rows = bldResult.rows
+        .filter((b) => Number(b.building_density) > 0)
+        .map((b) => {
+          const key = String(b.h3_index);
+          const ba = baMap.get(key);
+          const tr = trMap.get(key);
+          const wx = wxMap.get(key);
+
+          // 1. Building volume (thermal mass): log-normalized [0, 1]
+          const volume = Number(b.total_volume_m3) || 0;
+          const volumeScore = Math.min(
+            1,
+            Math.log1p(volume) / Math.log1p(maxVolume)
+          );
+
+          // 2. Ground coverage (sealed surface): already [0, 1]
+          const coverageScore = Math.min(1, Number(b.coverage_ratio) || 0);
+
+          // 3. Paved road ratio: paved / (paved + unpaved), [0, 1]
+          const paved = tr ? Number(tr.n_paved) || 0 : 0;
+          const unpaved = tr ? Number(tr.n_unpaved) || 0 : 0;
+          const pavedScore =
+            paved + unpaved > 0 ? paved / (paved + unpaved) : 0;
+
+          // 4. Nature deficit: 1 = no nature (bad), 0 = all nature (good)
+          const invNature = ba ? 1 - natureRatio(ba) : 0.5;
+
+          // 5. Temperature: normalize 15°C=0 to 45°C=1
+          const temp = wx ? Number(wx.temperature_2m_C) || 0 : 20;
+          const tempScore = Math.max(0, Math.min(1, (temp - 15) / 30));
+
+          // 6. Low wind (stagnant air): calm=1, windy=0
+          const wind = wx ? Number(wx.wind_speed_10m_ms) || 0 : 3;
+          const calmScore = Math.max(0, 1 - wind / 10);
+
+          // Composite: weighted by physical impact on heat islands
+          // 20% volume + 15% coverage + 15% pavement + 20% nature + 20% temp + 10% calm
+          const heatVuln =
+            0.2 * volumeScore +
+            0.15 * coverageScore +
+            0.15 * pavedScore +
+            0.2 * invNature +
+            0.2 * tempScore +
+            0.1 * calmScore;
+
+          return {
+            h3_index: b.h3_index,
+            heat_vuln: heatVuln,
+            building_count: b.building_count,
+            total_volume_m3: volume,
+            volume_score: volumeScore,
+            coverage_ratio: Number(b.coverage_ratio) || 0,
+            coverage_score: coverageScore,
+            paved_score: pavedScore,
+            paved_count: paved,
+            nature_deficit: invNature,
+            temp_c: temp,
+            temp_score: tempScore,
+            wind_ms: wind,
+            calm_score: calmScore,
+          };
+        });
+
+      return { rows, info: bldResult.info };
+    },
+    buildQuery: (ctx) => `-- Urban Heat Vulnerability (6-signal composite)
+SELECT b.h3_index, b.building_count, b.total_volume_m3,
+       b.coverage_ratio, b.building_density,
+       tr.n_paved, tr.n_unpaved,
+       w.temperature_2m_C, w.wind_speed_10m_ms
+FROM '${buildingParquet(ctx.h3Res)}' b
+LEFT JOIN '${transportParquet(ctx.overtureRelease, ctx.h3Res)}' tr USING (h3_index)
+LEFT JOIN '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}' w USING (h3_index)
+LEFT JOIN '${baseParquet(ctx.overtureRelease, ctx.h3Res)}' ba USING (h3_index)
+WHERE b.building_density > 0`,
+
+    getFillColor: (d, range) => {
+      const v = Number(d.heat_vuln) || 0;
+      return interpolateColor(
+        normalize(v, range.min, range.max),
+        HEAT_VULN_COLORS
+      );
+    },
+    getElevation: (d) => Math.max(0, Number(d.total_volume_m3) || 0),
+    formatTooltip: (d) => {
+      const v = Number(d.heat_vuln) || 0;
+      const label =
+        v >= 0.7
+          ? 'Extreme Risk'
+          : v >= 0.5
+            ? 'High Risk'
+            : v >= 0.3
+              ? 'Moderate'
+              : 'Low Risk';
+      return [
+        `Heat Vulnerability: ${(v * 100).toFixed(0)}% (${label})`,
+        `Signals:`,
+        `  Concrete Mass: ${(Number(d.volume_score) * 100).toFixed(0)}% (${(Number(d.total_volume_m3) / 1e6).toFixed(1)}M m\u00B3)`,
+        `  Ground Seal: ${(Number(d.coverage_score) * 100).toFixed(0)}% (${(Number(d.coverage_ratio) * 100).toFixed(1)}% covered)`,
+        `  Pavement: ${(Number(d.paved_score) * 100).toFixed(0)}% paved (${fmt(Number(d.paved_count))} segments)`,
+        `  Nature Deficit: ${(Number(d.nature_deficit) * 100).toFixed(0)}%`,
+        `  Temperature: ${Number(d.temp_c).toFixed(1)}\u00B0C`,
+        `  Calm Air: ${(Number(d.calm_score) * 100).toFixed(0)}% (wind ${Number(d.wind_ms).toFixed(1)} m/s)`,
+        `Buildings: ${fmt(Number(d.building_count))}`,
+      ].join('\n');
+    },
+    extruded: true,
+    elevationScale: 0.000001,
+    colorLegend: [
+      { label: 'Low', color: 'rgb(255,255,204)' },
+      { label: 'Moderate', color: 'rgb(253,141,60)' },
+      { label: 'Extreme', color: 'rgb(189,0,38)' },
+    ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
+    defaultH3Res: 3,
+    h3ResRange: [3, 8],
+  },
+
+  /* ────────────────────────────────────────────────────────────────
+   * Section 22: Water Security Score
+   * Cross-index: base (water + infra) + population + weather + building + terrain
+   * 6 signals across 5 indices
+   * ──────────────────────────────────────────────────────────────── */
+  {
+    id: 'water-security',
+    title: 'Water Security',
+    subtitle: '6 Signals \u00B7 5 Indices',
+    description:
+      'Where is water scarce relative to people? Six signals: (1) natural water per capita \u2014 rivers, lakes, streams; (2) engineered water infra \u2014 treatment plants, pipes, reservoirs; (3) precipitation; (4) ground permeability \u2014 sealed concrete prevents aquifer recharge; (5) terrain slope \u2014 steep = runoff, flat = retention; (6) population growth pressure 2025\u21922050. Red = crisis. Blue = secure.',
+    describeData: (rows) => {
+      let avgScore = 0;
+      let worstScore = 1;
+      for (const r of rows) {
+        const s = Number(r.water_score) || 0;
+        avgScore += s;
+        if (s < worstScore) worstScore = s;
+      }
+      avgScore = rows.length > 0 ? avgScore / rows.length : 0;
+      return `${fmt(rows.length)} cells. Avg water security: ${(avgScore * 100).toFixed(0)}%. Most stressed: ${(worstScore * 100).toFixed(0)}%. Six signals: natural water, engineered infra, rainfall, permeability, terrain, and growth pressure.`;
+    },
+    stat: { label: 'Signals', value: '6' },
+    viewState: { latitude: 15, longitude: 45, zoom: 2.5 },
+    colorColumn: 'water_score',
+    loadData: async (ctx, _onProgress) => {
+      const [baResult, popResult, wxResult, bldResult, teResult] =
+        await Promise.all([
+          loadParquet(
+            baseParquet(ctx.overtureRelease, ctx.h3Res),
+            ['h3_index', 'water_count', ...WATER_KEYS, 'n_water_infra'],
+            ctx.h3Ranges
+          ),
+          loadParquet(
+            populationParquet(ctx.h3Res),
+            ['h3_index', 'pop_2025', 'pop_2050'],
+            ctx.h3Ranges
+          ),
+          loadParquet(
+            weatherParquet(ctx.weatherPrefix, ctx.h3Res),
+            ['h3_index', 'precipitation_mm_6hr'],
+            ctx.h3Ranges
+          ),
+          loadParquet(
+            buildingParquet(ctx.h3Res),
+            ['h3_index', 'coverage_ratio'],
+            ctx.h3Ranges
+          ),
+          loadParquet(
+            terrainParquet(ctx.h3Res),
+            ['h3_index', 'avg_slope_deg'],
+            ctx.h3Ranges
+          ),
+        ]);
+
+      const baMap = new Map(baResult.rows.map((r) => [String(r.h3_index), r]));
+      const wxMap = new Map(wxResult.rows.map((r) => [String(r.h3_index), r]));
+      const bldMap = new Map(
+        bldResult.rows.map((r) => [String(r.h3_index), r])
+      );
+      const teMap = new Map(teResult.rows.map((r) => [String(r.h3_index), r]));
+
+      // Maxima for normalization
+      let maxWater = 1;
+      let maxInfra = 1;
+      for (const r of baResult.rows) {
+        const w = Number(r.water_count) || 0;
+        if (w > maxWater) maxWater = w;
+        const inf = Number(r.n_water_infra) || 0;
+        if (inf > maxInfra) maxInfra = inf;
+      }
+
+      const rows = popResult.rows
+        .filter((p) => Number(p.pop_2025) > 100)
+        .map((p) => {
+          const key = String(p.h3_index);
+          const ba = baMap.get(key);
+          const wx = wxMap.get(key);
+          const bld = bldMap.get(key);
+          const te = teMap.get(key);
+
+          const pop2025 = Number(p.pop_2025);
+          const pop2050 = Number(p.pop_2050) || pop2025;
+          const waterCount = ba ? Number(ba.water_count) || 0 : 0;
+
+          // 1. Natural water per capita: log-normalized [0, 1]
+          const wpc = waterCount / pop2025;
+          const naturalScore = Math.min(
+            1,
+            wpc > 0 ? Math.log1p(wpc * 10000) / Math.log1p(maxWater) : 0
+          );
+
+          // 2. Engineered water infra: treatment plants, pipes, reservoirs
+          const infraRaw = ba ? Number(ba.n_water_infra) || 0 : 0;
+          const reservoirRaw = ba ? Number(ba.n_reservoir) || 0 : 0;
+          const infraTotal = infraRaw + reservoirRaw;
+          const infraScore =
+            infraTotal > 0
+              ? Math.min(1, Math.log1p(infraTotal) / Math.log1p(maxInfra + 100))
+              : 0;
+
+          // 3. Precipitation: 0 mm = 0, 20+ mm/6hr = 1
+          const precip = wx
+            ? Math.max(0, Number(wx.precipitation_mm_6hr) || 0)
+            : 0;
+          const precipScore = Math.min(1, precip / 20);
+
+          // 4. Ground permeability: inverse of coverage ratio
+          //    Low coverage = rain soaks in = good. High coverage = runoff = bad.
+          const coverage = bld ? Number(bld.coverage_ratio) || 0 : 0;
+          const permeabilityScore = 1 - Math.min(1, coverage);
+
+          // 5. Terrain retention: flat = water stays, steep = runoff
+          const slope = te ? Number(te.avg_slope_deg) || 0 : 0;
+          const retentionScore = Math.max(0, 1 - slope / 20);
+
+          // 6. Population growth pressure: shrinking = 1, doubling = 0
+          const growthRatio = pop2050 / pop2025;
+          const growthPressure = Math.max(
+            0,
+            Math.min(1, 1 - (growthRatio - 1) / 1.5)
+          );
+
+          // Composite: 30% natural + 15% infra + 20% precip + 10% permeability + 10% retention + 15% growth
+          const score =
+            0.3 * naturalScore +
+            0.15 * infraScore +
+            0.2 * precipScore +
+            0.1 * permeabilityScore +
+            0.1 * retentionScore +
+            0.15 * growthPressure;
+
+          return {
+            h3_index: p.h3_index,
+            water_score: score,
+            water_count: waterCount,
+            water_per_capita: wpc,
+            natural_score: naturalScore,
+            infra_score: infraScore,
+            infra_count: infraTotal,
+            precip_mm: precip,
+            precip_score: precipScore,
+            permeability_score: permeabilityScore,
+            coverage_pct: coverage,
+            retention_score: retentionScore,
+            slope_deg: slope,
+            pop_2025: pop2025,
+            pop_2050: pop2050,
+            growth_ratio: growthRatio,
+            growth_pressure: growthPressure,
+            river_count: ba ? Number(ba.n_river) || 0 : 0,
+            lake_count: ba ? Number(ba.n_lake) || 0 : 0,
+            reservoir_count: reservoirRaw,
+          };
+        });
+
+      return { rows, info: popResult.info };
+    },
+    buildQuery: (
+      ctx
+    ) => `-- Water Security (6-signal composite across 5 indices)
+SELECT p.h3_index, p.pop_2025, p.pop_2050,
+       ba.water_count, ba.n_river, ba.n_lake, ba.n_reservoir,
+       ba.n_water_infra,
+       w.precipitation_mm_6hr,
+       b.coverage_ratio,
+       te.avg_slope_deg
+FROM '${populationParquet(ctx.h3Res)}' p
+LEFT JOIN '${baseParquet(ctx.overtureRelease, ctx.h3Res)}' ba USING (h3_index)
+LEFT JOIN '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}' w USING (h3_index)
+LEFT JOIN '${buildingParquet(ctx.h3Res)}' b USING (h3_index)
+LEFT JOIN '${terrainParquet(ctx.h3Res)}' te USING (h3_index)
+WHERE p.pop_2025 > 100`,
+
+    getFillColor: (d, range) => {
+      const s = Number(d.water_score) || 0;
+      return interpolateColor(
+        normalize(s, range.min, range.max),
+        WATER_SECURITY_COLORS
+      );
+    },
+    getElevation: (d) => Math.max(0, Number(d.pop_2025) || 0),
+    formatTooltip: (d) => {
+      const s = Number(d.water_score) || 0;
+      const gr = Number(d.growth_ratio) || 1;
+      const label =
+        s >= 0.7
+          ? 'Secure'
+          : s >= 0.4
+            ? 'Moderate'
+            : s >= 0.2
+              ? 'Stressed'
+              : 'Critical';
+      const growthLabel =
+        gr >= 1.5
+          ? 'Rapid growth'
+          : gr >= 1.1
+            ? 'Growing'
+            : gr >= 0.95
+              ? 'Stable'
+              : 'Shrinking';
+      return [
+        `Water Security: ${(s * 100).toFixed(0)}% (${label})`,
+        `Signals:`,
+        `  Natural Water: ${(Number(d.natural_score) * 100).toFixed(0)}% (${fmt(Number(d.water_count))} features, ${Number(d.water_per_capita).toFixed(4)}/person)`,
+        `    Rivers: ${fmt(Number(d.river_count))} \u00B7 Lakes: ${fmt(Number(d.lake_count))} \u00B7 Reservoirs: ${fmt(Number(d.reservoir_count))}`,
+        `  Water Infra: ${(Number(d.infra_score) * 100).toFixed(0)}% (${fmt(Number(d.infra_count))} plants/pipes/reservoirs)`,
+        `  Rainfall: ${(Number(d.precip_score) * 100).toFixed(0)}% (${Number(d.precip_mm).toFixed(1)} mm/6hr)`,
+        `  Permeability: ${(Number(d.permeability_score) * 100).toFixed(0)}% (${(Number(d.coverage_pct) * 100).toFixed(0)}% ground sealed)`,
+        `  Retention: ${(Number(d.retention_score) * 100).toFixed(0)}% (${Number(d.slope_deg).toFixed(1)}\u00B0 slope)`,
+        `  Growth Pressure: ${(Number(d.growth_pressure) * 100).toFixed(0)}% (${growthLabel}, \u00D7${gr.toFixed(2)})`,
+        `Pop: ${fmt(Number(d.pop_2025))} \u2192 ${fmt(Number(d.pop_2050))}`,
+      ].join('\n');
+    },
+    extruded: true,
+    elevationScale: 0.02,
+    colorLegend: [
+      { label: 'Critical', color: 'rgb(128,0,38)' },
+      { label: 'Moderate', color: 'rgb(255,255,191)' },
+      { label: 'Secure', color: 'rgb(8,81,156)' },
+    ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
+    defaultH3Res: 3,
     h3ResRange: [3, 8],
   },
 ];

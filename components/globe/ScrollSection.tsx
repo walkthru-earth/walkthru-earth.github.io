@@ -39,25 +39,26 @@ function SectionDots({
   size?: 'sm' | 'md';
   onNavigateTo?: (index: number) => void;
 }) {
-  const active = size === 'sm' ? 'w-3 bg-primary' : 'w-7 bg-primary';
-  const past =
-    size === 'sm' ? 'w-1 bg-foreground/15' : 'w-2.5 bg-foreground/25';
-  const future =
-    size === 'sm' ? 'w-1 bg-foreground/10' : 'w-2.5 bg-foreground/10';
-  const clickable = onNavigateTo ? 'cursor-pointer hover:scale-150' : '';
+  const clickable = onNavigateTo ? 'cursor-pointer hover:brightness-150' : '';
   return (
-    <div className="flex items-center gap-1">
-      {Array.from({ length: total }).map((_, i) => (
-        <button
-          key={i}
-          type="button"
-          aria-label={`Go to section ${i + 1}`}
-          onClick={onNavigateTo ? () => onNavigateTo(i) : undefined}
-          className={`${size === 'sm' ? 'h-1' : 'h-1.5'} min-w-0 appearance-none rounded-full border-none p-0 transition-all duration-500 ${clickable} ${
-            i === current ? active : i < current ? past : future
-          }`}
-        />
-      ))}
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: total }).map((_, i) => {
+        const isActive = i === current;
+        const bg = isActive
+          ? 'bg-primary'
+          : i < current
+            ? 'bg-foreground/25'
+            : 'bg-foreground/10';
+        return (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Go to section ${i + 1}`}
+            onClick={onNavigateTo ? () => onNavigateTo(i) : undefined}
+            className={`${size === 'sm' ? 'h-1' : 'h-1.5'} min-w-0 appearance-none rounded-full border-none p-0 transition-all duration-500 ${clickable} ${bg} ${isActive ? 'flex-[3]' : 'flex-1'}`}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -719,7 +720,7 @@ function DesktopCard(props: ScrollSectionProps) {
   return (
     <div
       ref={cardRef}
-      className="pointer-events-auto absolute z-10 hidden max-w-sm sm:block"
+      className="pointer-events-auto absolute z-10 hidden w-fit max-w-md min-w-72 sm:block"
       style={{
         left: pos.x,
         top: pos.y,
@@ -732,23 +733,25 @@ function DesktopCard(props: ScrollSectionProps) {
       onPointerUp={onPointerUp}
     >
       <div
-        className={`border-border/50 bg-background/95 relative rounded-2xl border p-6 shadow-2xl backdrop-blur-md select-none ${dragging ? 'opacity-90' : ''}`}
+        className={`border-border/50 bg-background/95 relative rounded-2xl border shadow-2xl backdrop-blur-md select-none ${dragging ? 'opacity-90' : ''}`}
       >
-        {/* Drag handle icon */}
-        <svg
-          className="text-muted-foreground/40 absolute top-2.5 right-2.5 h-4 w-4"
-          viewBox="0 0 16 16"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <circle cx="5" cy="3" r="1.5" />
-          <circle cx="11" cy="3" r="1.5" />
-          <circle cx="5" cy="8" r="1.5" />
-          <circle cx="11" cy="8" r="1.5" />
-          <circle cx="5" cy="13" r="1.5" />
-          <circle cx="11" cy="13" r="1.5" />
-        </svg>
-        <SectionContent {...props} />
+        {/* Drag handle bar */}
+        <div className="border-border/30 flex items-center justify-center border-b py-1.5">
+          <svg
+            className="text-muted-foreground/40 h-4 w-4"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <circle cx="5" cy="5" r="1.5" />
+            <circle cx="11" cy="5" r="1.5" />
+            <circle cx="5" cy="11" r="1.5" />
+            <circle cx="11" cy="11" r="1.5" />
+          </svg>
+        </div>
+        <div className="p-6 pt-4">
+          <SectionContent {...props} />
+        </div>
       </div>
     </div>
   );

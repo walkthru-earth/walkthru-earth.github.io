@@ -19,6 +19,7 @@ export interface ViewState {
 /** Runtime context passed to buildQuery/loadData — values resolved at mount time. */
 export interface QueryContext {
   weatherPrefix: string;
+  overtureRelease: string;
   h3Res: number;
   /** Hex-encoded BigInt [min, max] pairs for viewport H3 filtering. Null = load everything. */
   h3Ranges?: [string, string][] | null;

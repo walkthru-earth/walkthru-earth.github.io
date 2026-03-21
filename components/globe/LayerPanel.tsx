@@ -85,8 +85,10 @@ export const LayerPanel = memo(function LayerPanel({
               >
                 <Checkbox
                   checked={layer.visible}
+                  onCheckedChange={() => onToggle(layer.id)}
+                  onClick={(e) => e.stopPropagation()}
                   tabIndex={-1}
-                  className="border-muted-foreground/40 pointer-events-none h-3.5 w-3.5 rounded-[3px]"
+                  className="border-muted-foreground/40 h-3.5 w-3.5 rounded-[3px]"
                 />
                 <div
                   className="h-2.5 w-2.5 shrink-0 rounded-full"

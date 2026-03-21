@@ -413,6 +413,6 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
     post({ id, type: 'done', info });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    post({ id, type: 'error', error });
+    post({ id, type: 'error', error: `${shortUrl}: ${error}` });
   }
 };

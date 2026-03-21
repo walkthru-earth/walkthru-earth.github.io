@@ -27,6 +27,7 @@ import { useGlobeScroll } from './hooks/useGlobeScroll';
 import {
   SECTIONS,
   resolveWeatherPrefix,
+  resolveOvertureRelease,
   h3ToHex,
   type GlobeSection,
   type QueryContext,
@@ -112,6 +113,7 @@ export function GlobeExplorer({
   const [error, setError] = useState<string | null>(null);
   const [parquetInfo, setParquetInfo] = useState<ParquetInfo | null>(null);
   const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
+  const [overtureRelease, setOvertureRelease] = useState<string | null>(null);
   const [zoom, setZoom] = useState(
     initialZoom ?? sections[0]?.viewState.zoom ?? 1.5
   );
@@ -222,8 +224,11 @@ export function GlobeExplorer({
   }, [debouncedBounds, h3Res]);
 
   const queryCtx = useMemo<QueryContext | null>(
-    () => (weatherPrefix ? { weatherPrefix, h3Res, h3Ranges } : null),
-    [weatherPrefix, h3Res, h3Ranges]
+    () =>
+      weatherPrefix && overtureRelease
+        ? { weatherPrefix, overtureRelease, h3Res, h3Ranges }
+        : null,
+    [weatherPrefix, overtureRelease, h3Res, h3Ranges]
   );
 
   // ── Timestamps ──
@@ -296,15 +301,22 @@ export function GlobeExplorer({
   }, []);
 
   const resolvedQuery = useMemo(() => {
-    const ctx = queryCtx ?? { weatherPrefix: '...', h3Res };
+    const ctx = queryCtx ?? {
+      weatherPrefix: '...',
+      overtureRelease: '...',
+      h3Res,
+    };
     return currentSection.buildQuery(ctx);
   }, [queryCtx, currentSection, h3Res]);
 
-  // Resolve weather prefix once on mount
+  // Resolve weather prefix and Overture release once on mount
   useEffect(() => {
     let cancelled = false;
     resolveWeatherPrefix().then((prefix) => {
       if (!cancelled) setWeatherPrefix(prefix);
+    });
+    resolveOvertureRelease().then((release) => {
+      if (!cancelled) setOvertureRelease(release);
     });
     return () => {
       cancelled = true;

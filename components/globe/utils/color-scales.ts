@@ -162,3 +162,34 @@ export const WALKABILITY_COLORS: [number, number, number][] = [
   [49, 163, 84], // green
   [0, 104, 55], // deep green (highly walkable)
 ];
+
+export const BIOPHILIC_COLORS: [number, number, number][] = [
+  [158, 1, 66], // magenta (nature-deprived)
+  [213, 62, 79], // rose
+  [244, 109, 67], // orange
+  [253, 174, 97], // peach
+  [230, 245, 152], // lime
+  [102, 194, 165], // teal-green
+  [50, 136, 89], // forest
+  [0, 104, 55], // deep green (nature-rich)
+];
+
+export const HEAT_VULN_COLORS: [number, number, number][] = [
+  [255, 255, 204], // pale (low risk)
+  [255, 237, 160],
+  [254, 217, 118],
+  [254, 178, 76], // orange
+  [253, 141, 60],
+  [240, 59, 32], // red
+  [189, 0, 38], // deep red (extreme risk)
+];
+
+export const WATER_SECURITY_COLORS: [number, number, number][] = [
+  [128, 0, 38], // deep red (water-stressed)
+  [227, 26, 28], // red
+  [253, 141, 60], // orange
+  [255, 255, 191], // yellow
+  [116, 196, 118], // green
+  [35, 139, 69], // dark green
+  [8, 81, 156], // blue (water-secure)
+];
