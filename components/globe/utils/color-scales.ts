@@ -152,3 +152,13 @@ export const PLACES_COLORS: [number, number, number][] = [
   [176, 42, 143], // magenta
   [106, 23, 134], // deep purple (dense)
 ];
+
+export const WALKABILITY_COLORS: [number, number, number][] = [
+  [189, 0, 38], // deep red (car-dominated)
+  [240, 59, 32], // red
+  [253, 141, 60], // orange
+  [254, 217, 118], // yellow
+  [173, 221, 142], // light green
+  [49, 163, 84], // green
+  [0, 104, 55], // deep green (highly walkable)
+];

@@ -14,6 +14,7 @@ import {
   HOUSING_PRESSURE_COLORS,
   VERTICAL_DENSITY_COLORS,
   PLACES_COLORS,
+  WALKABILITY_COLORS,
 } from '../utils/color-scales';
 import {
   loadParquet,
@@ -131,9 +132,11 @@ const populationParquet = (res: number, scenario = 'SSP2') =>
 const terrainParquet = (res: number) =>
   `${S3_BASE}/dem-terrain/v2/h3/h3_res=${res}/data.parquet`;
 
-const PLACES_RELEASE = '2026-03-18.0';
+const OVERTURE_RELEASE = '2026-03-18.0';
 const placesParquet = (res: number) =>
-  `${S3_BASE}/indices/places-index/v1/release=${PLACES_RELEASE}/h3/h3_res=${res}/data.parquet`;
+  `${S3_BASE}/indices/places-index/v1/release=${OVERTURE_RELEASE}/h3/h3_res=${res}/data.parquet`;
+const transportParquet = (res: number) =>
+  `${S3_BASE}/indices/transportation-index/v1/release=${OVERTURE_RELEASE}/h3/h3_res=${res}/data.parquet`;
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
@@ -202,6 +205,38 @@ function shannonDiversity(d: Record<string, unknown>): number {
     h -= p * Math.log(p);
   }
   return h;
+}
+
+/* ── Transport walkability ────────────────────────────────────────── */
+
+const HUMAN_SCALE_KEYS = [
+  'n_footway',
+  'n_pedestrian',
+  'n_steps',
+  'n_path',
+  'n_cycleway',
+  'n_living_street',
+] as const;
+
+const CAR_SCALE_KEYS = [
+  'n_motorway',
+  'n_trunk',
+  'n_primary',
+  'n_secondary',
+] as const;
+
+/**
+ * Walkability ratio: human-scale segments / (human-scale + car-scale).
+ * Returns 0–1.  1 = fully pedestrian/cycle, 0 = fully car-dominated.
+ * Cells with zero relevant segments return 0.
+ */
+function walkabilityRatio(d: Record<string, unknown>): number {
+  let human = 0;
+  for (const k of HUMAN_SCALE_KEYS) human += Number(d[k]) || 0;
+  let car = 0;
+  for (const k of CAR_SCALE_KEYS) car += Number(d[k]) || 0;
+  const total = human + car;
+  return total > 0 ? human / total : 0;
 }
 
 /* ── Section definitions ──────────────────────────────────────────── */
@@ -1500,5 +1535,272 @@ FROM '${placesParquet(ctx.h3Res)}'`,
     githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
     defaultH3Res: 4,
     h3ResRange: [1, 10],
+  },
+
+  /* ────────────────────────────────────────────────────────────────
+   * Section 18: Transportation — Walkability Index (Overture Maps)
+   * ──────────────────────────────────────────────────────────────── */
+  {
+    id: 'walkability',
+    title: 'Walkability Index',
+    subtitle: 'Overture Maps \u00B7 343 M Segments',
+    description:
+      'Human-scale vs car-scale infrastructure. Color = walkability ratio: footways, cycleways, pedestrian streets, and paths divided by those plus motorways, trunks, and arterials. Green hexagons prioritize people; red prioritize cars. Height = total road segments.',
+    describeData: (rows) => {
+      const total = col(rows, 'segment_count', 'sum');
+      let walkSum = 0;
+      let count = 0;
+      for (const r of rows) {
+        const w = walkabilityRatio(r);
+        if (Number(r.segment_count) > 0) {
+          walkSum += w;
+          count++;
+        }
+      }
+      const avgWalk = count > 0 ? walkSum / count : 0;
+      const totalRail = col(rows, 'n_rail', 'sum');
+      return `${fmt(rows.length)} cells, ${fmt(Math.round(total))} transport segments. Avg walkability: ${(avgWalk * 100).toFixed(1)}%. Rail: ${fmt(Math.round(totalRail))} segments. Paved: ${fmt(Math.round(col(rows, 'n_paved', 'sum')))}. Unpaved: ${fmt(Math.round(col(rows, 'n_unpaved', 'sum')))}.`;
+    },
+    stat: { label: 'Total Segments', value: '343 M' },
+    viewState: { latitude: 52.5, longitude: 13.4, zoom: 3.5 },
+    colorColumn: 'segment_count',
+    loadData: async (ctx, onProgress) =>
+      loadParquet(
+        transportParquet(ctx.h3Res),
+        [
+          'h3_index',
+          'segment_count',
+          'n_road',
+          'n_rail',
+          'n_water',
+          'n_motorway',
+          'n_trunk',
+          'n_primary',
+          'n_secondary',
+          'n_tertiary',
+          'n_residential',
+          'n_living_street',
+          'n_service',
+          'n_pedestrian',
+          'n_footway',
+          'n_steps',
+          'n_path',
+          'n_cycleway',
+          'n_bridleway',
+          'n_bridge',
+          'n_tunnel',
+          'n_paved',
+          'n_unpaved',
+        ],
+        ctx.h3Ranges,
+        onProgress
+      ),
+    buildQuery: (ctx) => `SELECT h3_index, segment_count,
+       n_road, n_rail, n_water,
+       n_motorway, n_trunk, n_primary, n_secondary,
+       n_tertiary, n_residential, n_living_street,
+       n_service, n_pedestrian, n_footway, n_steps,
+       n_path, n_cycleway, n_bridleway,
+       n_bridge, n_tunnel, n_paved, n_unpaved
+FROM '${transportParquet(ctx.h3Res)}'`,
+
+    getFillColor: (d) => {
+      const w = walkabilityRatio(d);
+      return interpolateColor(w, WALKABILITY_COLORS);
+    },
+    getElevation: (d) => Math.max(0, Number(d.segment_count) || 0),
+    formatTooltip: (d) => {
+      const w = walkabilityRatio(d);
+      const segments = Number(d.segment_count) || 0;
+      const human =
+        (Number(d.n_footway) || 0) +
+        (Number(d.n_pedestrian) || 0) +
+        (Number(d.n_steps) || 0) +
+        (Number(d.n_path) || 0) +
+        (Number(d.n_cycleway) || 0) +
+        (Number(d.n_living_street) || 0);
+      const car =
+        (Number(d.n_motorway) || 0) +
+        (Number(d.n_trunk) || 0) +
+        (Number(d.n_primary) || 0) +
+        (Number(d.n_secondary) || 0);
+      const label =
+        w >= 0.7
+          ? 'Highly Walkable'
+          : w >= 0.4
+            ? 'Mixed'
+            : w >= 0.15
+              ? 'Car-Leaning'
+              : 'Car-Dominated';
+      const paved = Number(d.n_paved) || 0;
+      const unpaved = Number(d.n_unpaved) || 0;
+      const pavedPct =
+        paved + unpaved > 0
+          ? ((paved / (paved + unpaved)) * 100).toFixed(0)
+          : '—';
+      return [
+        `Walkability: ${(w * 100).toFixed(1)}% (${label})`,
+        `Segments: ${fmt(segments)}`,
+        `Human-scale: ${fmt(human)} (foot/cycle/path)`,
+        `Car-scale: ${fmt(car)} (motorway/trunk/arterial)`,
+        Number(d.n_rail) > 0 ? `Rail: ${fmt(Number(d.n_rail))}` : null,
+        `Paved: ${pavedPct}%`,
+        Number(d.n_bridge) > 0 ? `Bridges: ${fmt(Number(d.n_bridge))}` : null,
+        Number(d.n_tunnel) > 0 ? `Tunnels: ${fmt(Number(d.n_tunnel))}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n');
+    },
+    extruded: true,
+    elevationScale: 0.005,
+    colorLegend: [
+      { label: 'Car', color: 'rgb(189,0,38)' },
+      { label: 'Mixed', color: 'rgb(254,217,118)' },
+      { label: 'Walkable', color: 'rgb(0,104,55)' },
+    ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
+    defaultH3Res: 4,
+    h3ResRange: [1, 10],
+  },
+
+  /* ────────────────────────────────────────────────────────────────
+   * Section 19: 15-Minute City Score
+   * Cross-index: places (diversity) + transportation (walkability) + terrain (slope)
+   * ──────────────────────────────────────────────────────────────── */
+  {
+    id: 'fifteen-min-city',
+    title: '15-Minute City Score',
+    subtitle: 'Places \u00D7 Walkability \u00D7 Terrain',
+    description:
+      'Can you reach diverse amenities on foot over walkable, flat terrain? This composite index multiplies three normalized signals: Shannon place diversity (40%), walkability ratio (40%), and slope penalty (20%). A score of 1.0 = perfectly diverse amenities, fully pedestrian infrastructure, on flat ground. The 15-minute city made measurable.',
+    describeData: (rows) => {
+      let scoreSum = 0;
+      let best = 0;
+      for (const r of rows) {
+        const s = Number(r.city15_score) || 0;
+        scoreSum += s;
+        if (s > best) best = s;
+      }
+      const avg = rows.length > 0 ? scoreSum / rows.length : 0;
+      return `${fmt(rows.length)} cells. Avg score: ${(avg * 100).toFixed(1)}%. Best cell: ${(best * 100).toFixed(1)}%. Combines amenity diversity, walkable infrastructure, and terrain flatness.`;
+    },
+    stat: { label: 'Dimensions', value: '3 indices' },
+    viewState: { latitude: 48.8, longitude: 2.3, zoom: 4 },
+    colorColumn: 'city15_score',
+    loadData: async (ctx, _onProgress) => {
+      const [plResult, trResult, teResult] = await Promise.all([
+        loadParquet(
+          placesParquet(ctx.h3Res),
+          ['h3_index', 'place_count', ...PLACES_CATEGORIES],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          transportParquet(ctx.h3Res),
+          ['h3_index', 'segment_count', ...HUMAN_SCALE_KEYS, ...CAR_SCALE_KEYS],
+          ctx.h3Ranges
+        ),
+        loadParquet(
+          terrainParquet(ctx.h3Res),
+          ['h3_index', 'avg_slope_deg'],
+          ctx.h3Ranges
+        ),
+      ]);
+
+      // Build lookup maps
+      const trMap = new Map(trResult.rows.map((r) => [String(r.h3_index), r]));
+      const teMap = new Map(teResult.rows.map((r) => [String(r.h3_index), r]));
+
+      const rows = plResult.rows
+        .filter((pl) => {
+          const key = String(pl.h3_index);
+          return trMap.has(key) && Number(pl.place_count) > 0;
+        })
+        .map((pl) => {
+          const key = String(pl.h3_index);
+          const tr = trMap.get(key)!;
+          const te = teMap.get(key);
+
+          // 1. Place diversity: Shannon H' normalized to [0, 1]
+          const diversity = shannonDiversity(pl) / MAX_SHANNON;
+
+          // 2. Walkability ratio [0, 1]
+          const walk = walkabilityRatio(tr);
+
+          // 3. Slope penalty: flat (0°) = 1.0, steep (15°+) = 0.0
+          const slope = te ? Number(te.avg_slope_deg) || 0 : 0;
+          const slopeFactor = Math.max(0, 1 - slope / 15);
+
+          // Composite: 40% diversity + 40% walkability + 20% terrain
+          const score = 0.4 * diversity + 0.4 * walk + 0.2 * slopeFactor;
+
+          return {
+            h3_index: pl.h3_index,
+            city15_score: score,
+            place_count: pl.place_count,
+            diversity,
+            walkability: walk,
+            slope_factor: slopeFactor,
+            slope_deg: slope,
+            segment_count: tr.segment_count,
+          };
+        });
+
+      return { rows, info: plResult.info };
+    },
+    buildQuery: (
+      ctx
+    ) => `-- 15-Minute City composite (places × transport × terrain)
+SELECT pl.h3_index,
+       pl.place_count,
+       tr.segment_count,
+       te.avg_slope_deg
+FROM '${placesParquet(ctx.h3Res)}' pl
+JOIN '${transportParquet(ctx.h3Res)}' tr USING (h3_index)
+LEFT JOIN '${terrainParquet(ctx.h3Res)}' te USING (h3_index)
+WHERE pl.place_count > 0`,
+
+    getFillColor: (d, range) => {
+      const score = Number(d.city15_score) || 0;
+      return interpolateColor(
+        normalize(score, range.min, range.max),
+        WALKABILITY_COLORS
+      );
+    },
+    getElevation: (d) => Math.max(0, Number(d.place_count) || 0),
+    formatTooltip: (d) => {
+      const score = Number(d.city15_score) || 0;
+      const div = Number(d.diversity) || 0;
+      const walk = Number(d.walkability) || 0;
+      const sf = Number(d.slope_factor) || 0;
+      const slope = Number(d.slope_deg) || 0;
+      const grade =
+        score >= 0.7
+          ? 'A \u2014 Excellent'
+          : score >= 0.5
+            ? 'B \u2014 Good'
+            : score >= 0.3
+              ? 'C \u2014 Fair'
+              : 'D \u2014 Car-dependent';
+      return [
+        `15-Min Score: ${(score * 100).toFixed(1)}% (${grade})`,
+        `Amenity Diversity: ${(div * 100).toFixed(0)}%`,
+        `Walkability: ${(walk * 100).toFixed(0)}%`,
+        `Terrain: ${slope.toFixed(1)}\u00B0 slope (${(sf * 100).toFixed(0)}% flat bonus)`,
+        `Places: ${fmt(Number(d.place_count))}`,
+        `Segments: ${fmt(Number(d.segment_count))}`,
+      ].join('\n');
+    },
+    extruded: true,
+    elevationScale: 0.5,
+    colorLegend: [
+      { label: 'D: Car-dep.', color: 'rgb(189,0,38)' },
+      { label: 'B: Good', color: 'rgb(254,217,118)' },
+      { label: 'A: Excellent', color: 'rgb(0,104,55)' },
+    ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
+    defaultH3Res: 4,
+    h3ResRange: [3, 8],
   },
 ];
