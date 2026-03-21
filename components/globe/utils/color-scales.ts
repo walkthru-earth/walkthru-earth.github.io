@@ -143,3 +143,12 @@ export const VERTICAL_DENSITY_COLORS: [number, number, number][] = [
   [215, 48, 39], // red
   [128, 0, 38], // deep red (most compressed — low bldg/person)
 ];
+
+export const PLACES_COLORS: [number, number, number][] = [
+  [252, 235, 211], // pale cream (few places)
+  [249, 190, 127], // peach
+  [239, 138, 71], // tangerine
+  [220, 73, 86], // coral-red
+  [176, 42, 143], // magenta
+  [106, 23, 134], // deep purple (dense)
+];

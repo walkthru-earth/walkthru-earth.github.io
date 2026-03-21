@@ -13,6 +13,7 @@ import {
   RUGGEDNESS_COLORS,
   HOUSING_PRESSURE_COLORS,
   VERTICAL_DENSITY_COLORS,
+  PLACES_COLORS,
 } from '../utils/color-scales';
 import {
   loadParquet,
@@ -130,6 +131,10 @@ const populationParquet = (res: number, scenario = 'SSP2') =>
 const terrainParquet = (res: number) =>
   `${S3_BASE}/dem-terrain/v2/h3/h3_res=${res}/data.parquet`;
 
+const PLACES_RELEASE = '2026-03-18.0';
+const placesParquet = (res: number) =>
+  `${S3_BASE}/indices/places-index/v1/release=${PLACES_RELEASE}/h3/h3_res=${res}/data.parquet`;
+
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
 /** Convert h3_index to hex string for deck.gl H3HexagonLayer.
@@ -161,6 +166,42 @@ function col(
     }
   }
   return r;
+}
+
+/* ── Places diversity ─────────────────────────────────────────────── */
+
+const PLACES_CATEGORIES = [
+  'n_food_and_drink',
+  'n_shopping',
+  'n_services_and_business',
+  'n_health_care',
+  'n_travel_and_transportation',
+  'n_lifestyle_services',
+  'n_education',
+  'n_community_and_government',
+  'n_cultural_and_historic',
+  'n_sports_and_recreation',
+  'n_lodging',
+  'n_arts_and_entertainment',
+  'n_geographic_entities',
+] as const;
+
+/** Maximum Shannon entropy: ln(13 categories) ≈ 2.565 */
+const MAX_SHANNON = Math.log(PLACES_CATEGORIES.length);
+
+/** Shannon diversity index H′ = −Σ(pᵢ · ln(pᵢ)) across 13 POI categories. */
+function shannonDiversity(d: Record<string, unknown>): number {
+  let total = 0;
+  for (const k of PLACES_CATEGORIES) total += Number(d[k]) || 0;
+  if (total <= 0) return 0;
+  let h = 0;
+  for (const k of PLACES_CATEGORIES) {
+    const n = Number(d[k]) || 0;
+    if (n <= 0) continue;
+    const p = n / total;
+    h -= p * Math.log(p);
+  }
+  return h;
 }
 
 /* ── Section definitions ──────────────────────────────────────────── */
@@ -1344,5 +1385,120 @@ WHERE p.pop_2025 > 0 AND b.total_volume_m3 > 0`,
     githubUrl: 'https://github.com/walkthru-earth/walkthru-building-index',
     defaultH3Res: 3,
     h3ResRange: [3, 8],
+  },
+
+  /* ────────────────────────────────────────────────────────────────
+   * Section 17: Places — POI Density (Overture Maps)
+   * ──────────────────────────────────────────────────────────────── */
+  {
+    id: 'places',
+    title: 'Places & Amenities',
+    subtitle: 'Overture Maps \u00B7 72 M POIs',
+    description:
+      'Every restaurant, school, hospital, park, and shop on Earth \u2014 aggregated from Overture Maps into H3 hexagons. Height = total POI count, color = Shannon diversity across 13 categories. High diversity (purple) marks self-sufficient neighborhoods; low diversity (cream) marks mono-functional zones.',
+    describeData: (rows) => {
+      const total = col(rows, 'place_count', 'sum');
+      const maxCell = col(rows, 'place_count', 'max');
+      // Compute average Shannon diversity
+      let divSum = 0;
+      for (const r of rows) divSum += shannonDiversity(r);
+      const avgDiv = rows.length > 0 ? divSum / rows.length : 0;
+      return `${fmt(rows.length)} cells, ${fmt(Math.round(total))} places. Densest cell: ${fmt(maxCell)} POIs. Avg diversity: ${avgDiv.toFixed(2)} / ${MAX_SHANNON.toFixed(2)} (Shannon H\u2032). Higher = more self-sufficient neighborhoods.`;
+    },
+    stat: { label: 'Total POIs', value: '72 M' },
+    viewState: { latitude: 48.8, longitude: 2.3, zoom: 3.5 },
+    colorColumn: 'place_count',
+    loadData: async (ctx, onProgress) =>
+      loadParquet(
+        placesParquet(ctx.h3Res),
+        [
+          'h3_index',
+          'place_count',
+          'avg_confidence',
+          'n_food_and_drink',
+          'n_shopping',
+          'n_services_and_business',
+          'n_health_care',
+          'n_travel_and_transportation',
+          'n_lifestyle_services',
+          'n_education',
+          'n_community_and_government',
+          'n_cultural_and_historic',
+          'n_sports_and_recreation',
+          'n_lodging',
+          'n_arts_and_entertainment',
+          'n_geographic_entities',
+          'n_restaurant',
+          'n_hospital',
+          'n_school',
+          'n_park',
+        ],
+        ctx.h3Ranges,
+        onProgress
+      ),
+    buildQuery: (ctx) => `SELECT h3_index, place_count, avg_confidence,
+       n_food_and_drink, n_shopping, n_services_and_business,
+       n_health_care, n_travel_and_transportation,
+       n_lifestyle_services, n_education,
+       n_community_and_government, n_cultural_and_historic,
+       n_sports_and_recreation, n_lodging,
+       n_arts_and_entertainment, n_geographic_entities,
+       n_restaurant, n_hospital, n_school, n_park
+FROM '${placesParquet(ctx.h3Res)}'`,
+
+    getFillColor: (d, range) => {
+      const diversity = shannonDiversity(d);
+      return interpolateColor(
+        normalize(diversity, 0, MAX_SHANNON),
+        PLACES_COLORS
+      );
+    },
+    getElevation: (d) => Math.max(0, Number(d.place_count) || 0),
+    formatTooltip: (d) => {
+      const categories: [string, number][] = [
+        ['Food & Drink', Number(d.n_food_and_drink) || 0],
+        ['Shopping', Number(d.n_shopping) || 0],
+        ['Services', Number(d.n_services_and_business) || 0],
+        ['Health', Number(d.n_health_care) || 0],
+        ['Transport', Number(d.n_travel_and_transportation) || 0],
+        ['Lifestyle', Number(d.n_lifestyle_services) || 0],
+        ['Education', Number(d.n_education) || 0],
+        ['Community', Number(d.n_community_and_government) || 0],
+        ['Culture', Number(d.n_cultural_and_historic) || 0],
+        ['Sports & Rec', Number(d.n_sports_and_recreation) || 0],
+        ['Lodging', Number(d.n_lodging) || 0],
+        ['Arts', Number(d.n_arts_and_entertainment) || 0],
+        ['Geographic', Number(d.n_geographic_entities) || 0],
+      ];
+      const present = categories.filter(([, v]) => v > 0);
+      const diversity = shannonDiversity(d);
+      const top = present
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([k, v]) => `  ${k}: ${fmt(v)}`)
+        .join('\n');
+      return [
+        `Places: ${fmt(Number(d.place_count))}`,
+        `Diversity: ${diversity.toFixed(2)} / ${MAX_SHANNON.toFixed(2)} (${present.length}/13 categories)`,
+        top ? `Top categories:\n${top}` : null,
+        Number(d.n_restaurant) > 0
+          ? `Restaurants: ${fmt(Number(d.n_restaurant))}`
+          : null,
+        Number(d.n_park) > 0 ? `Parks: ${fmt(Number(d.n_park))}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n');
+    },
+    extruded: true,
+    elevationScale: 0.5,
+    colorLegend: [
+      { label: 'Mono', color: 'rgb(252,235,211)' },
+      { label: 'Mixed', color: 'rgb(220,73,86)' },
+      { label: 'Diverse', color: 'rgb(106,23,134)' },
+    ],
+    sourceCoopUrl: 'https://source.coop/walkthru-earth/indices',
+    githubUrl: 'https://github.com/walkthru-earth/walkthru-overture-index',
+    defaultH3Res: 4,
+    h3ResRange: [1, 10],
   },
 ];
