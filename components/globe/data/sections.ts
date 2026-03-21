@@ -223,7 +223,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
     defaultH3Res: 1,
-    h3ResRange: [0, 5],
+    h3ResRange: [1, 5],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -282,7 +282,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
     defaultH3Res: 1,
-    h3ResRange: [0, 5],
+    h3ResRange: [1, 5],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -950,7 +950,7 @@ FROM '${weatherParquet(ctx.weatherPrefix, ctx.h3Res)}'`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
     defaultH3Res: 1,
-    h3ResRange: [0, 5],
+    h3ResRange: [1, 5],
   },
 
   /* ────────────────────────────────────────────────────────────────
@@ -1015,7 +1015,7 @@ WHERE precipitation_mm_6hr > 0.1`,
     sourceCoopUrl: 'https://source.coop/walkthru-earth/indices/weather',
     githubUrl: 'https://github.com/walkthru-earth/walkthru-weather-index',
     defaultH3Res: 1,
-    h3ResRange: [0, 5],
+    h3ResRange: [1, 5],
   },
 
   /* ────────────────────────────────────────────────────────────────
