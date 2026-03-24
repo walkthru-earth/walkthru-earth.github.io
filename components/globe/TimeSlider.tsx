@@ -201,11 +201,11 @@ export const MobileTimeControls = memo(function MobileTimeControls({
         type="button"
         disabled={selectedIndex === 0}
         onClick={() => onChange(selectedIndex - 1)}
-        className="text-muted-foreground disabled:opacity-20"
+        className="text-muted-foreground flex h-7 w-7 items-center justify-center rounded-full active:scale-95 disabled:opacity-20"
         aria-label="Previous timestep"
       >
         <svg
-          className="h-3 w-3"
+          className="h-4 w-4"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -225,11 +225,11 @@ export const MobileTimeControls = memo(function MobileTimeControls({
         type="button"
         disabled={selectedIndex === timestamps.length - 1}
         onClick={() => onChange(selectedIndex + 1)}
-        className="text-muted-foreground disabled:opacity-20"
+        className="text-muted-foreground flex h-7 w-7 items-center justify-center rounded-full active:scale-95 disabled:opacity-20"
         aria-label="Next timestep"
       >
         <svg
-          className="h-3 w-3"
+          className="h-4 w-4"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

@@ -251,7 +251,7 @@ function getSnapshotMobile() {
 function getServerSnapshotMobile() {
   return false;
 }
-function useIsMobile() {
+export function useIsMobile() {
   return useSyncExternalStore(
     subscribeMobile,
     getSnapshotMobile,

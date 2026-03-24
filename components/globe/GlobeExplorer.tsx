@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { GlobeMap } from './GlobeMap';
-import { ScrollSection } from './ScrollSection';
+import { ScrollSection, useIsMobile } from './ScrollSection';
 import {
   QueryPanel,
   QueryPanelInline,
@@ -127,6 +127,7 @@ export function GlobeExplorer({
     [number, number, number, number] | null
   >(null);
   const [timeStepIndex, setTimeStepIndex] = useState(0);
+  const isMobile = useIsMobile();
   const handleGlobeTap = useCallback(() => {
     window.dispatchEvent(new Event('globe:tap'));
   }, []);
@@ -842,14 +843,16 @@ export function GlobeExplorer({
             <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />
           </div>
 
-          {/* Desktop time slider */}
-          <TimeSlider
-            timestamps={timestamps}
-            selectedIndex={timeStepIndex}
-            onChange={setTimeStepIndex}
-            isLoading={isLoading}
-            autoPlay={!isLoading}
-          />
+          {/* Desktop time slider – skip mount on mobile so two usePlayback intervals don't fight */}
+          {!isMobile && (
+            <TimeSlider
+              timestamps={timestamps}
+              selectedIndex={timeStepIndex}
+              onChange={setTimeStepIndex}
+              isLoading={isLoading}
+              autoPlay={!isLoading}
+            />
+          )}
 
           {/* Desktop-only floating SQL panel */}
           <QueryPanel
