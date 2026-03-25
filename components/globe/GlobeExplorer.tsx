@@ -150,7 +150,9 @@ export function GlobeExplorer({
 
   // ── Unified layer state dict ──
   // Keys: 'h3-layer', 'base-land', 'base-borders'
-  const [layerState, setLayerState] = useState<Record<string, LayerState>>({});
+  const [layerState, setLayerState] = useState<Record<string, LayerState>>({
+    [BASE_SATELLITE_ID]: { visible: true, opacity: 0.5 },
+  });
 
   // Per-section h3Res overrides (sparse — only stores manual user changes)
   const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
@@ -516,22 +518,30 @@ export function GlobeExplorer({
   }, [currentSection, layerState, rowCount]);
 
   // ── Layer panel callbacks ──
+  const defaultForId = useCallback(
+    (id: string) =>
+      id === BASE_SATELLITE_ID || id === BASE_LAND_ID || id === BASE_BORDERS_ID
+        ? DEFAULT_BASE
+        : DEFAULT_LAYER,
+    []
+  );
+
   const handleLayerToggle = useCallback(
     (id: string) =>
       setLayerState((prev) => {
-        const cur = prev[id] ?? DEFAULT_LAYER;
+        const cur = prev[id] ?? defaultForId(id);
         return { ...prev, [id]: { ...cur, visible: !cur.visible } };
       }),
-    []
+    [defaultForId]
   );
 
   const handleLayerOpacity = useCallback(
     (id: string, opacity: number) =>
       setLayerState((prev) => {
-        const cur = prev[id] ?? DEFAULT_LAYER;
+        const cur = prev[id] ?? defaultForId(id);
         return { ...prev, [id]: { ...cur, opacity } };
       }),
-    []
+    [defaultForId]
   );
 
   // ── Single-layer props (derived from layer state) ──
@@ -885,6 +895,18 @@ export function GlobeExplorer({
               walkthru.earth
             </span>
           </Link>
+
+          {/* Satellite attribution — required by CC BY-NC-SA 4.0 */}
+          {layerState[BASE_SATELLITE_ID]?.visible && (
+            <a
+              href="https://s2maps.eu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-3xs absolute bottom-1.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap opacity-50 transition-opacity hover:opacity-90 sm:bottom-2"
+            >
+              Sentinel-2 cloudless 2024 by EOX
+            </a>
+          )}
 
           {/* H3 high-res warning */}
           <AlertDialog

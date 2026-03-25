@@ -6,7 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 
 export interface LayerControl {
@@ -69,12 +68,10 @@ export const LayerPanel = memo(function LayerPanel({
               key={layer.id}
               className="hover:bg-accent/50 rounded-lg px-2.5 py-2 transition-colors"
             >
-              {/* Use div[role=button] — Radix Checkbox renders a <button> internally,
-                  so a <button> wrapper would create invalid nested <button> HTML. */}
               <div
                 role="button"
                 tabIndex={0}
-                className="flex w-full cursor-pointer items-center gap-2.5 text-left"
+                className="flex w-full cursor-pointer items-center gap-2.5"
                 onClick={() => onToggle(layer.id)}
                 onKeyDown={(e) => {
                   if (e.key === ' ' || e.key === 'Enter') {
@@ -83,13 +80,29 @@ export const LayerPanel = memo(function LayerPanel({
                   }
                 }}
               >
-                <Checkbox
-                  checked={layer.visible}
-                  onCheckedChange={() => onToggle(layer.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  tabIndex={-1}
-                  className="border-muted-foreground/40 h-3.5 w-3.5 rounded-[3px]"
-                />
+                <span
+                  className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border transition-colors ${
+                    layer.visible
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-muted-foreground/40 bg-transparent'
+                  }`}
+                >
+                  {layer.visible && (
+                    <svg
+                      className="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                </span>
                 <div
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: layer.color }}

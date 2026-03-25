@@ -33,9 +33,9 @@ import type { UserLocation } from './hooks/useUserLocation';
 /* ------------------------------------------------------------------ */
 
 const EARTH_RADIUS_METERS = 6.3e6;
-/** ESRI World Imagery — free open satellite tile service. */
+/** EOX Sentinel-2 cloudless 2024 — free open satellite tile service (WMTS). */
 const SATELLITE_TILE_URL =
-  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+  'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg';
 const LAND_GEOJSON = '/geo/ne_50m_land.geojson';
 const COUNTRY_BORDERS = '/geo/ne_50m_admin_0_boundary_lines_land.geojson';
 
@@ -404,13 +404,14 @@ export const GlobeMap = memo(function GlobeMap({
         parameters: { depthTest: true, polygonOffset: [50, 50] },
       }),
 
-      // 2. ESRI World Imagery satellite tiles (hidden by default)
+      // 2. EOX Sentinel-2 cloudless 2024 satellite tiles
       new TileLayer({
         id: BASE_SATELLITE_ID,
         data: SATELLITE_TILE_URL,
         minZoom: 0,
         maxZoom: 18,
         tileSize: 256,
+        maxRequests: 20,
         visible: baseControls?.[BASE_SATELLITE_ID]?.visible ?? false,
         opacity: baseControls?.[BASE_SATELLITE_ID]?.opacity ?? 0.8,
         renderSubLayers: (props: Record<string, unknown>) => {
