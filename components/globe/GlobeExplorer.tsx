@@ -146,6 +146,8 @@ export function GlobeExplorer({
   const [userInteracted, setUserInteracted] = useState(false);
   const handleGlobeInteraction = useCallback(() => {
     setUserInteracted(true);
+    // Close the mobile drawer when the user starts interacting with the map
+    window.dispatchEvent(new Event('globe:tap'));
   }, []);
 
   // ── Unified layer state dict ──

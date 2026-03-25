@@ -9,7 +9,9 @@ import {
   useSyncExternalStore,
 } from 'react';
 import Image from 'next/image';
-import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+// NOTE: We intentionally avoid Vaul/Radix drawer here because Radix Dialog
+// sets body { pointer-events: none } which blocks all map interaction.
+// A simple CSS-animated panel gives us full control without that issue.
 import type { GlobeSection } from './data/sections';
 
 interface ScrollSectionProps {
@@ -545,7 +547,7 @@ function MobileDrawer(props: ScrollSectionProps) {
   const { section, sectionIndex, totalSections, isLoading, rowCount, onSwipe } =
     props;
 
-  // Close drawer when globe is tapped (custom event from GlobeExplorer)
+  // Close drawer when globe is tapped / interacted with
   useEffect(() => {
     const handler = () => setOpen(false);
     window.addEventListener('globe:tap', handler);
@@ -634,25 +636,21 @@ function MobileDrawer(props: ScrollSectionProps) {
         </div>
       )}
 
-      <Drawer
-        open={open}
-        onOpenChange={setOpen}
-        shouldScaleBackground={false}
-        modal={false}
+      {/* Simple CSS-animated bottom panel — no Vaul/Radix, no body style mutations */}
+      <div
+        className={`border-border/50 bg-background/95 fixed inset-x-0 bottom-0 z-30 flex max-h-[45vh] flex-col rounded-t-[10px] border-t shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out ${
+          open ? 'translate-y-0' : 'translate-y-full'
+        }`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <DrawerContent className="border-border/50 bg-background/95 max-h-[45vh] backdrop-blur-xl">
-          <DrawerTitle className="sr-only">{section.title}</DrawerTitle>
-          <div
-            ref={attachDrawerGestures}
-            className="overflow-y-auto px-4 pt-1 pb-4"
-            style={{
-              paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
-            }}
-          >
-            <MobileDrawerContent {...props} />
-          </div>
-        </DrawerContent>
-      </Drawer>
+        {/* Drag handle */}
+        <div className="flex justify-center py-2">
+          <div className="bg-muted h-1.5 w-10 rounded-full" />
+        </div>
+        <div ref={attachDrawerGestures} className="overflow-y-auto px-4 pb-4">
+          <MobileDrawerContent {...props} />
+        </div>
+      </div>
     </div>
   );
 }
