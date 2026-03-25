@@ -676,6 +676,18 @@ export function GlobeExplorer({
               />
             ) : undefined
           }
+          attribution={
+            layerState[BASE_SATELLITE_ID]?.visible ? (
+              <a
+                href="https://s2maps.eu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-3xs text-muted-foreground whitespace-nowrap opacity-70"
+              >
+                Sentinel-2 cloudless 2024 by EOX
+              </a>
+            ) : undefined
+          }
         />
       )}
 
@@ -902,7 +914,7 @@ export function GlobeExplorer({
               href="https://s2maps.eu"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-3xs absolute bottom-1.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap opacity-50 transition-opacity hover:opacity-90 sm:bottom-2"
+              className="text-3xs text-muted-foreground absolute bottom-2 left-1/2 z-20 hidden -translate-x-1/2 whitespace-nowrap opacity-70 transition-opacity hover:opacity-100 sm:block"
             >
               Sentinel-2 cloudless 2024 by EOX
             </a>

@@ -22,6 +22,7 @@ interface ScrollSectionProps {
   onNavigateTo?: (index: number) => void;
   queryPanel?: React.ReactNode;
   timeControls?: React.ReactNode;
+  attribution?: React.ReactNode;
   isLoading?: boolean;
   rowCount?: number;
 }
@@ -362,6 +363,7 @@ function MobileDrawerContent({
   onSwipe,
   onNavigateTo,
   queryPanel,
+  attribution,
   isLoading,
   rowCount,
 }: ScrollSectionProps) {
@@ -530,6 +532,7 @@ function MobileDrawerContent({
           </div>
 
           {queryPanel && <div className="mt-2">{queryPanel}</div>}
+          {attribution && <div className="mt-2">{attribution}</div>}
         </div>
       )}
     </>
