@@ -180,7 +180,7 @@ export default function HomePage() {
                 </h1>
 
                 <p className="text-muted-foreground mt-4 max-w-md text-lg leading-relaxed md:text-xl">
-                  Every day, your city is processing you — noise, air, density,
+                  Every day, your city is processing you, noise, air, density,
                   heat. We make those invisible forces visible, and the data
                   free for everyone.
                 </p>
@@ -248,7 +248,7 @@ export default function HomePage() {
                     </CardTitle>
                     <p className="text-muted-foreground max-w-lg leading-relaxed">
                       Like a fitness tracker for entire cities. Terrain,
-                      population, buildings, weather — 16 layers of global data
+                      population, buildings, weather, 16 layers of global data
                       you can explore right now in your browser.
                     </p>
                     <span className="text-primary mt-4 inline-flex items-center gap-1 text-base font-medium">
@@ -366,7 +366,7 @@ export default function HomePage() {
                 How it works
               </h2>
               <p className="text-muted-foreground mb-10 text-center text-lg md:text-xl">
-                Open data in, open insights out — no servers in between
+                Open data in, open insights out, no servers in between
               </p>
               <DataFlowDiagram />
 
@@ -385,10 +385,10 @@ export default function HomePage() {
                 Let&apos;s build healthier cities together
               </h2>
               <p className="text-muted-foreground mb-8 text-lg leading-relaxed md:text-xl">
-                If you believe cities should serve people — not just economies —
+                If you believe cities should serve people, not just economies,
                 we&apos;re probably on the same page. Whether you run a city,
                 invest in impact, do urban research, or just want better data
-                for your community — don&apos;t hesitate to reach out. Pick a
+                for your community, don&apos;t hesitate to reach out. Pick a
                 time that works for you.
               </p>
 
