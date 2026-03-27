@@ -84,12 +84,12 @@ export default function AboutPage() {
                 </GradientText>
               </h1>
               <p className="text-muted-foreground mt-6 text-lg leading-relaxed md:text-xl">
-                Building a new kind of index for cities — measuring not just
-                cost of living, but stress, safety, connection, and the ease of
+                Building a new kind of index for cities, measuring not just cost
+                of living, but stress, safety, connection, and the ease of
                 everyday life.
               </p>
               <p className="text-muted-foreground mt-3 text-base leading-relaxed">
-                Cities are measured by spreadsheets — GDP, property values,
+                Cities are measured by spreadsheets: GDP, property values,
                 traffic flow. Those numbers tell us nothing about whether a
                 child is thriving, a resident is chronically stressed, or a
                 neighborhood is truly livable.
@@ -180,11 +180,11 @@ export default function AboutPage() {
                 <div className="text-muted-foreground space-y-4 leading-relaxed">
                   <p>
                     Every day, you walk through your city. You notice the
-                    traffic, the buildings, the shops — but you likely
-                    don&apos;t notice what the environment is doing to you.
-                    Chronic noise keeps your cortisol high. Poor air quality
-                    wears down your lungs. Heat islands make entire
-                    neighborhoods unlivable in summer.
+                    traffic, the buildings, the shops, but you likely don&apos;t
+                    notice what the environment is doing to you. Chronic noise
+                    keeps your cortisol high. Poor air quality wears down your
+                    lungs. Heat islands make entire neighborhoods unlivable in
+                    summer.
                   </p>
                   <p>
                     Because we ignore these hidden patterns, our bodies stay in
@@ -201,7 +201,7 @@ export default function AboutPage() {
                   <p>
                     Today, cities only check their &ldquo;bank balance&rdquo;
                     (GDP) to see if they&apos;re doing well. Walkthru.earth is
-                    like a fitness tracker for the whole city — we let a city
+                    like a fitness tracker for the whole city. We let a city
                     check its heart rate and stress levels so it can actually
                     help the people inside it get healthy.
                   </p>
@@ -248,7 +248,7 @@ export default function AboutPage() {
                   ))}
                 </div>
                 <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
-                  All indices share the same H3 cell ID — join terrain,
+                  All indices share the same H3 cell ID. Join terrain,
                   buildings, population, and weather in a single SQL statement.
                   Stored in open table formats, sorted by h3_index for optimized
                   range queries.
@@ -261,7 +261,7 @@ export default function AboutPage() {
                   The pipeline
                 </h2>
                 <p className="text-muted-foreground mb-4 text-base">
-                  From raw scientific data to your browser — no servers in
+                  From raw scientific data to your browser, no servers in
                   between.
                 </p>
                 <DataFlowDiagram />
@@ -299,7 +299,7 @@ export default function AboutPage() {
                   <p>
                     A community in Dhaka has the same tools as Dubai. No
                     paywalls, no gatekeepers, no privileged access. Closed data
-                    creates closed cities — we&apos;re building the opposite.
+                    creates closed cities, and we&apos;re building the opposite.
                   </p>
                 </div>
               </motion.div>
@@ -321,7 +321,7 @@ export default function AboutPage() {
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   {[
                     ['Open formats', 'GeoParquet, Iceberg, open table formats'],
-                    ['Analysis-ready', 'SQL, Spark, Python — no ETL'],
+                    ['Analysis-ready', 'SQL, Spark, Python, no ETL'],
                     ['AI-ready', 'ML pipelines and embeddings built in'],
                     ['Serverless', 'Ephemeral runners, 60-90% less energy'],
                   ].map(([title, desc]) => (
@@ -387,8 +387,8 @@ export default function AboutPage() {
                 See it in action
               </h2>
               <p className="text-muted-foreground mb-8 leading-relaxed">
-                16 data layers, real-time weather, and ~300 GB of open data —
-                all running in your browser. No account needed.
+                16 data layers, real-time weather, and ~300 GB of open data, all
+                running in your browser. No account needed.
               </p>
               <div className="flex flex-col justify-center gap-3 sm:flex-row">
                 <Button size="lg" className="group gap-2" asChild>
