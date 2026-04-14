@@ -205,9 +205,13 @@ export const GlobeMap = memo(function GlobeMap({
   useEffect(() => {
     if (!userLocation) return;
     let raf: number;
-    const loop = () => {
-      // 2.5 second cycle
-      setPulseTick((Date.now() % 2500) / 2500);
+    let last = 0;
+    const FRAME_MS = 1000 / 30;
+    const loop = (now: number) => {
+      if (now - last >= FRAME_MS) {
+        last = now;
+        setPulseTick((now % 2500) / 2500);
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
