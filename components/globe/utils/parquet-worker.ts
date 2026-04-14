@@ -2,7 +2,8 @@
  * Web Worker for off-main-thread Parquet parsing.
  *
  * Small files (< 5 MB): single GET, parsed from ArrayBuffer. No HEAD overhead.
- * Large files: range-request AsyncBuffer with progressive row-group streaming.
+ * Large files: range-request AsyncBuffer with native hyparquet filter pushdown
+ * for row-group pruning based on h3_index column statistics.
  */
 
 import {
@@ -12,7 +13,8 @@ import {
   parquetReadObjects,
 } from 'hyparquet';
 import { compressors } from 'hyparquet-compressors';
-import type { AsyncBuffer, FileMetaData } from 'hyparquet';
+import type { AsyncBuffer, FileMetaData, ParquetQueryFilter } from 'hyparquet';
+import { buildH3RangeFilter } from './parquet-filter';
 
 /** Simple LRU cache — evicts oldest entry when size exceeds max. */
 function lruSet<K, V>(map: Map<K, V>, key: K, value: V, maxSize: number) {
@@ -175,62 +177,6 @@ function parseH3Ranges(raw?: [string, string][]): [bigint, bigint][] | null {
   return raw.map(([lo, hi]) => [BigInt(`0x${lo}`), BigInt(`0x${hi}`)]);
 }
 
-/**
- * Check if a row group's h3_index range overlaps any viewport range.
- * Returns true (skip) when there is NO overlap.
- */
-function shouldSkipRowGroup(
-  rg: FileMetaData['row_groups'][number],
-  h3Ranges: [bigint, bigint][],
-  h3ColIdx: number
-): boolean {
-  const colChunk = rg.columns[h3ColIdx];
-  const stats = colChunk?.meta_data?.statistics;
-  if (!stats) return false; // no stats → can't prune, keep to be safe
-
-  const rgMin =
-    typeof stats.min_value === 'bigint'
-      ? stats.min_value
-      : typeof stats.min === 'bigint'
-        ? stats.min
-        : null;
-  const rgMax =
-    typeof stats.max_value === 'bigint'
-      ? stats.max_value
-      : typeof stats.max === 'bigint'
-        ? stats.max
-        : null;
-
-  if (rgMin === null || rgMax === null) return false;
-
-  for (const [lo, hi] of h3Ranges) {
-    if (hi >= rgMin && lo <= rgMax) return false; // overlaps → keep
-  }
-  return true; // no overlap → skip
-}
-
-/** Find the column index for h3_index in the parquet schema. */
-function findH3ColIdx(metadata: FileMetaData): number {
-  return metadata.schema.slice(1).findIndex((s) => s.name === 'h3_index');
-}
-
-/** Filter parsed rows to only those whose h3_index falls in a range. */
-function filterRowsByH3Ranges(
-  rows: Record<string, unknown>[],
-  h3Ranges: [bigint, bigint][]
-): Record<string, unknown>[] {
-  return rows.filter((row) => {
-    const v = row.h3_index;
-    const idx =
-      typeof v === 'bigint' ? v : typeof v === 'number' ? BigInt(v) : null;
-    if (idx === null) return true; // keep rows without h3_index
-    for (const [lo, hi] of h3Ranges) {
-      if (idx >= lo && idx <= hi) return true;
-    }
-    return false;
-  });
-}
-
 /** Apply a row-level column filter (keep rows where column > threshold). */
 function applyRowFilter(
   rows: Record<string, unknown>[],
@@ -240,7 +186,7 @@ function applyRowFilter(
   return rows.filter((r) => Number(r[filter.column]) > filter.gt);
 }
 
-/** IDs that have been cancelled — checked between row groups to abort early. */
+/** IDs that have been cancelled — checked before expensive parse to abort early. */
 const cancelledIds = new Set<number>();
 
 /** Prevent cancelledIds from growing unbounded if cancel arrives after completion. */
@@ -264,152 +210,60 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
 
   try {
     const t0 = performance.now();
-
-    // Try single GET — returns ArrayBuffer for small files, null for large
     const buffer = await smartFetch(url);
-
     const h3Ranges = parseH3Ranges(rawH3Ranges);
+    const filter: ParquetQueryFilter | undefined = h3Ranges
+      ? buildH3RangeFilter(h3Ranges)
+      : undefined;
 
+    // If we fetched the full buffer, wrap as a synchronous AsyncBuffer.
+    // Otherwise use the cached range-request buffer.
+    let file: AsyncBuffer;
     if (buffer) {
-      // Small file: parse from in-memory buffer
-      const t1 = performance.now();
-      console.log(
-        `[Worker] ${shortUrl}: ${(buffer.byteLength / 1024).toFixed(0)}KB fetched in ${(t1 - t0).toFixed(0)}ms`
-      );
-      const file = {
+      file = {
         byteLength: buffer.byteLength,
         slice: (start: number, end: number) => buffer.slice(start, end),
       };
-      const metadata = (await parquetMetadataAsync(file)) as FileMetaData;
-      let rows = (await parquetReadObjects({
-        file,
-        metadata,
-        compressors,
-        columns,
-      })) as Record<string, unknown>[];
-      if (h3Ranges) {
-        const before = rows.length;
-        rows = filterRowsByH3Ranges(rows, h3Ranges);
-        console.log(
-          `[Worker] ${shortUrl}: viewport filter ${before} → ${rows.length} rows`
-        );
-      }
-      rows = applyRowFilter(rows, rowFilter);
-      console.log(
-        `[Worker] ${shortUrl}: ${rows.length} rows parsed in ${(performance.now() - t1).toFixed(0)}ms (total ${(performance.now() - t0).toFixed(0)}ms)`
-      );
-      post({ id, type: 'chunk', rows });
-      post({
-        id,
-        type: 'done',
-        info: extractInfo(metadata, buffer.byteLength),
-      });
-      return;
+    } else {
+      file = await getCachedRangeBuffer(url);
     }
 
-    // Large file: range-request streaming
-    const file = await getCachedRangeBuffer(url);
-    const metadata = await getCachedMetadata(file, url);
-    const rowGroups = metadata.row_groups;
-
-    console.log(
-      `[Worker] ${shortUrl}: ${(file.byteLength / 1024).toFixed(0)}KB, ${rowGroups.length} row groups → range requests`
-    );
-
+    const metadata = buffer
+      ? ((await parquetMetadataAsync(file)) as FileMetaData)
+      : await getCachedMetadata(file, url);
     const info = extractInfo(metadata, file.byteLength);
 
-    const h3ColIdx = h3Ranges ? findH3ColIdx(metadata) : -1;
-
-    if (rowGroups.length <= 1) {
-      // Single row group — skip entirely if stats say no overlap
-      if (
-        h3Ranges &&
-        h3ColIdx >= 0 &&
-        rowGroups.length === 1 &&
-        shouldSkipRowGroup(rowGroups[0], h3Ranges, h3ColIdx)
-      ) {
-        console.log(
-          `[Worker] ${shortUrl}: single row group outside viewport, skipped`
-        );
-        post({ id, type: 'chunk', rows: [] });
-        post({ id, type: 'done', info });
-        return;
+    // Pre-parse cancellation check. Once parquetReadObjects is called, we
+    // can no longer cancel mid-parse — hyparquet does not expose an abort
+    // hook. This is an acceptable tradeoff because supersedes typically
+    // happen during the network fetch phase (bounded above), not during the
+    // CPU-bound parse (sub-second even for large files once bytes are in).
+    if (cancelledIds.has(id)) {
+      cancelledIds.delete(id);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[Worker] ${shortUrl}: cancelled before parse`);
       }
-      let rows = (await parquetReadObjects({
-        file,
-        metadata,
-        columns,
-        compressors,
-      })) as Record<string, unknown>[];
-      if (h3Ranges) rows = filterRowsByH3Ranges(rows, h3Ranges);
-      rows = applyRowFilter(rows, rowFilter);
-      console.log(`[Worker] ${shortUrl}: ${rows.length} rows (single group)`);
-      post({ id, type: 'chunk', rows });
-      post({ id, type: 'done', info });
       return;
     }
 
-    // Stream row groups progressively, skipping those outside viewport
-    let rowStart = 0;
-    let sentRows = 0;
-    let skippedGroups = 0;
-    for (let i = 0; i < rowGroups.length; i++) {
-      // Check for cancellation between row groups
-      if (cancelledIds.has(id)) {
-        cancelledIds.delete(id);
-        console.log(
-          `[Worker] ${shortUrl}: cancelled after ${i}/${rowGroups.length} groups`
-        );
-        return; // silently stop — no done/error message
-      }
+    let rows = (await parquetReadObjects({
+      file,
+      metadata,
+      columns,
+      compressors,
+      filter,
+      useOffsetIndex: true,
+    })) as Record<string, unknown>[];
 
-      const rg = rowGroups[i];
-      const numRows = Number(rg.num_rows);
-      const rowEnd = rowStart + numRows;
+    rows = applyRowFilter(rows, rowFilter);
 
-      // Row-group pruning via h3_index statistics
-      if (
-        h3Ranges &&
-        h3ColIdx >= 0 &&
-        shouldSkipRowGroup(rg, h3Ranges, h3ColIdx)
-      ) {
-        skippedGroups++;
-        rowStart = rowEnd;
-        continue;
-      }
-
-      let rows = (await parquetReadObjects({
-        file,
-        metadata,
-        columns,
-        compressors,
-        rowStart,
-        rowEnd,
-      })) as Record<string, unknown>[];
-
-      // Fine-grained filter within kept row groups
-      if (h3Ranges) rows = filterRowsByH3Ranges(rows, h3Ranges);
-      rows = applyRowFilter(rows, rowFilter);
-
-      if (rows.length > 0) {
-        sentRows += rows.length;
-        console.log(
-          `[Worker] ${shortUrl}: group ${i + 1}/${rowGroups.length} → +${rows.length} (${sentRows} total)`
-        );
-        post({ id, type: 'chunk', rows });
-      }
-
-      rowStart = rowEnd;
-    }
-
-    if (skippedGroups > 0) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log(
-        `[Worker] ${shortUrl}: skipped ${skippedGroups}/${rowGroups.length} row groups (outside viewport)`
+        `[Worker] ${shortUrl}: ${rows.length} rows in ${(performance.now() - t0).toFixed(0)}ms (filter=${filter ? 'h3' : 'none'}, src=${buffer ? 'full' : 'range'})`
       );
     }
-    console.log(
-      `[Worker] ${shortUrl}: done, ${sentRows} rows in ${(performance.now() - t0).toFixed(0)}ms`
-    );
+
+    post({ id, type: 'chunk', rows });
     post({ id, type: 'done', info });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
