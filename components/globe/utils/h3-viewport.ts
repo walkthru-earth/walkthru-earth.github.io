@@ -226,3 +226,17 @@ export function viewportToH3Ranges(
   // Encode as hex strings (BigInt can't be sent via postMessage)
   return merged.map(([lo, hi]) => [lo.toString(16), hi.toString(16)]);
 }
+
+/**
+ * BigInt variant of viewportToH3Ranges. Used when the caller is in the same
+ * thread as hyparquet (which consumes BigInts directly) and no postMessage
+ * serialization is needed.
+ */
+export function viewportToH3RangesBigInt(
+  bounds: [number, number, number, number],
+  dataRes: number
+): [bigint, bigint][] | null {
+  const hex = viewportToH3Ranges(bounds, dataRes);
+  if (!hex) return null;
+  return hex.map(([lo, hi]) => [BigInt(`0x${lo}`), BigInt(`0x${hi}`)]);
+}
