@@ -322,13 +322,15 @@ export const GlobeMap = memo(function GlobeMap({
             ];
           }
 
-          console.log(
-            `[Globe:Map] viewport z=${z.toFixed(2)} lng=${lng.toFixed(1)} lat=${lat.toFixed(1)} bounds=${
-              bounds
-                ? `[${bounds.map((v) => v.toFixed(1)).join(', ')}]`
-                : 'null'
-            }`
-          );
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(
+              `[Globe:Map] viewport z=${z.toFixed(2)} lng=${lng.toFixed(1)} lat=${lat.toFixed(1)} bounds=${
+                bounds
+                  ? `[${bounds.map((v) => v.toFixed(1)).join(', ')}]`
+                  : 'null'
+              }`
+            );
+          }
           vpCb({
             zoom: z,
             longitude: lng,
