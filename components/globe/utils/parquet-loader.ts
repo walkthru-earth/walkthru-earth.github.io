@@ -1,6 +1,13 @@
 /**
  * Loads remote Parquet files via hyparquet in a Web Worker.
  * Supports progressive streaming — onChunk fires as each row group is parsed.
+ *
+ * Columnar transport: the worker may respond with `{type: 'columnar'}` carrying
+ * per-column TypedArrays transferred zero-copy. This loader materializes the
+ * row-object view on the main thread so the external `LoadResult.rows` contract
+ * stays identical for callers (GlobeExplorer, GlobePreview, etc.). The net
+ * effect is one O(rows) pass on the main thread instead of a structured clone
+ * of millions of row objects across the worker boundary.
  */
 
 import type {
@@ -67,6 +74,34 @@ function untrackRequest(id: number) {
   }
 }
 
+/**
+ * Materialize `Record<string, unknown>[]` from per-column TypedArrays.
+ *
+ * Same work the worker used to do before structured-cloning rows, but
+ * performed once on the main thread after a zero-copy ArrayBuffer transfer.
+ * BigInt columns (e.g. `h3_index: BigInt64Array`) yield BigInt values per
+ * row — identical to what hyparquet produced in the row-object path.
+ */
+function columnarToRows(
+  length: number,
+  cols: Record<string, ArrayBufferView>
+): Record<string, unknown>[] {
+  const keys = Object.keys(cols);
+  if (length === 0 || keys.length === 0) return [];
+  const arrays: ArrayLike<unknown>[] = keys.map(
+    (k) => cols[k] as unknown as ArrayLike<unknown>
+  );
+  const rows = new Array<Record<string, unknown>>(length);
+  for (let i = 0; i < length; i++) {
+    const row: Record<string, unknown> = {};
+    for (let k = 0; k < keys.length; k++) {
+      row[keys[k]] = arrays[k][i];
+    }
+    rows[i] = row;
+  }
+  return rows;
+}
+
 function getWorker(): Worker {
   if (!worker) {
     worker = new Worker(new URL('./parquet-worker.ts', import.meta.url), {
@@ -91,6 +126,17 @@ function getWorker(): Worker {
         p.accumulated = p.accumulated.concat(msg.rows);
         console.log(
           `[Globe:Loader] chunk id=${msg.id} +${msg.rows.length} rows (${before} → ${p.accumulated.length})`
+        );
+        p.onChunk?.(p.accumulated);
+      } else if (msg.type === 'columnar') {
+        const before = p.accumulated.length;
+        const rows = columnarToRows(msg.length, msg.columns);
+        // Replace accumulated — columnar is always the whole result set,
+        // not a streaming increment. (Current worker emits a single
+        // columnar message per request.)
+        p.accumulated = rows;
+        console.log(
+          `[Globe:Loader] columnar id=${msg.id} ${msg.length} rows (${before} → ${p.accumulated.length})`
         );
         p.onChunk?.(p.accumulated);
       } else if (msg.type === 'done') {
