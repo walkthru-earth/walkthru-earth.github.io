@@ -513,19 +513,59 @@ export const GlobeMap = memo(function GlobeMap({
     layerVisible,
   ]);
 
-  // Pin layers: user location pulse rings, center dot, beam, and head.
-  // All sizes scale with zoom so the pin stays proportional to H3 hexagons.
-  const pinLayers = useMemo((): any[] => {
+  // Static pin layers: dot + beam + head. Rebuild only on userLocation/h3Res/extruded change.
+  const staticPinLayers = useMemo((): any[] => {
     if (!userLocation) return [];
+    const pinPos = [userLocation.longitude, userLocation.latitude] as [
+      number,
+      number,
+    ];
+    const pm = pinMetrics(h3Res, extruded);
+    return [
+      new ScatterplotLayer({
+        id: 'user-pin-center',
+        data: [{ position: pinPos }],
+        getPosition: (d: { position: [number, number] }) => d.position,
+        getRadius: pm.dotRadius,
+        getFillColor: [255, 220, 40, 200],
+        radiusMinPixels: 5,
+        radiusMaxPixels: 14,
+      }),
+      new ColumnLayer({
+        id: 'user-pin-column',
+        data: [{ position: pinPos }],
+        getPosition: (d: { position: [number, number] }) => d.position,
+        getElevation: pm.height,
+        diskResolution: 12,
+        radius: pm.beamRadius,
+        getFillColor: [255, 200, 0, 130],
+        extruded: true,
+        material: { ambient: 0.9, diffuse: 0.3, shininess: 32 },
+      }),
+      new ColumnLayer({
+        id: 'user-pin-head',
+        data: [{ position: pinPos }],
+        getPosition: (d: { position: [number, number] }) => d.position,
+        getElevation: pm.height * 1.1,
+        offset: [0, 0],
+        diskResolution: 6,
+        radius: pm.headRadius,
+        getFillColor: [255, 220, 40, 230],
+        extruded: true,
+        material: { ambient: 0.95, diffuse: 0.5, shininess: 64 },
+      }),
+    ];
+  }, [userLocation, h3Res, extruded]);
 
+  // Pulse rings only: rebuilt every pulseTick (30fps).
+  const pulseLayers = useMemo((): any[] => {
+    if (!userLocation) return [];
     const pinPos = [userLocation.longitude, userLocation.latitude] as [
       number,
       number,
     ];
     const pm = pinMetrics(h3Res, extruded);
     const result: any[] = [];
-
-    // Expanding pulse rings (3 staggered waves)
     const PULSE_COUNT = 3;
     for (let i = 0; i < PULSE_COUNT; i++) {
       const phase = (pulseTick + i / PULSE_COUNT) % 1;
@@ -547,66 +587,13 @@ export const GlobeMap = memo(function GlobeMap({
         })
       );
     }
-
-    // Static base dot
-    result.push(
-      new ScatterplotLayer({
-        id: 'user-pin-center',
-        data: [{ position: pinPos }],
-        getPosition: (d: { position: [number, number] }) => d.position,
-        getRadius: pm.dotRadius,
-        getFillColor: [255, 220, 40, 200],
-        radiusMinPixels: 5,
-        radiusMaxPixels: 14,
-      })
-    );
-
-    // Vertical column beam — amber/gold
-    result.push(
-      new ColumnLayer({
-        id: 'user-pin-column',
-        data: [{ position: pinPos }],
-        getPosition: (d: { position: [number, number] }) => d.position,
-        getElevation: pm.height,
-        diskResolution: 12,
-        radius: pm.beamRadius,
-        getFillColor: [255, 200, 0, 130],
-        extruded: true,
-        material: {
-          ambient: 0.9,
-          diffuse: 0.3,
-          shininess: 32,
-        },
-      })
-    );
-
-    // Top marker — hexagonal head in bright yellow
-    result.push(
-      new ColumnLayer({
-        id: 'user-pin-head',
-        data: [{ position: pinPos }],
-        getPosition: (d: { position: [number, number] }) => d.position,
-        getElevation: pm.height * 1.1,
-        offset: [0, 0],
-        diskResolution: 6,
-        radius: pm.headRadius,
-        getFillColor: [255, 220, 40, 230],
-        extruded: true,
-        material: {
-          ambient: 0.95,
-          diffuse: 0.5,
-          shininess: 64,
-        },
-      })
-    );
-
     return result;
   }, [pulseTick, userLocation, extruded, h3Res]);
 
   // Combined layers — static base → data → pin (front to back via polygonOffset).
   const layers = useMemo(
-    () => [...staticLayers, ...dataLayer, ...pinLayers],
-    [staticLayers, dataLayer, pinLayers]
+    () => [...staticLayers, ...dataLayer, ...staticPinLayers, ...pulseLayers],
+    [staticLayers, dataLayer, staticPinLayers, pulseLayers]
   );
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
