@@ -435,6 +435,12 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       slot.total += chunk.columnData.length;
     };
 
+    // hyparquet requires rowFormat: 'object' whenever `filter` is set
+    // (enforced at hyparquet/src/read.js:30), but the expensive row
+    // assembly only happens when onComplete is provided (read.js:90-120).
+    // Omitting onComplete skips assembly entirely: we get row-group
+    // pruning via filter+stats + columnar chunks via onChunk, with no
+    // wasted per-row object building inside hyparquet.
     await parquetRead({
       file,
       metadata,
@@ -443,6 +449,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       filter,
       useOffsetIndex: true,
       onChunk,
+      rowFormat: 'object',
     });
 
     // Post-parse cancellation: silently drop the result.
