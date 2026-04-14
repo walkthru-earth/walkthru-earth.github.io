@@ -492,8 +492,8 @@ export const GlobeMap = memo(function GlobeMap({
           shininess: 32,
         },
         updateTriggers: {
-          getFillColor: [getFillColor, colorRange.min, colorRange.max],
-          getElevation: [getElevation],
+          getFillColor: [colorRange.min, colorRange.max, extruded],
+          getElevation: [extruded, elevationScale],
         },
       }),
     ];
