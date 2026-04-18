@@ -13,6 +13,32 @@ import Image from 'next/image';
 // sets body { pointer-events: none } which blocks all map interaction.
 // A simple CSS-animated panel gives us full control without that issue.
 import type { GlobeSection } from './data/sections';
+import {
+  onPhaseProgress,
+  type PhaseEvent,
+  type WorkerPhase,
+} from './utils/parquet-loader';
+
+/** Short labels that fit inside the pulsing-ring overlay. */
+const PHASE_LABELS: Record<WorkerPhase, string> = {
+  fetching: 'Fetching',
+  planning: 'Planning',
+  decoding: 'Decoding',
+  filtering: 'Filtering',
+  materializing: 'Preparing',
+};
+
+/** 8_011_776 → "8.0M", 42_353_682 → "42M", 420 → "420". */
+function humanCount(n: number): string {
+  if (!Number.isFinite(n)) return '0';
+  if (n < 1000) return String(n);
+  if (n < 1_000_000) {
+    const k = n / 1000;
+    return (k < 10 ? k.toFixed(1) : Math.round(k).toString()) + 'k';
+  }
+  const m = n / 1_000_000;
+  return (m < 10 ? m.toFixed(1) : Math.round(m).toString()) + 'M';
+}
 
 interface ScrollSectionProps {
   section: GlobeSection;
@@ -767,19 +793,58 @@ function LoadingOverlay({
   isLoading: boolean;
   rowCount: number;
 }) {
+  // Subscribe to worker phase events. Kept inside the component so no props
+  // need to thread through GlobeExplorer → ScrollSection. Ignore events from
+  // strictly-older request ids so a superseded load's late progress can't
+  // overwrite the active one.
+  const [phase, setPhase] = useState<PhaseEvent | null>(null);
+  useEffect(
+    () =>
+      onPhaseProgress((ev) => {
+        setPhase((prev) => (prev && ev.id < prev.id ? prev : ev));
+      }),
+    []
+  );
+
   if (!isLoading) return null;
+
+  const label = phase ? PHASE_LABELS[phase.phase] : 'Loading';
+  const hasProgress =
+    phase &&
+    typeof phase.current === 'number' &&
+    typeof phase.total === 'number' &&
+    phase.total > 0;
+  const percent = hasProgress
+    ? Math.min(100, Math.round((phase.current! / phase.total!) * 100))
+    : null;
 
   return (
     <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center">
-      {/* Pulsing ring */}
       <div className="relative">
-        <div className="border-success/30 h-24 w-24 animate-ping rounded-full border-2 sm:h-32 sm:w-32" />
+        {/* Pulsing ring — sized to comfortably contain the content pill. */}
+        <div className="border-success/30 h-28 w-28 animate-ping rounded-full border-2 sm:h-36 sm:w-36" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-background/70 flex flex-col items-center gap-1 rounded-full px-4 py-2 backdrop-blur-sm">
-            <span className="text-foreground text-sm font-medium">Loading</span>
-            {rowCount > 0 && (
-              <span className="text-success text-sm tabular-nums">
-                {rowCount.toLocaleString()} rows
+          <div className="bg-background/85 flex flex-col items-center rounded-full px-3.5 py-2 text-center shadow-sm backdrop-blur-md">
+            <span className="text-foreground text-xs leading-tight font-medium">
+              {label}
+              {percent != null && (
+                <span className="text-success ml-1 tabular-nums">
+                  {percent}%
+                </span>
+              )}
+            </span>
+            {hasProgress ? (
+              <span className="text-muted-foreground text-3xs leading-tight tabular-nums">
+                {humanCount(phase!.current!)} / {humanCount(phase!.total!)}
+              </span>
+            ) : rowCount > 0 ? (
+              <span className="text-success text-3xs leading-tight tabular-nums">
+                {humanCount(rowCount)} rows
+              </span>
+            ) : null}
+            {phase && (
+              <span className="text-muted-foreground text-3xs mt-0.5 leading-tight tabular-nums">
+                {(phase.elapsedMs / 1000).toFixed(1)}s
               </span>
             )}
           </div>
