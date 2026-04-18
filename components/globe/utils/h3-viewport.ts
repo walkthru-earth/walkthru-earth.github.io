@@ -144,21 +144,27 @@ export function viewportToH3Ranges(
 ): [string, string][] | null {
   let [west, south, east, north] = bounds;
 
+  const DEV = process.env.NODE_ENV !== 'production';
+
   // Full-globe check: if the viewport covers most of the globe, skip
   const lonSpan = west <= east ? east - west : 360 - west + east;
   if (lonSpan > 300 || north - south > 160) {
-    console.log(
-      `[Globe:H3Viewport] SKIP (full globe) dataRes=${dataRes} lonSpan=${lonSpan.toFixed(1)}° latSpan=${(north - south).toFixed(1)}°`
-    );
+    if (DEV) {
+      console.log(
+        `[Globe:H3Viewport] SKIP (full globe) dataRes=${dataRes} lonSpan=${lonSpan.toFixed(1)}° latSpan=${(north - south).toFixed(1)}°`
+      );
+    }
     return null;
   }
 
   // Very low resolutions (0-2) have tiny files — not worth filtering.
   // Res 3+ benefit from viewport filtering when zoomed in.
   if (dataRes < 3) {
-    console.log(
-      `[Globe:H3Viewport] SKIP (low res) dataRes=${dataRes} < 3, loading full file`
-    );
+    if (DEV) {
+      console.log(
+        `[Globe:H3Viewport] SKIP (low res) dataRes=${dataRes} < 3, loading full file`
+      );
+    }
     return null;
   }
 
@@ -180,16 +186,20 @@ export function viewportToH3Ranges(
     const mid = (west + east) / 2;
     west = mid - 90;
     east = mid + 90;
-    console.log(
-      `[Globe:H3Viewport] SAFEGUARD: clamped lon span from ${lonSpanPadded.toFixed(1)}° to 180° centered at ${mid.toFixed(1)}°`
-    );
+    if (DEV) {
+      console.log(
+        `[Globe:H3Viewport] SAFEGUARD: clamped lon span from ${lonSpanPadded.toFixed(1)}° to 180° centered at ${mid.toFixed(1)}°`
+      );
+    }
   }
 
   // If padded span covers the full globe, skip filtering
   if (east - west >= 360 || north - south > 160) {
-    console.log(
-      `[Globe:H3Viewport] SKIP (padded too wide) dataRes=${dataRes} pad=${pad.toFixed(1)}° → spans ${(east - west).toFixed(1)}° lon, ${(north - south).toFixed(1)}° lat`
-    );
+    if (DEV) {
+      console.log(
+        `[Globe:H3Viewport] SKIP (padded too wide) dataRes=${dataRes} pad=${pad.toFixed(1)}° → spans ${(east - west).toFixed(1)}° lon, ${(north - south).toFixed(1)}° lat`
+      );
+    }
     return null;
   }
 
@@ -204,9 +214,11 @@ export function viewportToH3Ranges(
 
   const cells = boundsToH3Cells(west, south, east, north, filterRes);
   if (cells.length === 0) {
-    console.log(
-      `[Globe:H3Viewport] SKIP (0 cells) dataRes=${dataRes} filterRes=${filterRes} paddedBounds=${paddedBounds}`
-    );
+    if (DEV) {
+      console.log(
+        `[Globe:H3Viewport] SKIP (0 cells) dataRes=${dataRes} filterRes=${filterRes} paddedBounds=${paddedBounds}`
+      );
+    }
     return null;
   }
 
@@ -217,11 +229,13 @@ export function viewportToH3Ranges(
 
   const merged = mergeRanges(ranges);
 
-  console.log(
-    `[Globe:H3Viewport] FILTER dataRes=${dataRes} filterRes=${filterRes} | ` +
-      `origBounds=${origBounds} → padded=${paddedBounds} (pad=${pad.toFixed(1)}°) | ` +
-      `${cells.length} cells → ${merged.length} merged ranges`
-  );
+  if (DEV) {
+    console.log(
+      `[Globe:H3Viewport] FILTER dataRes=${dataRes} filterRes=${filterRes} | ` +
+        `origBounds=${origBounds} → padded=${paddedBounds} (pad=${pad.toFixed(1)}°) | ` +
+        `${cells.length} cells → ${merged.length} merged ranges`
+    );
+  }
 
   // Encode as hex strings (BigInt can't be sent via postMessage)
   return merged.map(([lo, hi]) => [lo.toString(16), hi.toString(16)]);

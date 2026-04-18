@@ -192,9 +192,11 @@ export function GlobeExplorer({
     const [min, max] = currentSection.h3ResRange;
     const mapped = Math.round(zoom * 0.8);
     const clamped = Math.max(min, Math.min(max, mapped));
-    console.log(
-      `[Globe:Explorer] autoH3Res: zoom=${zoom.toFixed(2)} → mapped=${mapped} → clamped=${clamped} (range=[${min},${max}])`
-    );
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        `[Globe:Explorer] autoH3Res: zoom=${zoom.toFixed(2)} → mapped=${mapped} → clamped=${clamped} (range=[${min},${max}])`
+      );
+    }
     return clamped;
   }, [zoom, currentSection.h3ResRange]);
 
@@ -217,14 +219,13 @@ export function GlobeExplorer({
 
   // Compute H3 viewport ranges from debounced bounds
   const h3Ranges = useMemo(() => {
-    if (!debouncedBounds) {
-      console.log(`[Globe:Explorer] h3Ranges: null (no bounds yet)`);
-      return null;
-    }
+    if (!debouncedBounds) return null;
     const result = viewportToH3Ranges(debouncedBounds, h3Res);
-    console.log(
-      `[Globe:Explorer] h3Ranges: h3Res=${h3Res} bounds=[${debouncedBounds.map((v) => v.toFixed(1)).join(', ')}] → ${result ? `${result.length} ranges` : 'null (full file)'}`
-    );
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        `[Globe:Explorer] h3Ranges: h3Res=${h3Res} bounds=[${debouncedBounds.map((v) => v.toFixed(1)).join(', ')}] → ${result ? `${result.length} ranges` : 'null (full file)'}`
+      );
+    }
     return result;
   }, [debouncedBounds, h3Res]);
 
@@ -250,17 +251,14 @@ export function GlobeExplorer({
   }, [allRows]);
 
   const layerData = useMemo(() => {
-    if (timestamps.length <= 1) {
-      console.log(
-        `[Globe:Explorer] layerData: ${allRows.length} rows (no timestamp filter, ${timestamps.length} timestamps)`
-      );
-      return allRows;
-    }
+    if (timestamps.length <= 1) return allRows;
     const targetMs = timestamps[timeStepIndex] ?? timestamps[0];
     const filtered = allRows.filter((r) => tsToMs(r.timestamp) === targetMs);
-    console.log(
-      `[Globe:Explorer] layerData: ${allRows.length} → ${filtered.length} rows (ts step ${timeStepIndex}/${timestamps.length})`
-    );
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        `[Globe:Explorer] layerData: ${allRows.length} → ${filtered.length} rows (ts step ${timeStepIndex}/${timestamps.length})`
+      );
+    }
     return filtered;
   }, [allRows, timestamps, timeStepIndex]);
 
@@ -387,14 +385,18 @@ export function GlobeExplorer({
       loadPromise
         .then((result) => {
           if (gen !== loadGenRef.current) {
-            console.log(
-              `[Globe:Explorer] .then() STALE gen=${gen} current=${loadGenRef.current} — discarding ${result.rows.length} rows`
-            );
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(
+                `[Globe:Explorer] .then() STALE gen=${gen} current=${loadGenRef.current} — discarding ${result.rows.length} rows`
+              );
+            }
             return;
           }
-          console.log(
-            `[Globe:Explorer] ✓ RENDER gen=${gen} rows=${result.rows.length} duration=${result.duration.toFixed(0)}ms`
-          );
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(
+              `[Globe:Explorer] ✓ RENDER gen=${gen} rows=${result.rows.length} duration=${result.duration.toFixed(0)}ms`
+            );
+          }
           setAllRows(result.rows);
           setColorRange(result.range);
           setQueryDuration(result.duration);
@@ -404,9 +406,11 @@ export function GlobeExplorer({
         })
         .catch((err) => {
           if (gen !== loadGenRef.current) {
-            console.log(
-              `[Globe:Explorer] .catch() STALE gen=${gen} current=${loadGenRef.current}`
-            );
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(
+                `[Globe:Explorer] .catch() STALE gen=${gen} current=${loadGenRef.current}`
+              );
+            }
             return;
           }
           const msg = err instanceof Error ? err.message : String(err);
