@@ -15,9 +15,10 @@ import type {
   WorkerResponse,
   ParquetInfo,
   RowFilter,
+  WorkerPhase,
 } from './parquet-worker';
 
-export type { ParquetInfo, RowFilter } from './parquet-worker';
+export type { ParquetInfo, RowFilter, WorkerPhase } from './parquet-worker';
 
 let worker: Worker | null = null;
 let nextId = 0;
@@ -27,11 +28,39 @@ export interface LoadResult {
   info: ParquetInfo | null;
 }
 
+/** Phase progress event broadcast to anyone who registered via onPhaseProgress. */
+export interface PhaseEvent {
+  /** URL being loaded. Useful for correlating when multiple loads are in-flight. */
+  url: string;
+  /** Request id inside the worker. */
+  id: number;
+  phase: WorkerPhase;
+  elapsedMs: number;
+  current?: number;
+  total?: number;
+  message?: string;
+}
+
+type PhaseListener = (e: PhaseEvent) => void;
+const phaseListeners = new Set<PhaseListener>();
+
+/**
+ * Register a listener for phase progress events. Call the returned function
+ * to unsubscribe. Events come from every active load — filter by URL or id
+ * if you only care about one.
+ */
+export function onPhaseProgress(cb: PhaseListener): () => void {
+  phaseListeners.add(cb);
+  return () => phaseListeners.delete(cb);
+}
+
 interface PendingRequest {
   resolve: (result: LoadResult) => void;
   reject: (err: Error) => void;
   onChunk?: (rows: Record<string, unknown>[]) => void;
   accumulated: Record<string, unknown>[];
+  /** For phase-event routing — reported back in each PhaseEvent. */
+  url: string;
 }
 
 const pending = new Map<number, PendingRequest>();
@@ -109,9 +138,10 @@ function getWorker(): Worker {
     });
     worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
       const msg = e.data;
+      const DEV = process.env.NODE_ENV !== 'production';
       const p = pending.get(msg.id);
       if (!p) {
-        if (msg.type !== 'done') {
+        if (msg.type !== 'done' && msg.type !== 'progress' && DEV) {
           console.log(
             `[Globe:Loader] msg id=${msg.id} type=${msg.type} — no pending handler (cancelled?)`
           );
@@ -121,30 +151,51 @@ function getWorker(): Worker {
 
       if (msg.type === 'chunk') {
         const before = p.accumulated.length;
-        // concat returns a NEW array — React detects the reference change
-        // without needing an extra .slice() copy.
         p.accumulated = p.accumulated.concat(msg.rows);
-        console.log(
-          `[Globe:Loader] chunk id=${msg.id} +${msg.rows.length} rows (${before} → ${p.accumulated.length})`
-        );
+        if (DEV) {
+          console.log(
+            `[Globe:Loader] chunk id=${msg.id} +${msg.rows.length} rows (${before} → ${p.accumulated.length})`
+          );
+        }
         p.onChunk?.(p.accumulated);
       } else if (msg.type === 'columnar') {
-        const before = p.accumulated.length;
+        const t0 = performance.now();
         const rows = columnarToRows(msg.length, msg.columns);
-        // Replace accumulated — columnar is always the whole result set,
-        // not a streaming increment. (Current worker emits a single
-        // columnar message per request.)
         p.accumulated = rows;
-        console.log(
-          `[Globe:Loader] columnar id=${msg.id} ${msg.length} rows (${before} → ${p.accumulated.length})`
-        );
+        if (DEV) {
+          console.log(
+            `[Globe:Loader] columnar id=${msg.id} ${msg.length} rows materialized in ${(performance.now() - t0).toFixed(0)}ms`
+          );
+        }
         p.onChunk?.(p.accumulated);
+      } else if (msg.type === 'progress') {
+        if (phaseListeners.size > 0) {
+          const ev: PhaseEvent = {
+            url: p.url,
+            id: msg.id,
+            phase: msg.phase,
+            elapsedMs: msg.elapsedMs,
+            current: msg.current,
+            total: msg.total,
+            message: msg.message,
+          };
+          for (const cb of phaseListeners) {
+            try {
+              cb(ev);
+            } catch (err) {
+              // Never let a subscriber crash the worker listener.
+              console.error('[Globe:Loader] phase listener threw:', err);
+            }
+          }
+        }
       } else if (msg.type === 'done') {
         pending.delete(msg.id);
         untrackRequest(msg.id);
-        console.log(
-          `[Globe:Loader] done id=${msg.id} total=${p.accumulated.length} rows`
-        );
+        if (DEV) {
+          console.log(
+            `[Globe:Loader] done id=${msg.id} total=${p.accumulated.length} rows`
+          );
+        }
         p.resolve({ rows: p.accumulated, info: msg.info });
       } else if (msg.type === 'error') {
         pending.delete(msg.id);
@@ -157,15 +208,18 @@ function getWorker(): Worker {
   return worker;
 }
 
-/** Cancel a pending worker request. The worker stops processing row groups. */
+/** Cancel a pending worker request. The worker aborts on its next slice()
+ *  call, so in-flight range fetches/decoding stop as soon as they check in. */
 function cancelRequest(id: number) {
   const p = pending.get(id);
   if (p) {
     pending.delete(id);
     untrackRequest(id);
-    console.log(
-      `[Globe:Loader] cancel id=${id} (had ${p.accumulated.length} rows accumulated)`
-    );
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        `[Globe:Loader] cancel id=${id} (had ${p.accumulated.length} rows accumulated)`
+      );
+    }
     // Resolve with whatever was accumulated so far — avoids forever-pending
     // promises stuck in fileCache. The generation counter in GlobeExplorer
     // ensures stale results don't overwrite current state.
@@ -183,6 +237,7 @@ export function loadParquet(
 ): Promise<LoadResult> {
   const isFiltered = h3Ranges != null && h3Ranges.length > 0;
   const sUrl = shortUrl(url);
+  const DEV = process.env.NODE_ENV !== 'production';
 
   // Filtered (viewport) loads are ephemeral — skip file-level cache.
   // The worker still caches the AsyncBuffer + metadata internally.
@@ -192,31 +247,34 @@ export function loadParquet(
 
     const cached = fileCache.get(cacheKey);
     if (cached && onChunk) {
-      console.log(`[Globe:Loader] CACHE HIT (with onChunk) ${sUrl}`);
+      if (DEV) console.log(`[Globe:Loader] CACHE HIT (with onChunk) ${sUrl}`);
       cached.then(({ rows }) => onChunk(rows));
       return cached;
     }
     if (cached) {
-      console.log(`[Globe:Loader] CACHE HIT ${sUrl}`);
+      if (DEV) console.log(`[Globe:Loader] CACHE HIT ${sUrl}`);
       return cached;
     }
 
-    // Cancel any previous in-flight request for this URL
     const prevId = activeRequestIds.get(url);
     if (prevId !== undefined) {
-      console.log(
-        `[Globe:Loader] SUPERSEDE id=${prevId} (unfiltered replacing) for ${sUrl}`
-      );
+      if (DEV) {
+        console.log(
+          `[Globe:Loader] SUPERSEDE id=${prevId} (unfiltered replacing) for ${sUrl}`
+        );
+      }
       cancelRequest(prevId);
     }
 
     const id = nextId++;
     trackRequest(url, id);
-    console.log(
-      `[Globe:Loader] UNFILTERED id=${id} ${sUrl} cols=[${columns?.join(',') ?? '*'}]`
-    );
+    if (DEV) {
+      console.log(
+        `[Globe:Loader] UNFILTERED id=${id} ${sUrl} cols=[${columns?.join(',') ?? '*'}]`
+      );
+    }
     const promise = new Promise<LoadResult>((resolve, reject) => {
-      pending.set(id, { resolve, reject, onChunk, accumulated: [] });
+      pending.set(id, { resolve, reject, onChunk, accumulated: [], url });
       getWorker().postMessage({ id, url, columns, rowFilter } as WorkerRequest);
     });
 
@@ -225,23 +283,23 @@ export function loadParquet(
     return promise;
   }
 
-  // Cancel any previous in-flight request for this URL (filtered or unfiltered)
   const prevId = activeRequestIds.get(url);
   if (prevId !== undefined) {
-    console.log(`[Globe:Loader] SUPERSEDE id=${prevId} for ${sUrl}`);
+    if (DEV) console.log(`[Globe:Loader] SUPERSEDE id=${prevId} for ${sUrl}`);
     cancelRequest(prevId);
   }
 
-  // Viewport-filtered load — no file-level caching
   const id = nextId++;
   trackRequest(url, id);
 
-  console.log(
-    `[Globe:Loader] FILTERED id=${id} ${sUrl} ranges=${h3Ranges!.length} cols=[${columns?.join(',') ?? '*'}]`
-  );
+  if (DEV) {
+    console.log(
+      `[Globe:Loader] FILTERED id=${id} ${sUrl} ranges=${h3Ranges!.length} cols=[${columns?.join(',') ?? '*'}]`
+    );
+  }
 
   return new Promise<LoadResult>((resolve, reject) => {
-    pending.set(id, { resolve, reject, onChunk, accumulated: [] });
+    pending.set(id, { resolve, reject, onChunk, accumulated: [], url });
     getWorker().postMessage({
       id,
       url,
