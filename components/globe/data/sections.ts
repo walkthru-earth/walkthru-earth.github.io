@@ -26,6 +26,11 @@ import {
 } from '../utils/parquet-loader';
 import { S3_BASE, S3_BUCKET } from './constants';
 import type { ViewState, QueryContext, ColorRange } from './constants';
+import {
+  memoizePromise,
+  resolveLatestPartition,
+  resolveLatestPartitionChain,
+} from './live-data';
 
 export type { ParquetInfo, ViewState, QueryContext, ColorRange };
 export { S3_BASE, S3_BUCKET };
@@ -68,125 +73,27 @@ export interface GlobeSection {
 
 /* ── Data source URLs ─────────────────────────────────────────────── */
 
-const WEATHER_STATE_URL =
-  'https://raw.githubusercontent.com/walkthru-earth/walkthru-weather-index/refs/heads/main/state/noaa-last-seen.txt';
-const OVERTURE_STATE_URL =
-  'https://raw.githubusercontent.com/walkthru-earth/walkthru-overture-index/refs/heads/main/state/last-release.txt';
+const WEATHER_BUCKET_KEY = 'walkthru-earth/indices/weather/model=GraphCast_GFS';
+const OVERTURE_PLACES_BUCKET_KEY = 'walkthru-earth/indices/places-index/v1';
 
-const PROBE_BASE = 'https://data.source.coop/walkthru-earth';
+export const resolveWeatherPrefix = memoizePromise(async () => {
+  const prefix = await resolveLatestPartitionChain(WEATHER_BUCKET_KEY, [
+    'date',
+    'hour',
+  ]);
+  console.log(`[Weather] Resolved from S3: ${prefix}`);
+  return prefix;
+});
 
-const WEATHER_BASE = `${S3_BASE}/indices/weather/model=GraphCast_GFS`;
-
-function recentDates(count = 7): string[] {
-  const dates: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() - i);
-    dates.push(d.toISOString().slice(0, 10));
-  }
-  return dates;
-}
-
-/**
- * Parse the NOAA last-seen state file to extract date and hour.
- * Format: "GRAP_v100_GFS/2026/0320/GRAP_v100_GFS_2026032012_f000_f240_06.nc"
- * Extracts: date=2026-03-20, hour=12
- */
-function parseWeatherState(
-  text: string
-): { date: string; hour: number } | null {
-  // Match the timestamp portion: YYYYMMDDHH
-  const match = text.match(
-    /GRAP_v100_GFS_(\d{4})(\d{2})(\d{2})(\d{2})_f\d+_f\d+/
+export const resolveOvertureRelease = memoizePromise(async () => {
+  const partition = await resolveLatestPartition(
+    OVERTURE_PLACES_BUCKET_KEY,
+    'release'
   );
-  if (!match) return null;
-  const [, year, month, day, hour] = match;
-  return { date: `${year}-${month}-${day}`, hour: parseInt(hour, 10) };
-}
-
-let _weatherPrefixPromise: Promise<string> | null = null;
-export function resolveWeatherPrefix(): Promise<string> {
-  if (_weatherPrefixPromise) return _weatherPrefixPromise;
-
-  _weatherPrefixPromise = (async () => {
-    // 1. Try the authoritative state file first (single lightweight fetch)
-    try {
-      const res = await fetch(WEATHER_STATE_URL);
-      if (res.ok) {
-        const text = (await res.text()).trim();
-        const parsed = parseWeatherState(text);
-        if (parsed) {
-          const prefix = `${WEATHER_BASE}/date=${parsed.date}/hour=${parsed.hour}`;
-          console.log(
-            `[Weather] State file: date=${parsed.date}/hour=${parsed.hour}`
-          );
-          return prefix;
-        }
-      }
-    } catch {
-      console.warn(
-        '[Weather] State file fetch failed, falling back to probing'
-      );
-    }
-
-    // 2. Fallback: probe recent dates with HEAD requests
-    const probe = async (
-      date: string,
-      hour: number
-    ): Promise<string | null> => {
-      try {
-        const probeUrl = `${PROBE_BASE}/indices/weather/model=GraphCast_GFS/date=${date}/hour=${hour}/h3_res=2/data.parquet`;
-        const r = await fetch(probeUrl, { method: 'HEAD' });
-        return r.ok ? `${WEATHER_BASE}/date=${date}/hour=${hour}` : null;
-      } catch {
-        return null;
-      }
-    };
-
-    const dates = recentDates(2);
-    for (const date of dates) {
-      const [h12, h0] = await Promise.all([probe(date, 12), probe(date, 0)]);
-      if (h12) {
-        console.log(`[Weather] Probe found: date=${date}/hour=12`);
-        return h12;
-      }
-      if (h0) {
-        console.log(`[Weather] Probe found: date=${date}/hour=0`);
-        return h0;
-      }
-    }
-
-    console.warn('[Weather] All probes failed, using fallback');
-    return `${WEATHER_BASE}/date=${dates[0]}/hour=0`;
-  })();
-
-  return _weatherPrefixPromise;
-}
-
-const OVERTURE_FALLBACK = '2026-03-18.0';
-
-let _overtureReleasePromise: Promise<string> | null = null;
-export function resolveOvertureRelease(): Promise<string> {
-  if (_overtureReleasePromise) return _overtureReleasePromise;
-
-  _overtureReleasePromise = (async () => {
-    try {
-      const res = await fetch(OVERTURE_STATE_URL);
-      if (res.ok) {
-        const text = (await res.text()).trim();
-        if (text) {
-          console.log(`[Overture] Release from state file: ${text}`);
-          return text;
-        }
-      }
-    } catch {
-      console.warn('[Overture] State file fetch failed, using fallback');
-    }
-    return OVERTURE_FALLBACK;
-  })();
-
-  return _overtureReleasePromise;
-}
+  const value = partition.slice(partition.lastIndexOf('=') + 1);
+  console.log(`[Overture] Resolved from S3: release=${value}`);
+  return value;
+});
 
 /* ── Parquet URL builders ──────────────────────────────────────────── */
 
