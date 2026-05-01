@@ -1,8 +1,25 @@
-import { asyncBufferFromUrl, parquetReadObjects } from 'hyparquet';
+import { parquetReadObjects } from 'hyparquet';
 import { compressors } from 'hyparquet-compressors';
 import type { AsyncBuffer } from 'hyparquet';
 import { HNC_PARQUET_URL } from './config';
 import type { HNCHeavy, HNCRow, RegionScore } from './types';
+
+// GitHub Pages serves .parquet with Content-Encoding: gzip, so hyparquet's
+// asyncBufferFromUrl reads the compressed Content-Length from HEAD and then
+// range-reads the "footer" at the wrong offset (the file is delivered
+// transparently decompressed by the browser). Fetch the whole buffer once and
+// hand hyparquet an in-memory AsyncBuffer instead.
+async function fetchAsyncBuffer(url: string): Promise<AsyncBuffer> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`fetch failed ${res.status}`);
+  const buffer = await res.arrayBuffer();
+  return {
+    byteLength: buffer.byteLength,
+    async slice(start: number, end?: number) {
+      return buffer.slice(start, end);
+    },
+  };
+}
 
 const td = new TextDecoder('utf-8');
 
@@ -38,7 +55,7 @@ export interface ParquetLoadResult {
 }
 
 export async function loadParquetLight(): Promise<ParquetLoadResult> {
-  const file = await asyncBufferFromUrl({ url: HNC_PARQUET_URL });
+  const file = await fetchAsyncBuffer(HNC_PARQUET_URL);
   const out = await parquetReadObjects({
     file,
     columns: [
