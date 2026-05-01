@@ -18,11 +18,15 @@ import {
   ArrowDown,
   ArrowRight,
   Circle,
+  Camera,
+  Brain,
+  Boxes,
+  Bot,
 } from 'lucide-react';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
-type NodeKind = 'sensor' | 'app' | 'open' | 'process' | 'output';
+type NodeKind = 'sensor' | 'app' | 'open' | 'process' | 'output' | 'ai';
 
 interface FlowNode {
   label: string;
@@ -52,6 +56,12 @@ const sources: FlowNode[] = [
     Icon: Database,
     kind: 'open',
   },
+  {
+    label: 'Street imagery',
+    sublabel: 'Mapillary, what the city looks like',
+    Icon: Camera,
+    kind: 'open',
+  },
 ];
 
 const processing: FlowNode[] = [
@@ -66,6 +76,21 @@ const processing: FlowNode[] = [
     sublabel: '~500 m cells, 50+ indices',
     Icon: Hexagon,
     kind: 'process',
+  },
+  {
+    label: 'Open table formats',
+    sublabel: 'GeoParquet + Iceberg, AI-ready',
+    Icon: Boxes,
+    kind: 'process',
+  },
+];
+
+const aiLayer: FlowNode[] = [
+  {
+    label: 'Brain encoder · TRIBE v2',
+    sublabel: 'Predicts cortical response to street scenes',
+    Icon: Brain,
+    kind: 'ai',
   },
 ];
 
@@ -106,6 +131,12 @@ const outputs: FlowNode[] = [
     Icon: Users,
     kind: 'output',
   },
+  {
+    label: 'AI agents',
+    sublabel: 'Query the city as a memory',
+    Icon: Bot,
+    kind: 'ai',
+  },
 ];
 
 /* ── Styles per kind ─────────────────────────────────────────────── */
@@ -131,6 +162,11 @@ const kindStyles: Record<
     icon: 'text-primary',
   },
   output: { border: '', bg: '', icon: 'text-secondary' },
+  ai: {
+    border: 'border-rose-400/30 dark:border-rose-300/30',
+    bg: 'bg-rose-400/5 dark:bg-rose-300/5',
+    icon: 'text-rose-500 dark:text-rose-300',
+  },
 };
 
 /* ── Node component ──────────────────────────────────────────────── */
@@ -256,6 +292,12 @@ function Legend({ delay, className }: { delay: number; className?: string }) {
           Open data
         </span>
       </div>
+      <div className="flex items-center gap-1.5">
+        <Circle className="h-2.5 w-2.5 fill-current text-rose-500 dark:text-rose-300" />
+        <span className="text-muted-foreground text-xs font-medium">
+          AI layer
+        </span>
+      </div>
     </motion.div>
   );
 }
@@ -274,22 +316,33 @@ export function HormonesFlow() {
           <div className="hidden flex-col gap-3 md:flex">
             <Legend delay={0} className="mb-1 justify-center" />
 
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-stretch justify-center gap-2 lg:gap-3">
               {/* Sources column */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col justify-center gap-2">
                 {sources.map((s, i) => (
-                  <Node key={s.label} node={s} delay={i * 0.1} />
+                  <Node key={s.label} node={s} delay={i * 0.08} />
                 ))}
               </div>
 
               <Arrow delay={0.4} />
-              <CenterColumn nodes={processing} delay={0.5} />
-              <Arrow delay={0.8} />
+              <div className="flex flex-col justify-center">
+                <CenterColumn nodes={processing} delay={0.5} />
+              </div>
+              <Arrow delay={0.7} />
 
-              {/* Outputs — 2 columns of 3 */}
+              {/* AI layer — TRIBE v2 + open table formats */}
+              <div className="flex flex-col justify-center gap-2">
+                {aiLayer.map((n, i) => (
+                  <Node key={n.label} node={n} delay={0.8 + i * 0.08} />
+                ))}
+              </div>
+
+              <Arrow delay={1.0} />
+
+              {/* Outputs — 2 columns, last item (AI agents) spans both */}
               <div className="grid grid-cols-2 gap-2">
                 {outputs.map((o, i) => (
-                  <Node key={o.label} node={o} delay={0.9 + i * 0.07} />
+                  <Node key={o.label} node={o} delay={1.1 + i * 0.06} />
                 ))}
               </div>
             </div>
@@ -301,17 +354,25 @@ export function HormonesFlow() {
 
             <div className="flex w-full max-w-xs flex-col gap-2">
               {sources.map((s, i) => (
-                <Node key={s.label} node={s} delay={i * 0.08} compact />
+                <Node key={s.label} node={s} delay={i * 0.07} compact />
               ))}
             </div>
 
             <Arrow delay={0.3} vertical />
             <CenterColumn nodes={processing} delay={0.4} compact />
-            <Arrow delay={0.7} vertical />
+            <Arrow delay={0.6} vertical />
+
+            <div className="flex w-full max-w-xs flex-col gap-2">
+              {aiLayer.map((n, i) => (
+                <Node key={n.label} node={n} delay={0.7 + i * 0.07} compact />
+              ))}
+            </div>
+
+            <Arrow delay={0.9} vertical />
 
             <div className="grid w-full max-w-xs grid-cols-2 gap-2">
               {outputs.map((o, i) => (
-                <Node key={o.label} node={o} delay={0.8 + i * 0.06} compact />
+                <Node key={o.label} node={o} delay={1.0 + i * 0.05} compact />
               ))}
             </div>
           </div>
