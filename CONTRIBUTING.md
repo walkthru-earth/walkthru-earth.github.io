@@ -4,6 +4,8 @@
 
 Use Node 24 and the pnpm version in `package.json` (`packageManager`). Install dependencies with `pnpm install`; use `pnpm install --frozen-lockfile` when reproducing CI. Lefthook installs the pre-commit hook during installation.
 
+If your global pnpm is older, `npx --yes pnpm@12.3.4 install` runs the current pin without changing the global installation; the same prefix can run `check`, `build`, or `dev`. Match that version to `packageManager` after future upgrades. This repository temporarily disables pnpm's automatic version switching to keep GitHub dependency scanning functional (see Dependencies below).
+
 ```bash
 pnpm dev                 # Development server at localhost:3000
 pnpm check               # Combined lint, type checking, tests, formatting
@@ -44,6 +46,10 @@ Read release notes and installed types for changed major versions. Check React h
 Oxlint provides TypeScript, React, Next.js, and accessibility checks. The upgrade replaced the ESLint stack after its installed parser failed with TypeScript 7; lint configuration lives in `.oxlintrc.json`.
 
 The manifest and lockfile are the version record. Documentation describes responsibilities and constraints instead of copying a package-version table that drifts.
+
+Run `pnpm audit` after upgrades; CI runs it before source checks. Do this even when GitHub shows no open Dependabot alerts. The September 10, 2026 review found only 14 entries in GitHub's SBOM (nine pnpm manager packages, four actions, and the repository), while the installed graph had 526 dependencies. GitHub marked 38 historical alerts fixed while `pnpm audit` still found three advisories. This matches the [known pnpm 12 multi-document lockfile parsing issue](https://github.com/dependabot/dependabot-core/issues/15904): GitHub misses application dependencies in the second YAML document. The `pmOnFail: ignore` workaround keeps one application lockfile document. It disables automatic local package-manager switching, so install the pinned `packageManager` version yourself; CI's `pnpm/setup` still installs it. Remove the workaround when upstream supports the full lockfile stream. After pushing lockfile changes, verify that GitHub's graph includes application packages before relying on its alert count. Inspect the affected dependency path and upstream advisory before changing a transitive dependency.
+
+The scoped overrides in `pnpm-workspace.yaml` address loaders.gl 4.4.5 dependencies: `fflate` uses the patched 0.7.5 release for [GHSA-px8p-9vwx-vf98](https://github.com/advisories/GHSA-px8p-9vwx-vf98), and the unused `texture-compressor` CLI is removed. That CLI pulls in `image-size`, which has two unpatched denial-of-service advisories ([ICNS](https://github.com/advisories/GHSA-w3rx-r6r6-pgpr), [JXL/HEIF](https://github.com/advisories/GHSA-5p2g-fcmc-qvqq)). Only the [Node-only compressed texture writer](https://loaders.gl/docs/modules/textures/api-reference/compressed-texture-writer) uses the CLI; this website decodes textures in the browser and never invokes that writer. If adding offline texture encoding, choose a maintained encoder and review this exclusion. Recheck and remove these version-scoped overrides when upgrading loaders.gl.
 
 ## Structure and contribution scope
 

@@ -4,7 +4,7 @@
 
 The site is statically exported to `out/` and published to GitHub Pages at [walkthru.earth](https://walkthru.earth). The authoritative configuration is `next.config.mjs`, `.github/workflows/deploy.yml`, and `public/CNAME`.
 
-The workflow checks pull requests and runs on pushes to `main` and manual `workflow_dispatch`. Deployment is restricted to the latter two triggers. It installs the pnpm lockfile under Node 24, runs repository checks, builds Next.js, uploads `out/`, and deploys through the `github-pages` environment. GitHub repository settings must select GitHub Actions as the Pages source and allow the workflow's Pages and OIDC permissions.
+The workflow checks pull requests and runs on pushes to `main` and manual `workflow_dispatch`. Deployment is restricted to the latter two triggers. It installs the pnpm lockfile under Node 24, audits dependencies, runs repository checks, builds Next.js, uploads `out/`, and deploys through the `github-pages` environment. GitHub repository settings must select GitHub Actions as the Pages source and allow the workflow's Pages and OIDC permissions.
 
 Changing the working tree or running a local build does not publish anything. Publishing occurs when the workflow is triggered.
 
@@ -12,6 +12,7 @@ Changing the working tree or running a local build does not publish anything. Pu
 
 ```bash
 pnpm install --frozen-lockfile
+pnpm audit
 pnpm lint
 pnpm type-check
 pnpm test

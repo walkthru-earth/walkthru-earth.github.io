@@ -2,3 +2,13 @@ allowBuilds:
   '@evilmartians/lefthook': true
   core-js: true
   sharp: true
+# Keep one YAML document so GitHub can scan application dependencies.
+# pnpm/setup in CI still installs the version pinned by packageManager.
+pmOnFail: ignore
+overrides:
+  # Patch ZIP64 parsing until loaders.gl updates its exact fflate dependency.
+  '@loaders.gl/compression@4.4.5>fflate': 0.7.5
+  # Unused Node-only encoder CLI; removes its unpatched image-size dependency.
+  '@loaders.gl/textures@4.4.5>texture-compressor': '-'
+patchedDependencies:
+  '@deck.gl/core@9.4.0': patches/@deck.gl__core@9.4.0.patch

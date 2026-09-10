@@ -25,6 +25,8 @@ jobs:
           runtime: node@24
           cache: true
           require-lockfile: true
+      - name: Audit dependencies
+        run: pnpm audit
       - name: Check source
         run: pnpm check
       - name: Build static website

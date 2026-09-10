@@ -1,0 +1,212 @@
+diff --git a/dist/controllers/globe-controller.js b/dist/controllers/globe-controller.js
+index bdc15f23608b18eef5ddeadcee49cfd1d27fe18d..f0ddb409054d6a8e2050c71fd398cbaab3338159 100644
+--- a/dist/controllers/globe-controller.js
++++ b/dist/controllers/globe-controller.js
+@@ -95,14 +95,19 @@ class GlobeState extends MapState {
+         props.zoom = this._constrainZoom(props.zoom, props);
+         if (constraintAround) {
+             const viewport = this.makeViewport(props);
+-            const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
+-            if (anchorStrength > 0) {
+-                const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
+-                const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
+-                const rotatedFrame = Globe.rotateFrameToMatch(cameraFrame, [currentCoordinates[0], currentCoordinates[1]], [constraintAround.position[0], constraintAround.position[1]], anchorStrength);
+-                props.longitude = rotatedFrame.longitude;
+-                props.latitude = rotatedFrame.latitude;
+-                props.bearing = rotatedFrame.bearing;
++            // GlobeView uses WebMercatorViewport above zoom 12.
++            if (typeof viewport.getZoomAnchorStrength === 'function') {
++                const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
++                if (anchorStrength > 0) {
++                    const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
++                    const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
++                    const rotatedFrame = Globe.rotateFrameToMatch(cameraFrame, [currentCoordinates[0], currentCoordinates[1]], [constraintAround.position[0], constraintAround.position[1]], anchorStrength);
++                    props.longitude = rotatedFrame.longitude;
++                    props.latitude = rotatedFrame.latitude;
++                    props.bearing = rotatedFrame.bearing;
++                }
++            } else {
++                Object.assign(props, viewport.panByPosition(constraintAround.position, constraintAround.screenPosition));
+             }
+         }
+         if (props.longitude < -180 || props.longitude > 180) {
+diff --git a/dist/dist.dev.js b/dist/dist.dev.js
+index 3b509c09deaa7daf456840af0a867aed4256f438..c9e2a8f9198e971c27b0369207fda2e6082ffe42 100644
+--- a/dist/dist.dev.js
++++ b/dist/dist.dev.js
+@@ -54396,19 +54396,24 @@ void main(void) {
+       props.zoom = this._constrainZoom(props.zoom, props);
+       if (constraintAround) {
+         const viewport = this.makeViewport(props);
+-        const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
+-        if (anchorStrength > 0) {
+-          const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
+-          const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
+-          const rotatedFrame = Globe.rotateFrameToMatch(
+-            cameraFrame,
+-            [currentCoordinates[0], currentCoordinates[1]],
+-            [constraintAround.position[0], constraintAround.position[1]],
+-            anchorStrength
+-          );
+-          props.longitude = rotatedFrame.longitude;
+-          props.latitude = rotatedFrame.latitude;
+-          props.bearing = rotatedFrame.bearing;
++        // GlobeView uses WebMercatorViewport above zoom 12.
++        if (typeof viewport.getZoomAnchorStrength === 'function') {
++          const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
++          if (anchorStrength > 0) {
++            const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
++            const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
++            const rotatedFrame = Globe.rotateFrameToMatch(
++              cameraFrame,
++              [currentCoordinates[0], currentCoordinates[1]],
++              [constraintAround.position[0], constraintAround.position[1]],
++              anchorStrength
++            );
++            props.longitude = rotatedFrame.longitude;
++            props.latitude = rotatedFrame.latitude;
++            props.bearing = rotatedFrame.bearing;
++          }
++        } else {
++          Object.assign(props, viewport.panByPosition(constraintAround.position, constraintAround.screenPosition));
+         }
+       }
+       if (props.longitude < -180 || props.longitude > 180) {
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 966d28dd008a077f22be496d5cb3b89a925531bf..a3d821ea72e3370b2399f0fefc24216b2d92eef0 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -15335,14 +15335,19 @@ var GlobeState = class extends MapState {
+     props.zoom = this._constrainZoom(props.zoom, props);
+     if (constraintAround) {
+       const viewport = this.makeViewport(props);
+-      const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
+-      if (anchorStrength > 0) {
+-        const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
+-        const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
+-        const rotatedFrame = Globe.rotateFrameToMatch(cameraFrame, [currentCoordinates[0], currentCoordinates[1]], [constraintAround.position[0], constraintAround.position[1]], anchorStrength);
+-        props.longitude = rotatedFrame.longitude;
+-        props.latitude = rotatedFrame.latitude;
+-        props.bearing = rotatedFrame.bearing;
++      // GlobeView uses WebMercatorViewport above zoom 12.
++      if (typeof viewport.getZoomAnchorStrength === 'function') {
++        const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
++        if (anchorStrength > 0) {
++          const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
++          const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
++          const rotatedFrame = Globe.rotateFrameToMatch(cameraFrame, [currentCoordinates[0], currentCoordinates[1]], [constraintAround.position[0], constraintAround.position[1]], anchorStrength);
++          props.longitude = rotatedFrame.longitude;
++          props.latitude = rotatedFrame.latitude;
++          props.bearing = rotatedFrame.bearing;
++        }
++      } else {
++        Object.assign(props, viewport.panByPosition(constraintAround.position, constraintAround.screenPosition));
+       }
+     }
+     if (props.longitude < -180 || props.longitude > 180) {
+diff --git a/dist.webgl-only/controllers/globe-controller.js b/dist.webgl-only/controllers/globe-controller.js
+index bdc15f23608b18eef5ddeadcee49cfd1d27fe18d..f0ddb409054d6a8e2050c71fd398cbaab3338159 100644
+--- a/dist.webgl-only/controllers/globe-controller.js
++++ b/dist.webgl-only/controllers/globe-controller.js
+@@ -95,14 +95,19 @@ class GlobeState extends MapState {
+         props.zoom = this._constrainZoom(props.zoom, props);
+         if (constraintAround) {
+             const viewport = this.makeViewport(props);
+-            const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
+-            if (anchorStrength > 0) {
+-                const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
+-                const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
+-                const rotatedFrame = Globe.rotateFrameToMatch(cameraFrame, [currentCoordinates[0], currentCoordinates[1]], [constraintAround.position[0], constraintAround.position[1]], anchorStrength);
+-                props.longitude = rotatedFrame.longitude;
+-                props.latitude = rotatedFrame.latitude;
+-                props.bearing = rotatedFrame.bearing;
++            // GlobeView uses WebMercatorViewport above zoom 12.
++            if (typeof viewport.getZoomAnchorStrength === 'function') {
++                const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
++                if (anchorStrength > 0) {
++                    const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
++                    const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
++                    const rotatedFrame = Globe.rotateFrameToMatch(cameraFrame, [currentCoordinates[0], currentCoordinates[1]], [constraintAround.position[0], constraintAround.position[1]], anchorStrength);
++                    props.longitude = rotatedFrame.longitude;
++                    props.latitude = rotatedFrame.latitude;
++                    props.bearing = rotatedFrame.bearing;
++                }
++            } else {
++                Object.assign(props, viewport.panByPosition(constraintAround.position, constraintAround.screenPosition));
+             }
+         }
+         if (props.longitude < -180 || props.longitude > 180) {
+diff --git a/dist.webgl-only/index.cjs b/dist.webgl-only/index.cjs
+index 545b82927189ff12c717c8c1aab07d8435407de4..863b5878ad534f2c61aa2c7686fca3f70c0e6fdb 100644
+--- a/dist.webgl-only/index.cjs
++++ b/dist.webgl-only/index.cjs
+@@ -14597,14 +14597,19 @@ var GlobeState = class extends MapState {
+     props.zoom = this._constrainZoom(props.zoom, props);
+     if (constraintAround) {
+       const viewport = this.makeViewport(props);
+-      const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
+-      if (anchorStrength > 0) {
+-        const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
+-        const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
+-        const rotatedFrame = Globe.rotateFrameToMatch(cameraFrame, [currentCoordinates[0], currentCoordinates[1]], [constraintAround.position[0], constraintAround.position[1]], anchorStrength);
+-        props.longitude = rotatedFrame.longitude;
+-        props.latitude = rotatedFrame.latitude;
+-        props.bearing = rotatedFrame.bearing;
++      // GlobeView uses WebMercatorViewport above zoom 12.
++      if (typeof viewport.getZoomAnchorStrength === 'function') {
++        const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
++        if (anchorStrength > 0) {
++          const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
++          const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
++          const rotatedFrame = Globe.rotateFrameToMatch(cameraFrame, [currentCoordinates[0], currentCoordinates[1]], [constraintAround.position[0], constraintAround.position[1]], anchorStrength);
++          props.longitude = rotatedFrame.longitude;
++          props.latitude = rotatedFrame.latitude;
++          props.bearing = rotatedFrame.bearing;
++        }
++      } else {
++        Object.assign(props, viewport.panByPosition(constraintAround.position, constraintAround.screenPosition));
+       }
+     }
+     if (props.longitude < -180 || props.longitude > 180) {
+diff --git a/src/controllers/globe-controller.ts b/src/controllers/globe-controller.ts
+index c65ab46c7c983ce120ff5179aca79fbeeb015ae3..6bf45cd591fe7ec8e80b068c079cd1c873a97145 100644
+--- a/src/controllers/globe-controller.ts
++++ b/src/controllers/globe-controller.ts
+@@ -130,19 +130,24 @@ class GlobeState extends MapState {
+ 
+     if (constraintAround) {
+       const viewport = this.makeViewport(props) as GlobeViewport;
+-      const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
+-      if (anchorStrength > 0) {
+-        const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
+-        const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
+-        const rotatedFrame = Globe.rotateFrameToMatch(
+-          cameraFrame,
+-          [currentCoordinates[0], currentCoordinates[1]],
+-          [constraintAround.position[0], constraintAround.position[1]],
+-          anchorStrength
+-        );
+-        props.longitude = rotatedFrame.longitude;
+-        props.latitude = rotatedFrame.latitude;
+-        props.bearing = rotatedFrame.bearing;
++      // GlobeView uses WebMercatorViewport above zoom 12.
++      if (typeof viewport.getZoomAnchorStrength === 'function') {
++        const anchorStrength = viewport.getZoomAnchorStrength(constraintAround.screenPosition);
++        if (anchorStrength > 0) {
++          const currentCoordinates = viewport.unproject(constraintAround.screenPosition);
++          const cameraFrame = Globe.cameraFrame(props.longitude, props.latitude, props.bearing || 0);
++          const rotatedFrame = Globe.rotateFrameToMatch(
++            cameraFrame,
++            [currentCoordinates[0], currentCoordinates[1]],
++            [constraintAround.position[0], constraintAround.position[1]],
++            anchorStrength
++          );
++          props.longitude = rotatedFrame.longitude;
++          props.latitude = rotatedFrame.latitude;
++          props.bearing = rotatedFrame.bearing;
++        }
++      } else {
++        Object.assign(props, viewport.panByPosition(constraintAround.position, constraintAround.screenPosition));
+       }
+     }
+ 
