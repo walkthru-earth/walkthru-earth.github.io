@@ -2,7 +2,8 @@
 
 import { memo, useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
-import DeckGL from '@deck.gl/react';
+import DeckGL, { type DeckGLRef } from '@deck.gl/react';
+import { useH3Data } from './hooks/useH3Data';
 import {
   _GlobeView as GlobeView,
   COORDINATE_SYSTEM,
@@ -10,6 +11,7 @@ import {
   AmbientLight,
   LinearInterpolator,
   type PickingInfo,
+  type Layer,
 } from '@deck.gl/core';
 import {
   BitmapLayer,
@@ -124,7 +126,7 @@ export interface PinScreenPos {
 
 interface GlobeMapProps {
   /** Target view for the current section — globe flies here on change. */
-  targetViewState: ViewState;
+  targetViewState?: ViewState;
   layerData: Record<string, unknown>[];
   colorRange: ColorRange;
   getHexagon: (d: Record<string, unknown>) => string;
@@ -200,27 +202,13 @@ export const GlobeMap = memo(function GlobeMap({
   const palette = isDark ? THEMES.dark : THEMES.light;
   const tapRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
-  // Animated pulse tick (0-1 repeating) for the user pin rings
-  const [pulseTick, setPulseTick] = useState(0);
-  useEffect(() => {
-    if (!userLocation) return;
-    let raf: number;
-    let last = 0;
-    const FRAME_MS = 1000 / 30;
-    const loop = (now: number) => {
-      if (now - last >= FRAME_MS) {
-        last = now;
-        setPulseTick((now % 2500) / 2500);
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [userLocation]);
-
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const deckRef = useRef<any>(null);
-  /* eslint-enable @typescript-eslint/no-explicit-any */
+  const deckRef = useRef<DeckGLRef>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const handleRenderError = useCallback(
+    (error: Error) => setRenderError(error.message),
+    []
+  );
+  const { hexagons, lookup } = useH3Data(layerData, getHexagon);
 
   // Keep callback ref fresh without triggering re-renders
   const onUserPinScreenRef = useRef(onUserPinScreen);
@@ -247,6 +235,10 @@ export const GlobeMap = memo(function GlobeMap({
     zoom: number;
     longitude: number;
     latitude: number;
+    width: number;
+    height: number;
+    bearing: number;
+    pitch: number;
   } | null>(null);
 
   // Project user pin to screen coords + report viewport bounds after each frame
@@ -288,43 +280,36 @@ export const GlobeMap = memo(function GlobeMap({
     if (vpCb) {
       try {
         const z = viewport.zoom ?? 0;
-        const lng = viewport.longitude ?? 0;
-        const lat = viewport.latitude ?? 0;
+        const lng = 'longitude' in viewport ? Number(viewport.longitude) : 0;
+        const lat = 'latitude' in viewport ? Number(viewport.latitude) : 0;
+        const bearing = 'bearing' in viewport ? Number(viewport.bearing) : 0;
+        const pitch = 'pitch' in viewport ? Number(viewport.pitch) : 0;
         const last = lastReportedViewport.current;
         if (
           !last ||
           Math.abs(z - last.zoom) > 0.01 ||
           Math.abs(lng - last.longitude) > 0.01 ||
-          Math.abs(lat - last.latitude) > 0.01
+          Math.abs(lat - last.latitude) > 0.01 ||
+          viewport.width !== last.width ||
+          viewport.height !== last.height ||
+          bearing !== last.bearing ||
+          pitch !== last.pitch
         ) {
           lastReportedViewport.current = {
             zoom: z,
             longitude: lng,
             latitude: lat,
+            width: viewport.width,
+            height: viewport.height,
+            bearing,
+            pitch,
           };
-          let bounds = viewport.getBounds?.() as
-            | [number, number, number, number]
-            | undefined;
+          const bounds = viewport.getBounds?.() as
+            [number, number, number, number] | undefined;
 
-          // Clamp bounds to the visible hemisphere — GlobeView's getBounds()
-          // can return coordinates from the back side of the globe, causing
-          // the H3 viewport filter to query the wrong hemisphere.
-          if (bounds) {
-            // Max visible angular radius from center — generous enough to
-            // cover the full visible globe surface but prevents wrapping to
-            // the opposite hemisphere.  h3-viewport.ts adds its own padding.
-            const maxHalf = Math.min(
-              90,
-              180 / Math.pow(2, Math.max(0, z - 1.5))
-            );
-            const [bW, bS, bE, bN] = bounds;
-            bounds = [
-              Math.max(bW, lng - maxHalf),
-              Math.max(bS, lat - maxHalf),
-              Math.min(bE, lng + maxHalf),
-              Math.min(bN, lat + maxHalf),
-            ];
-          }
+          // Preserve deck.gl's bounds. A zoom-derived longitude/latitude
+          // clamp loses visible data, especially across the dateline or poles.
+          // h3-viewport handles wrapping and bounds predicate cost by coarsening.
 
           if (process.env.NODE_ENV !== 'production') {
             console.log(
@@ -346,22 +331,30 @@ export const GlobeMap = memo(function GlobeMap({
         /* viewport may not support getBounds */
       }
     }
-  }, []);
+  }, [h3Res]);
 
   // deck.gl manages internal state — animates to new position on change.
   // On first render, use URL override (no transition); afterwards fly-to
   // only when targetViewState actually changes (i.e. section switch).
-  const usedOverrideRef = useRef(false);
+  const [cameraRequest, setCameraRequest] = useState(() => ({
+    target: targetViewState,
+    override: initialViewStateOverride,
+  }));
+  // A URL camera applies to the initial section only. Keep render calculations
+  // pure: Strict Mode can call memo factories twice before committing them.
+  if (cameraRequest.target !== targetViewState) {
+    setCameraRequest({ target: targetViewState, override: undefined });
+  }
   const initialViewState = useMemo(() => {
-    if (!usedOverrideRef.current && initialViewStateOverride) {
-      usedOverrideRef.current = true;
+    if (cameraRequest.override && cameraRequest.target === targetViewState) {
       return {
-        longitude: initialViewStateOverride.longitude,
-        latitude: initialViewStateOverride.latitude,
-        zoom: initialViewStateOverride.zoom,
+        longitude: cameraRequest.override.longitude,
+        latitude: cameraRequest.override.latitude,
+        zoom: cameraRequest.override.zoom,
         transitionDuration: 0,
       };
     }
+    if (!targetViewState) return undefined;
     return {
       longitude: targetViewState.longitude,
       latitude: targetViewState.latitude,
@@ -369,12 +362,7 @@ export const GlobeMap = memo(function GlobeMap({
       transitionDuration: 1500,
       transitionInterpolator: TRANSITION_INTERPOLATOR,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    targetViewState.longitude,
-    targetViewState.latitude,
-    targetViewState.zoom,
-  ]);
+  }, [cameraRequest, targetViewState]);
 
   const effects = useMemo(
     () => [
@@ -388,13 +376,11 @@ export const GlobeMap = memo(function GlobeMap({
     [palette.ambient]
   );
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-
   // Static base layers: earth sphere, satellite tiles, land, borders.
   // Separated from data layer so timestep changes (every 2s during
   // autoplay) don't rebuild these expensive layers.
   const staticLayers = useMemo(
-    (): any[] => [
+    (): Layer[] => [
       // Z-ordering via polygonOffset (higher = further back):
       //   sphere [50,50] → satellite tiles [30,30] → land [20,20] → borders [10,10] → H3 (front)
 
@@ -407,7 +393,8 @@ export const GlobeMap = memo(function GlobeMap({
         getPosition: () => [0, 0, 0],
         getColor: palette.sphere,
         pickable: true,
-        parameters: { depthTest: true, polygonOffset: [50, 50] },
+        parameters: { depthCompare: 'less-equal' },
+        getPolygonOffset: () => [50, 50],
       }),
 
       // 2. EOX Sentinel-2 cloudless 2024 satellite tiles
@@ -437,7 +424,8 @@ export const GlobeMap = memo(function GlobeMap({
               number,
               number,
             ],
-            parameters: { depthTest: true, polygonOffset: [30, 30] },
+            parameters: { depthCompare: 'less-equal' },
+            getPolygonOffset: () => [30, 30],
           });
         },
       }),
@@ -451,7 +439,8 @@ export const GlobeMap = memo(function GlobeMap({
         filled: true,
         opacity: baseControls?.[BASE_LAND_ID]?.opacity ?? palette.landOpacity,
         getFillColor: palette.land,
-        parameters: { depthTest: true, polygonOffset: [20, 20] },
+        parameters: { depthCompare: 'less-equal' },
+        getPolygonOffset: () => [20, 20],
       }),
 
       // 4. Country borders
@@ -464,7 +453,8 @@ export const GlobeMap = memo(function GlobeMap({
         lineWidthMinPixels: 0.5,
         opacity: baseControls?.[BASE_BORDERS_ID]?.opacity ?? 1,
         getLineColor: palette.borders,
-        parameters: { depthTest: true, polygonOffset: [10, 10] },
+        parameters: { depthCompare: 'less-equal' },
+        getPolygonOffset: () => [10, 10],
       }),
     ],
     [palette, baseControls]
@@ -472,22 +462,22 @@ export const GlobeMap = memo(function GlobeMap({
 
   // H3 data layer — rebuilt when layerData/colors/style change
   // (e.g. on each timestep tick during autoplay).
-  const dataLayer = useMemo((): any[] => {
+  const dataLayer = useMemo((): Layer[] => {
     if (layerData.length === 0 || !layerVisible) return [];
     return [
-      new H3HexagonLayer({
+      new H3HexagonLayer<string>({
         id: 'h3-layer',
-        data: layerData,
+        data: hexagons,
         pickable: true,
         filled: true,
         highPrecision: true,
         extruded,
         elevationScale,
-        getHexagon: getHexagon as (d: unknown) => string,
-        getFillColor: (d: unknown) =>
-          getFillColor(d as Record<string, unknown>, colorRange),
-        getElevation:
-          (getElevation as ((d: unknown) => number) | undefined) ?? (() => 0),
+        getHexagon: (hex) => hex,
+        getFillColor: (_hex, { index }) =>
+          getFillColor(layerData[index], colorRange),
+        getElevation: (_hex, { index }) =>
+          getElevation?.(layerData[index]) ?? 0,
         opacity: layerOpacity,
         coverage: 0.92,
         material: {
@@ -496,15 +486,20 @@ export const GlobeMap = memo(function GlobeMap({
           shininess: 32,
         },
         updateTriggers: {
-          getFillColor: [colorRange.min, colorRange.max, extruded],
-          getElevation: [extruded, elevationScale],
+          getFillColor: [
+            layerData,
+            getFillColor,
+            colorRange.min,
+            colorRange.max,
+          ],
+          getElevation: [layerData, getElevation],
         },
       }),
     ];
   }, [
+    hexagons,
     layerData,
     colorRange,
-    getHexagon,
     getFillColor,
     getElevation,
     extruded,
@@ -514,7 +509,7 @@ export const GlobeMap = memo(function GlobeMap({
   ]);
 
   // Static pin layers: dot + beam + head. Rebuild only on userLocation/h3Res/extruded change.
-  const staticPinLayers = useMemo((): any[] => {
+  const staticPinLayers = useMemo((): Layer[] => {
     if (!userLocation) return [];
     const pinPos = [userLocation.longitude, userLocation.latitude] as [
       number,
@@ -557,18 +552,18 @@ export const GlobeMap = memo(function GlobeMap({
     ];
   }, [userLocation, h3Res, extruded]);
 
-  // Pulse rings only: rebuilt every pulseTick (30fps).
-  const pulseLayers = useMemo((): any[] => {
+  // Static location rings keep the globe idle when the user is not interacting.
+  const pulseLayers = useMemo((): Layer[] => {
     if (!userLocation) return [];
     const pinPos = [userLocation.longitude, userLocation.latitude] as [
       number,
       number,
     ];
     const pm = pinMetrics(h3Res, extruded);
-    const result: any[] = [];
+    const result: Layer[] = [];
     const PULSE_COUNT = 3;
     for (let i = 0; i < PULSE_COUNT; i++) {
-      const phase = (pulseTick + i / PULSE_COUNT) % 1;
+      const phase = (i + 1) / (PULSE_COUNT + 1);
       const radius = pm.pulseBase + phase * pm.pulseRange;
       const alpha = Math.round((1 - phase) * 180);
       result.push(
@@ -588,14 +583,13 @@ export const GlobeMap = memo(function GlobeMap({
       );
     }
     return result;
-  }, [pulseTick, userLocation, extruded, h3Res]);
+  }, [userLocation, extruded, h3Res]);
 
   // Combined layers — static base → data → pin (front to back via polygonOffset).
   const layers = useMemo(
     () => [...staticLayers, ...dataLayer, ...staticPinLayers, ...pulseLayers],
     [staticLayers, dataLayer, staticPinLayers, pulseLayers]
   );
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   // ── Custom reactive tooltip ──
   // deck.gl's getTooltip only fires on pointer-move. During timeseries
@@ -603,49 +597,45 @@ export const GlobeMap = memo(function GlobeMap({
   // the hovered H3 index + screen position and derive tooltip text from
   // the current layerData reactively.
   //
-  // We use a ref + forceUpdate to avoid re-render loops: the 60fps
-  // pulseTick loop reconstructs layers, which can re-trigger onHover —
-  // using setState here would create an infinite render cascade.
-  const hoverRef = useRef<{ h3: string; x: number; y: number } | null>(null);
-  const [, forceTooltip] = useState(0);
+  // Identical picks retain state identity, so redraws cannot trigger a loop.
+  const [hoverInfo, setHoverInfo] = useState<{
+    h3: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const handleHover = useCallback(
     (info: PickingInfo) => {
       onCursorOverGlobe?.(info.coordinate != null);
       if (info.object) {
-        const d = info.object as Record<string, unknown>;
-        const h3 = getHexagon(d);
+        const h3 =
+          info.layer?.id === 'h3-layer' && typeof info.object === 'string'
+            ? info.object
+            : '';
         if (h3) {
-          const prev = hoverRef.current;
-          if (
-            !prev ||
-            prev.h3 !== h3 ||
-            prev.x !== info.x ||
-            prev.y !== info.y
-          ) {
-            hoverRef.current = { h3, x: info.x, y: info.y };
-            forceTooltip((n) => n + 1);
-          }
+          setHoverInfo((previous) =>
+            previous?.h3 === h3 &&
+            previous.x === info.x &&
+            previous.y === info.y
+              ? previous
+              : { h3, x: info.x, y: info.y }
+          );
           return;
         }
       }
-      if (hoverRef.current) {
-        hoverRef.current = null;
-        forceTooltip((n) => n + 1);
-      }
+      setHoverInfo(null);
     },
-    [onCursorOverGlobe, getHexagon]
+    [onCursorOverGlobe]
   );
 
   // Re-derive tooltip from current layerData whenever data or hover changes
-  const hoverInfo = hoverRef.current;
   const tooltipText = useMemo(() => {
     if (!hoverInfo) return null;
-    const row = layerData.find((r) => getHexagon(r) === hoverInfo.h3);
+    const row = lookup.get(hoverInfo.h3);
     if (!row) return null;
     if (formatTooltip) return formatTooltip(row);
     return `H3: ${hoverInfo.h3}`;
-  }, [hoverInfo, layerData, getHexagon, formatTooltip]);
+  }, [hoverInfo, lookup, formatTooltip]);
 
   return (
     <div
@@ -672,12 +662,23 @@ export const GlobeMap = memo(function GlobeMap({
         views={GLOBE_VIEW}
         initialViewState={initialViewState}
         controller={true}
+        useDevicePixels={Math.min(2, window.devicePixelRatio || 1)}
         effects={effects}
         layers={layers}
         onHover={handleHover}
         onAfterRender={handleAfterRender}
+        onError={handleRenderError}
         style={{ width: '100%', height: '100%' }}
       />
+      {renderError && (
+        <p
+          role="alert"
+          className="bg-background/95 text-foreground absolute top-20 right-4 z-30 max-w-sm rounded-xl border p-4 text-sm"
+        >
+          The globe could not be rendered. Reload the page or try a browser with
+          WebGL enabled.
+        </p>
+      )}
       {tooltipText && hoverInfo && (
         <div
           className="border-border bg-popover text-popover-foreground pointer-events-none absolute z-50 max-w-xs rounded border px-2.5 py-2.5 whitespace-pre-line shadow-lg backdrop-blur-sm"

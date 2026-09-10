@@ -1,22 +1,21 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Mail, Globe, ExternalLink } from 'lucide-react';
 import {
   Github,
   Linkedin,
   Youtube,
   Instagram,
   Facebook,
-  Mail,
-  Globe,
-  ExternalLink,
-} from 'lucide-react';
+} from '@/components/shared/brand-icons';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 export const metadata: Metadata = {
   title: 'Links | walkthru.earth',
   description:
     'All links to walkthru.earth - social media, projects, and ways to connect with us.',
+  alternates: { canonical: 'https://walkthru.earth/links' },
   openGraph: {
     title: 'Links | walkthru.earth',
     description: 'Connect with walkthru.earth - all our links in one place',

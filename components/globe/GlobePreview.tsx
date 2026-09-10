@@ -1,15 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { GlobeMap } from './GlobeMap';
-import {
-  SECTIONS,
-  resolveWeatherPrefix,
-  resolveOvertureRelease,
-  h3ToHex,
-  type QueryContext,
-} from './data/sections';
-import { computeRange, type ColorRange } from './data/constants';
+import { SECTIONS, h3ToHex } from './data/sections';
+import { useSectionData } from './hooks/useSectionData';
 
 interface GlobePreviewProps {
   /** Section id to display (e.g. 'terrain', 'weather-temperature') */
@@ -29,61 +22,11 @@ export function GlobePreview({
   className = '',
   nonInteractive = false,
 }: GlobePreviewProps) {
-  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
-  const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
-  const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
-  const [overtureRelease, setOvertureRelease] = useState<string | null>(null);
-  const activeSectionRef = useRef(sectionId);
-
-  const section = useMemo(
-    () => SECTIONS.find((s) => s.id === sectionId) ?? SECTIONS[0],
-    [sectionId]
+  const section = SECTIONS.find((s) => s.id === sectionId) ?? SECTIONS[0];
+  const { rows, range: colorRange } = useSectionData(
+    section,
+    section.h3ResRange[0]
   );
-
-  // Resolve weather prefix and Overture release once
-  useEffect(() => {
-    let cancelled = false;
-    resolveWeatherPrefix().then((prefix) => {
-      if (!cancelled) setWeatherPrefix(prefix);
-    });
-    resolveOvertureRelease().then((release) => {
-      if (!cancelled) setOvertureRelease(release);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Promise cache to avoid duplicate loads
-  const cacheRef = useRef<Map<string, Promise<Record<string, unknown>[]>>>(
-    new Map()
-  );
-
-  useEffect(() => {
-    if (!weatherPrefix || !overtureRelease) return;
-    activeSectionRef.current = sectionId;
-
-    const ctx: QueryContext = {
-      weatherPrefix,
-      overtureRelease,
-      h3Res: section.defaultH3Res,
-    };
-
-    const cacheKey = `${sectionId}:${ctx.h3Res}`;
-    let loadPromise = cacheRef.current.get(cacheKey);
-
-    if (!loadPromise) {
-      loadPromise = section.loadData(ctx).then((result) => result.rows);
-      cacheRef.current.set(cacheKey, loadPromise);
-      loadPromise.catch(() => cacheRef.current.delete(cacheKey));
-    }
-
-    loadPromise.then((data) => {
-      if (activeSectionRef.current !== sectionId) return;
-      setRows(data);
-      setColorRange(computeRange(data, section.colorColumn));
-    });
-  }, [weatherPrefix, overtureRelease, sectionId, section]);
 
   return (
     <div

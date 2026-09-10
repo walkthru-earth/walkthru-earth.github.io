@@ -3,7 +3,8 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { SECTIONS } from '@/components/globe/data/sections';
+import { SECTION_IDS } from '@/components/globe/data/section-ids';
+import { parseViewportParams } from '@/components/globe/utils/viewport-params';
 
 const GlobeExplorer = dynamic(
   () => import('@/components/globe/GlobeExplorer').then((m) => m.GlobeExplorer),
@@ -28,24 +29,13 @@ function IndicesContent() {
   const initialSection = sectionParam
     ? Math.max(
         0,
-        SECTIONS.findIndex((s) => s.id === sectionParam)
+        SECTION_IDS.findIndex((id) => id === sectionParam)
       )
     : 0;
 
-  const z = searchParams.get('z');
-  const lat = searchParams.get('y');
-  const lng = searchParams.get('x');
-  const h3 = searchParams.get('h3');
+  const viewport = parseViewportParams(searchParams);
 
-  return (
-    <GlobeExplorer
-      initialSection={initialSection}
-      initialZoom={z ? parseFloat(z) : undefined}
-      initialLat={lat ? parseFloat(lat) : undefined}
-      initialLng={lng ? parseFloat(lng) : undefined}
-      initialH3Res={h3 ? parseInt(h3, 10) : undefined}
-    />
-  );
+  return <GlobeExplorer initialSection={initialSection} {...viewport} />;
 }
 
 export default function IndicesPage() {

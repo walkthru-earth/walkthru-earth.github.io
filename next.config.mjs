@@ -3,6 +3,8 @@
 const nextConfig = {
   // Static export for GitHub Pages
   output: 'export',
+  // Hand-maintained AGENTS.md already maps tasks to the installed Next.js docs.
+  agentRules: false,
 
   // Disable React Strict Mode — deck.gl/luma.gl WebGL device creation
   // fails on double-invoked useEffect (maxTextureDimension2D error).
@@ -11,7 +13,7 @@ const nextConfig = {
 
   // Turbopack is default in Next.js 16
   turbopack: {
-    root: '.',
+    root: import.meta.dirname,
   },
 
   images: {

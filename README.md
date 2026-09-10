@@ -1,32 +1,34 @@
 # walkthru.earth
 
-People-first urban intelligence. We reveal hidden patterns in cities and turn them into solutions that support wellbeing everywhere.
+People-first urban intelligence: exploring patterns in cities and building tools that support wellbeing.
 
-**Live at [walkthru.earth](https://walkthru.earth)**
+**[Visit walkthru.earth](https://walkthru.earth)**
 
-## What we build
+- **[Earth's Living Indices](https://walkthru.earth/indices)**: interactive globe for terrain, population, buildings, weather, and combined urban indicators.
+- **[Hormones & Cities](https://walkthru.earth/hormones-cities)**: linked street imagery, map, and brain visualization.
+- **[OpenSensor](https://walkthru.earth/opensensor)**: environmental sensing project.
+- **[Software](https://walkthru.earth/software)**: Imagery Desktop and objex.
 
-- **[Earth's Living Indices](https://walkthru.earth/indices)** - Interactive H3 hexagonal globe exploring terrain, population, buildings, and weather data worldwide
-- **[Imagery Desktop](https://walkthru.earth/software/imagery-desktop)** - Download and georeference historical satellite imagery (1984-2025)
-- **[objex](https://walkthru.earth/software/objex)** - Browse, query, and visualize cloud storage files in the browser
+## Development
 
-## Quick start
+Use Node 24 and the pnpm version declared in `package.json`.
 
 ```bash
 pnpm install
 pnpm dev
-# Open http://localhost:3000
 ```
 
-## Contributing
+Open `http://localhost:3000`. `pnpm build` creates a static export in `out/` for GitHub Pages.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code quality tools, project structure, and deployment instructions.
+## Documentation
 
-## License
+- [Contributing](CONTRIBUTING.md): commands, validation, dependency updates.
+- [Agent guide](AGENTS.md): task-based map for the next development session.
+- [Architecture](docs/architecture.md): routes, modules, and shared conventions.
+- [Indices](docs/indices.md): on-demand Parquet loading and globe rendering.
+- [Parquet producers](docs/parquet-producer-guidance.md): file and HTTP requirements.
+- [Deployment](docs/deployment.md): GitHub Pages and configuration.
 
-Creative Commons Attribution 4.0 International
+## License and community
 
-## Links
-
-- [GitHub](https://github.com/walkthru-earth)
-- [LinkedIn](https://www.linkedin.com/company/walkthru-earth/)
+[Creative Commons Attribution 4.0 International](LICENSE). Find us on [GitHub](https://github.com/walkthru-earth) and [LinkedIn](https://www.linkedin.com/company/walkthru-earth/).

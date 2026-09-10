@@ -19,9 +19,9 @@ import {
   Layers,
   Video,
   ListTodo,
-  Github,
   Sparkles,
 } from 'lucide-react';
+import { Github } from '@/components/shared/brand-icons';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
@@ -188,16 +188,22 @@ export default function ImageryDesktopPage() {
   const isDark = mounted && effectiveTheme === 'dark';
 
   useEffect(() => {
+    const controller = new AbortController();
     fetch(
-      'https://api.github.com/repos/walkthru-earth/imagery-desktop/releases/latest'
+      'https://api.github.com/repos/walkthru-earth/imagery-desktop/releases/latest',
+      { signal: controller.signal }
     )
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`Release request failed (${res.status})`);
+        return res.json();
+      })
       .then(
         (data: {
           tag_name: string;
           published_at: string;
           assets: { name: string; browser_download_url: string }[];
         }) => {
+          if (controller.signal.aborted) return;
           const assets = data.assets.map((asset) => {
             let platform: 'windows' | 'macos' | 'linux' = 'linux';
             if (asset.name.includes('windows')) platform = 'windows';
@@ -220,9 +226,11 @@ export default function ImageryDesktopPage() {
         }
       )
       .catch((error) => {
+        if (controller.signal.aborted) return;
         console.error('Failed to fetch release:', error);
         setLoading(false);
       });
+    return () => controller.abort();
   }, []);
 
   const getPlatformIcon = (platform: string) => {
@@ -585,6 +593,9 @@ export default function ImageryDesktopPage() {
               <div className="border-foreground/10 relative aspect-video overflow-hidden rounded-xl border shadow-2xl">
                 <video
                   controls
+                  muted
+                  preload="none"
+                  aria-label="Silent satellite imagery timelapse showing urban change"
                   className="h-full w-full"
                   poster="/software/imagery-desktop/feature-3-light.png"
                 >

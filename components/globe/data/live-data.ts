@@ -1,88 +1,137 @@
-/**
- * Reusable helpers for resolving the "latest" partition of a live dataset
- * from its source.coop S3 bucket, using ListObjectsV2.
- *
- * Data in this project is Hive-partitioned (e.g. `date=2026-04-18`,
- * `release=2026-04-15.0`, `hour=12`). Listing with `delimiter=/` returns
- * one CommonPrefix per child partition, so we can pick the lexicographic
- * max to get the newest one. ISO dates and the Overture `YYYY-MM-DD.N`
- * release scheme both sort correctly as strings.
- */
-
+/** Resolve live Hive partitions with paginated S3 ListObjectsV2 requests. */
 import { S3_BUCKET } from './constants';
 
-const BUCKET_ROOT = `${S3_BUCKET}/`;
+const PARTITION_TTL_MS = 5 * 60 * 1000;
 
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/** Decode XML text only: no DOM, markup evaluation, or external entities. */
+function decodeXml(value: string): string {
+  const entities: Record<string, string> = {
+    amp: '&',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    apos: "'",
+  };
+  return value.replace(/&([^;]+);/g, (_, entity: string) => {
+    if (Object.hasOwn(entities, entity)) return entities[entity];
+    if (/^#(?:x[\da-fA-F]+|\d+)$/.test(entity)) {
+      const point =
+        entity[1] === 'x'
+          ? Number.parseInt(entity.slice(2), 16)
+          : Number.parseInt(entity.slice(1), 10);
+      if (
+        point > 0 &&
+        point <= 0x10ffff &&
+        !(point >= 0xd800 && point <= 0xdfff)
+      ) {
+        return String.fromCodePoint(point);
+      }
+    }
+    throw new Error('Invalid XML entity in S3 listing');
+  });
 }
 
-/**
- * List the immediate child `key=value/` partitions under `bucketKey`
- * and return the lexicographic max value.
- *
- * @param bucketKey bucket-relative prefix, no leading slash,
- *                  e.g. `walkthru-earth/indices/weather/model=GraphCast_GFS`
- * @param key       partition key, e.g. `date`, `release`, `hour`
- * @returns bucket-relative path to the winning partition (no trailing slash),
- *          e.g. `walkthru-earth/indices/weather/model=GraphCast_GFS/date=2026-04-18`
- */
+function xmlText(xml: string, tag: string): string | undefined {
+  return xml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))?.[1];
+}
+
+/** Numeric hours and release suffixes must not use lexicographic ordering. */
+function comparePartitions(left: string, right: string): number {
+  if (/^\d+$/.test(left) && /^\d+$/.test(right)) {
+    const a = BigInt(left),
+      b = BigInt(right);
+    return a === b ? 0 : a > b ? 1 : -1;
+  }
+  const a = left.match(/^(\d{4}-\d{2}-\d{2})\.(\d+)$/);
+  const b = right.match(/^(\d{4}-\d{2}-\d{2})\.(\d+)$/);
+  if (a && b && a[1] === b[1]) return comparePartitions(a[2], b[2]);
+  return left === right ? 0 : left > right ? 1 : -1;
+}
+
+/** Return the newest immediate key=value partition, without a trailing slash. */
 export async function resolveLatestPartition(
   bucketKey: string,
   key: string
 ): Promise<string> {
   const prefix = bucketKey.endsWith('/') ? bucketKey : `${bucketKey}/`;
-  const url =
-    `${S3_BUCKET}?list-type=2` +
-    `&prefix=${encodeURIComponent(prefix)}` +
-    `&delimiter=%2F`;
-
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`S3 list ${res.status} for ${prefix}`);
-  }
-  const xml = await res.text();
-
-  const pattern = new RegExp(
-    `<Prefix>${escapeRegExp(prefix)}${escapeRegExp(key)}=([^/<]+)/</Prefix>`,
-    'g'
-  );
-  const values = Array.from(xml.matchAll(pattern), (m) => m[1]);
-
-  if (values.length === 0) {
+  const partitionPrefix = `${prefix}${key}=`;
+  const seenTokens = new Set<string>();
+  let token: string | undefined;
+  let latest: string | undefined;
+  do {
+    const url = new URL(S3_BUCKET);
+    url.searchParams.set('list-type', '2');
+    url.searchParams.set('prefix', prefix);
+    url.searchParams.set('delimiter', '/');
+    if (token) url.searchParams.set('continuation-token', token);
+    const response = await fetch(url.toString(), {
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok)
+      throw new Error(`S3 list ${response.status} for ${prefix}`);
+    const xml = await response.text();
+    const truncated = xmlText(xml, 'IsTruncated')?.trim();
+    if (
+      !/<ListBucketResult(?:\s[^>]*)?>/.test(xml) ||
+      !xml.includes('</ListBucketResult>') ||
+      !['true', 'false'].includes(truncated ?? '')
+    ) {
+      throw new Error(`Invalid S3 listing for ${prefix}`);
+    }
+    for (const group of xml.matchAll(
+      /<CommonPrefixes>\s*<Prefix>([^<]*)<\/Prefix>\s*<\/CommonPrefixes>/g
+    )) {
+      const child = decodeXml(group[1]);
+      if (!child.startsWith(partitionPrefix) || !child.endsWith('/')) continue;
+      const value = child.slice(partitionPrefix.length, -1);
+      if (!value || value.includes('/')) continue;
+      if (latest === undefined || comparePartitions(value, latest) > 0)
+        latest = value;
+    }
+    token = undefined;
+    if (truncated === 'true') {
+      const rawToken = xmlText(xml, 'NextContinuationToken');
+      token = rawToken ? decodeXml(rawToken) : undefined;
+      if (!token || seenTokens.has(token))
+        throw new Error(`Invalid S3 continuation token for ${prefix}`);
+      seenTokens.add(token);
+    }
+  } while (token);
+  if (latest === undefined)
     throw new Error(`No ${key}= partitions under ${prefix}`);
-  }
-  values.sort();
-  const latest = values[values.length - 1];
-  return `${prefix}${key}=${latest}`;
+  return `${partitionPrefix}${latest}`;
 }
 
-/** Wrap a no-arg async factory so the first successful call is cached forever; errors are not cached. */
-export function memoizePromise<T>(factory: () => Promise<T>): () => Promise<T> {
+/** Share in-flight work; expire successes after five minutes and retry failures. */
+export function memoizePromise<T>(
+  factory: () => Promise<T>,
+  ttlMs = PARTITION_TTL_MS
+): () => Promise<T> {
   let cached: Promise<T> | null = null;
+  let expiresAt = 0;
   return () => {
-    if (cached) return cached;
-    const p = factory();
-    cached = p;
-    p.catch(() => {
-      if (cached === p) cached = null;
-    });
-    return p;
+    if (cached && Date.now() < expiresAt) return cached;
+    const promise = Promise.resolve().then(factory);
+    cached = promise;
+    expiresAt = Infinity;
+    void promise.then(
+      () => {
+        if (cached === promise) expiresAt = Date.now() + ttlMs;
+      },
+      () => {
+        if (cached === promise) cached = null;
+      }
+    );
+    return promise;
   };
 }
 
-/**
- * Resolve a nested chain of Hive partitions (e.g. date → hour) and return
- * the full absolute URL prefix (no trailing slash), ready to append
- * `/h3_res=N/data.parquet`.
- */
+/** Resolve nested partitions, for example date → hour, into an absolute URL. */
 export async function resolveLatestPartitionChain(
   bucketKey: string,
   keys: string[]
 ): Promise<string> {
   let current = bucketKey;
-  for (const key of keys) {
-    current = await resolveLatestPartition(current, key);
-  }
-  return `${BUCKET_ROOT}${current}`;
+  for (const key of keys) current = await resolveLatestPartition(current, key);
+  return `${S3_BUCKET}/${current}`;
 }

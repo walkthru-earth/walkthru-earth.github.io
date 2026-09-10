@@ -1,13 +1,13 @@
 import { Container } from '@/components/shared/container';
 import Link from 'next/link';
+import { Mail } from 'lucide-react';
 import {
   Github,
   Linkedin,
   Youtube,
   Instagram,
   Facebook,
-  Mail,
-} from 'lucide-react';
+} from '@/components/shared/brand-icons';
 
 function XIcon({ className }: { className?: string }) {
   return (

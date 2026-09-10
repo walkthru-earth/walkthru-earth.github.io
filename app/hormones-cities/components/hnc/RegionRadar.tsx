@@ -34,9 +34,8 @@ export function RegionRadar({
   selectedAlias,
   onSelectAlias,
 }: Props) {
-  const regions = row?.top_regions ?? [];
-
   const data = useMemo(() => {
+    const regions = row?.top_regions ?? [];
     if (!regions.length) return [];
     return regions.map((r) => {
       const sigma = baselines
@@ -44,7 +43,7 @@ export function RegionRadar({
         : Number(r.score);
       return { alias: r.name, sigma };
     });
-  }, [regions, baselines]);
+  }, [row, baselines]);
 
   const hasBaselines = !!baselines;
   const radius = 78;

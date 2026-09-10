@@ -2,7 +2,7 @@
  * Build a hyparquet ParquetQueryFilter that matches any h3_index in the
  * given BigInt ranges. hyparquet uses this to skip row groups whose h3_index
  * min/max don't overlap any range (via canSkipRowGroup against column
- * statistics), and skips post-decode rows that still don't match.
+ * statistics). The scan caller must still apply an exact post-decode mask.
  */
 import type { ParquetQueryFilter } from 'hyparquet';
 

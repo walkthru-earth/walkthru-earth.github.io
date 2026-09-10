@@ -31,9 +31,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://walkthru.earth/og-image.png',
-        width: 1200,
-        height: 630,
+        url: 'https://walkthru.earth/globe-preview-dark.png',
+        width: 1755,
+        height: 1369,
         alt: 'walkthru.earth - People-First Urban Intelligence',
       },
     ],
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     description:
       'Detecting hidden patterns of daily life and turning them into people-first solutions for urban wellbeing',
     creator: '@walkthru_earth',
-    images: ['https://walkthru.earth/og-image.png'],
+    images: ['https://walkthru.earth/globe-preview-dark.png'],
   },
 };
 
@@ -97,7 +97,12 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={quicksand.variable}>
+    <html
+      data-scroll-behavior="smooth"
+      lang="en"
+      suppressHydrationWarning
+      className={quicksand.variable}
+    >
       <head>
         <script
           type="application/ld+json"

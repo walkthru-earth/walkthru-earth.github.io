@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "nextjs", "jsx-a11y", "import"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "jsx-a11y/prefer-tag-over-role": "off"
+  },
+  "ignorePatterns": ["node_modules", ".next", "out", "public", ".pnpm-store"]
+}

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import maplibregl, { type Map as MlMap, type Marker } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import type { Map as MlMap, Marker } from 'maplibre-gl';
 import {
   HNC_FLY,
   HNC_INITIAL_VIEW,
@@ -111,11 +112,14 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
   const mapRef = useRef<MlMap | null>(null);
   const markersRef = useRef<Map<string, MarkerRef>>(new Map());
   const onSelectRef = useRef(onSelect);
-  onSelectRef.current = onSelect;
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
 
   // Init the map exactly once.
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    const markers = markersRef.current;
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: HNC_MAP_STYLE[themeMode],
@@ -135,7 +139,7 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
     return () => {
       map.remove();
       mapRef.current = null;
-      markersRef.current.clear();
+      markers.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -154,7 +158,6 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
     if (!map || !container) return;
 
     const accent = readToken(container, '--primary', 'hsl(158 64% 42%)');
-    const warm = readToken(container, '--secondary', 'hsl(37 91% 55%)');
 
     const apply = () => {
       for (const m of markersRef.current.values()) m.marker.remove();

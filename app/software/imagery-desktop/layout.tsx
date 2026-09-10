@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://walkthru.earth/og-imagery-desktop.png',
-        width: 1200,
-        height: 630,
+        url: 'https://walkthru.earth/software/imagery-desktop/feature-1-dark.png',
+        width: 1400,
+        height: 949,
         alt: 'Imagery Desktop - Historical Satellite Imagery Analysis Tool',
       },
     ],
@@ -33,7 +33,9 @@ export const metadata: Metadata = {
     description:
       'Free tool to download and analyze 40+ years of satellite imagery. Create timelapses and export GeoTIFF for GIS analysis.',
     creator: '@walkthru_earth',
-    images: ['https://walkthru.earth/og-imagery-desktop.png'],
+    images: [
+      'https://walkthru.earth/software/imagery-desktop/feature-1-dark.png',
+    ],
   },
 };
 

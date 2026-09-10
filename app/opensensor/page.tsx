@@ -24,7 +24,6 @@ import {
   Sun,
   Activity,
   Database,
-  Github,
   ExternalLink,
   Wifi,
   HardDrive,
@@ -36,6 +35,7 @@ import {
   Layers,
   Cpu,
 } from 'lucide-react';
+import { Github } from '@/components/shared/brand-icons';
 import Link from 'next/link';
 
 export default function OpenSensorPage() {

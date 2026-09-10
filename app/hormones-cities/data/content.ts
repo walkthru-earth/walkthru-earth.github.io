@@ -1,6 +1,5 @@
 import {
   Heart,
-  Globe,
   Lock,
   Shield,
   BarChart3,

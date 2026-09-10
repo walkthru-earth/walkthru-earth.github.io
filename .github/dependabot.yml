@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      deck-and-luma:
+        patterns: ['@deck.gl/*', '@luma.gl/*']
+      next:
+        patterns: ['next', '@next/*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

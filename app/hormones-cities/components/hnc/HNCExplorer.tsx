@@ -123,7 +123,8 @@ export function HNCExplorer() {
 
   useEffect(() => {
     let cancelled = false;
-    loadParquetLight()
+    const controller = new AbortController();
+    loadParquetLight(controller.signal)
       .then(({ rows, file }) => {
         if (cancelled) return;
         setRows(rows);
@@ -138,6 +139,7 @@ export function HNCExplorer() {
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [setStatusMsg]);
 
@@ -152,7 +154,12 @@ export function HNCExplorer() {
     });
     decode
       .then((cache) => {
-        if (cancelled) return;
+        if (cancelled) {
+          for (const heavy of cache.values()) {
+            if (heavy.blobUrl) URL.revokeObjectURL(heavy.blobUrl);
+          }
+          return;
+        }
         setHeavyCache(cache);
         setStatusMsg(`Cache ready · ${cache.size} frames`);
       })

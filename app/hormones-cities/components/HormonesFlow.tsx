@@ -14,7 +14,6 @@ import {
   GraduationCap,
   Landmark,
   Users,
-  BadgeDollarSign,
   ArrowDown,
   ArrowRight,
   Circle,

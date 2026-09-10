@@ -21,10 +21,10 @@ import {
   Layers,
   Box,
   ExternalLink,
-  Github,
   Copy,
   Check,
 } from 'lucide-react';
+import { Github } from '@/components/shared/brand-icons';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Navbar } from '@/components/navigation/navbar';

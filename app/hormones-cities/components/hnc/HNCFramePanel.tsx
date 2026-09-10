@@ -276,8 +276,6 @@ export function CorticalRegions({
   onScaleChange,
   compact = false,
 }: RegionsProps) {
-  const regions = row?.top_regions ?? [];
-
   // Effective scale. AOI is only meaningful with baselines loaded.
   const effectiveScale: ScoreScale =
     baselines && (scale ?? 'aoi') === 'aoi' ? 'aoi' : 'raw';
@@ -286,6 +284,7 @@ export function CorticalRegions({
   // bar chart, the radar (separate component) and the bar tooltip cannot
   // disagree about what "this region scored" means.
   const ranked = useMemo(() => {
+    const regions = row?.top_regions ?? [];
     const scored = regions.map((r) => {
       const raw = Number(r.score);
       const value =
@@ -294,7 +293,7 @@ export function CorticalRegions({
     });
     scored.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
     return scored;
-  }, [regions, effectiveScale, baselines]);
+  }, [row, effectiveScale, baselines]);
 
   const max = useMemo(
     () => ranked.reduce((m, r) => Math.max(m, Math.abs(r.value)), 0),

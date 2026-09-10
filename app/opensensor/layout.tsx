@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://walkthru.earth/og-opensensor.png',
-        width: 1200,
-        height: 630,
+        url: 'https://walkthru.earth/opensensor-icon-512.png',
+        width: 512,
+        height: 512,
         alt: 'opensensor.space - Cloud-Native IoT Sensor Network',
       },
     ],
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     description:
       'Enterprise-grade IoT infrastructure. Scalable from a single sensor to millions of devices with minimal carbon footprint.',
     creator: '@walkthru_earth',
-    images: ['https://walkthru.earth/og-opensensor.png'],
+    images: ['https://walkthru.earth/opensensor-icon-512.png'],
   },
 };
 

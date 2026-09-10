@@ -5,7 +5,17 @@
  * fetched via HTTP range requests.
  */
 
-import { polygonToCells, getResolution } from 'h3-js';
+import {
+  polygonToCellsExperimental,
+  POLYGON_TO_CELLS_FLAGS,
+  getResolution,
+  getNumCells,
+} from 'h3-js';
+
+/** Bound predicate construction and worker messages even for continental views. */
+const MAX_FILTER_CELLS = 1024;
+const normalizeLongitude = (longitude: number) =>
+  ((((longitude + 180) % 360) + 360) % 360) - 180;
 
 /* ── H3 bit-layout constants ─────────────────────────────────────────── */
 
@@ -35,6 +45,11 @@ export function h3CellToBigIntRange(
   childRes: number
 ): [bigint, bigint] {
   const parentRes = getResolution(cellHex);
+  if (!Number.isInteger(childRes) || childRes < parentRes || childRes > 15) {
+    throw new RangeError(
+      'H3 descendant resolution must be between parent resolution and 15'
+    );
+  }
   let cell = BigInt(`0x${cellHex}`);
 
   // Set the resolution field to childRes
@@ -83,161 +98,111 @@ function mergeRanges(ranges: [bigint, bigint][]): [bigint, bigint][] {
   return merged;
 }
 
-/* ── Polygon-to-cells wrapper ────────────────────────────────────────── */
-
 /**
- * Build an array of H3 cell hex strings covering the given bounds at
- * `filterRes`.  Handles antimeridian wrapping.
+ * Split unwrapped longitude bounds into strips of at most 90 degrees. This
+ * avoids H3 interpreting a broad polygon as its antimeridian complement and
+ * supports both wrapped bounds and deck.gl longitudes outside [-180, 180].
  *
- * h3-js v4 `polygonToCells` expects a polygon as `[lat, lng][]` ring(s).
+ * Bbox overlap deliberately includes a margin: H3's implementation builds
+ * boxes covering every descendant, unlike geometric parent-cell overlap.
+ * See https://github.com/uber/h3/blob/master/src/h3lib/lib/polyfill.c.
  */
 function boundsToH3Cells(
   west: number,
   south: number,
-  east: number,
+  longitudeSpan: number,
   north: number,
   filterRes: number
 ): string[] {
-  // Clamp latitudes
-  south = Math.max(-89.99, south);
-  north = Math.min(89.99, north);
-
-  const buildRing = (w: number, s: number, e: number, n: number) => [
-    [s, w],
-    [s, e],
-    [n, e],
-    [n, w],
-    [s, w], // close ring
-  ];
-
-  if (west <= east) {
-    // Normal case
-    return polygonToCells([buildRing(west, south, east, north)], filterRes);
+  const cells = new Set<string>();
+  let remaining = longitudeSpan;
+  let cursor = normalizeLongitude(west);
+  while (remaining > 0) {
+    const width = Math.min(90, remaining, 180 - cursor);
+    const east = cursor + width;
+    const ring = [
+      [south, cursor],
+      [south, east],
+      [north, east],
+      [north, cursor],
+      [south, cursor],
+    ];
+    for (const cell of polygonToCellsExperimental(
+      [ring],
+      filterRes,
+      POLYGON_TO_CELLS_FLAGS.containmentOverlappingBbox
+    ))
+      cells.add(cell);
+    remaining -= width;
+    cursor = east >= 180 ? -180 : east;
   }
-
-  // Antimeridian wrap: split into two polygons
-  const left = polygonToCells(
-    [buildRing(west, south, 179.99, north)],
-    filterRes
-  );
-  const right = polygonToCells(
-    [buildRing(-179.99, south, east, north)],
-    filterRes
-  );
-  return [...left, ...right];
+  return [...cells];
 }
 
-/* ── Public API ──────────────────────────────────────────────────────── */
-
 /**
- * Convert deck.gl viewport bounds to sorted, merged H3 BigInt ranges at
- * `dataRes`.
- *
- * @param bounds  `[west, south, east, north]` from GlobeViewport.getBounds()
- * @param dataRes Target H3 resolution of the parquet file
- * @returns Array of `[minHex, maxHex]` string pairs, or `null` when the
- *          full globe is visible (no filtering needed).
+ * Conservative descendant ranges for `[west, south, east, north]` bounds.
+ * `null` is reserved for low-resolution files or an actual whole-globe view.
+ * Broad longitude/latitude spans alone never turn a regional query into an
+ * unfiltered read. A coarser predicate bounds planning cost for large regions.
  */
 export function viewportToH3Ranges(
   bounds: [number, number, number, number],
   dataRes: number
 ): [string, string][] | null {
-  let [west, south, east, north] = bounds;
-
-  const DEV = process.env.NODE_ENV !== 'production';
-
-  // Full-globe check: if the viewport covers most of the globe, skip
-  const lonSpan = west <= east ? east - west : 360 - west + east;
-  if (lonSpan > 300 || north - south > 160) {
-    if (DEV) {
-      console.log(
-        `[Globe:H3Viewport] SKIP (full globe) dataRes=${dataRes} lonSpan=${lonSpan.toFixed(1)}° latSpan=${(north - south).toFixed(1)}°`
-      );
-    }
-    return null;
-  }
-
-  // Very low resolutions (0-2) have tiny files — not worth filtering.
-  // Res 3+ benefit from viewport filtering when zoomed in.
-  if (dataRes < 3) {
-    if (DEV) {
-      console.log(
-        `[Globe:H3Viewport] SKIP (low res) dataRes=${dataRes} < 3, loading full file`
-      );
-    }
-    return null;
-  }
-
-  // Pad bounds slightly to compensate for GlobeView projection edges.
-  // The bounds from GlobeMap are already clamped to the visible hemisphere,
-  // so only a small additional pad is needed for edge coverage.
-  const latSpan = north - south;
-  const pad = Math.min(20, Math.max(10, latSpan * 0.15));
-  const origBounds = `[${west.toFixed(1)}, ${south.toFixed(1)}, ${east.toFixed(1)}, ${north.toFixed(1)}]`;
-  south = Math.max(-90, south - pad);
-  north = Math.min(90, north + pad);
-  west -= pad;
-  east += pad;
-
-  // Safeguard: never query more than one hemisphere (180° lon span).
-  // If padded bounds exceed this, clamp to 180° centered on the midpoint.
-  const lonSpanPadded = east - west;
-  if (lonSpanPadded > 180) {
-    const mid = (west + east) / 2;
-    west = mid - 90;
-    east = mid + 90;
-    if (DEV) {
-      console.log(
-        `[Globe:H3Viewport] SAFEGUARD: clamped lon span from ${lonSpanPadded.toFixed(1)}° to 180° centered at ${mid.toFixed(1)}°`
-      );
-    }
-  }
-
-  // If padded span covers the full globe, skip filtering
-  if (east - west >= 360 || north - south > 160) {
-    if (DEV) {
-      console.log(
-        `[Globe:H3Viewport] SKIP (padded too wide) dataRes=${dataRes} pad=${pad.toFixed(1)}° → spans ${(east - west).toFixed(1)}° lon, ${(north - south).toFixed(1)}° lat`
-      );
-    }
-    return null;
-  }
-
-  // Normalize to [-180, 180] — may flip to antimeridian-wrap case
-  if (west < -180) west += 360;
-  if (east > 180) east -= 360;
-
-  const paddedBounds = `[${west.toFixed(1)}, ${south.toFixed(1)}, ${east.toFixed(1)}, ${north.toFixed(1)}]`;
-
-  // Use a coarser resolution for the polygon-to-cells pass to keep it fast
-  const filterRes = Math.max(1, dataRes - 3);
-
-  const cells = boundsToH3Cells(west, south, east, north, filterRes);
-  if (cells.length === 0) {
-    if (DEV) {
-      console.log(
-        `[Globe:H3Viewport] SKIP (0 cells) dataRes=${dataRes} filterRes=${filterRes} paddedBounds=${paddedBounds}`
-      );
-    }
-    return null;
-  }
-
-  // Convert each coarse cell to a BigInt range at the data resolution
-  const ranges: [bigint, bigint][] = cells.map((c) =>
-    h3CellToBigIntRange(c, dataRes)
-  );
-
-  const merged = mergeRanges(ranges);
-
-  if (DEV) {
-    console.log(
-      `[Globe:H3Viewport] FILTER dataRes=${dataRes} filterRes=${filterRes} | ` +
-        `origBounds=${origBounds} → padded=${paddedBounds} (pad=${pad.toFixed(1)}°) | ` +
-        `${cells.length} cells → ${merged.length} merged ranges`
+  if (!bounds.every(Number.isFinite) || bounds[1] > bounds[3]) {
+    throw new RangeError(
+      'Viewport bounds must be finite and ordered south to north'
     );
   }
+  if (!Number.isInteger(dataRes) || dataRes < 0 || dataRes > 15) {
+    throw new RangeError('H3 resolution must be an integer from 0 to 15');
+  }
+  // The low-resolution sources are intentionally small global datasets.
+  if (dataRes < 3) return null;
 
-  // Encode as hex strings (BigInt can't be sent via postMessage)
+  const [rawWest, rawSouth, rawEast, rawNorth] = bounds;
+  const rawSpan = rawEast - rawWest;
+  const longitudeSpan =
+    rawSpan >= 360
+      ? 360
+      : rawSpan < 0
+        ? ((rawSpan % 360) + 360) % 360 || 360
+        : rawSpan;
+  let south = Math.max(-90, Math.min(90, rawSouth));
+  let north = Math.max(-90, Math.min(90, rawNorth));
+  // GlobeViewport uses near-polar bounds for the completely zoomed-out globe.
+  if (longitudeSpan === 360 && north - south >= 170) return null;
+
+  const pad = Math.min(10, Math.max(0.02, (north - south) * 0.15));
+  south = Math.max(-90, south - pad);
+  north = Math.min(90, north + pad);
+  const paddedSpan = Math.min(360, longitudeSpan + 2 * pad);
+  const west = normalizeLongitude(rawWest - pad);
+
+  // Spherical rectangle area gives a cheap first estimate. The actual count
+  // below enforces the limit despite latitude distortion and overlap margins.
+  const radians = Math.PI / 180;
+  const globeFraction =
+    ((paddedSpan / 360) *
+      (Math.sin(north * radians) - Math.sin(south * radians))) /
+    2;
+  let filterRes = Math.min(4, dataRes - 2);
+  while (
+    filterRes > 0 &&
+    getNumCells(filterRes) * globeFraction > MAX_FILTER_CELLS / 2
+  )
+    filterRes--;
+  let cells = boundsToH3Cells(west, south, paddedSpan, north, filterRes);
+  while (cells.length > MAX_FILTER_CELLS && filterRes > 0) {
+    cells = boundsToH3Cells(west, south, paddedSpan, north, --filterRes);
+  }
+  if (!cells.length) {
+    // An invalid/degenerate polygon must not silently trigger a global scan.
+    throw new Error('Unable to construct H3 coverage for viewport bounds');
+  }
+  const merged = mergeRanges(
+    cells.map((cell) => h3CellToBigIntRange(cell, dataRes))
+  );
   return merged.map(([lo, hi]) => [lo.toString(16), hi.toString(16)]);
 }
 

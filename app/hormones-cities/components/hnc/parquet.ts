@@ -9,8 +9,11 @@ import type { HNCHeavy, HNCRow, RegionScore } from './types';
 // range-reads the "footer" at the wrong offset (the file is delivered
 // transparently decompressed by the browser). Fetch the whole buffer once and
 // hand hyparquet an in-memory AsyncBuffer instead.
-async function fetchAsyncBuffer(url: string): Promise<AsyncBuffer> {
-  const res = await fetch(url);
+async function fetchAsyncBuffer(
+  url: string,
+  signal?: AbortSignal
+): Promise<AsyncBuffer> {
+  const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`fetch failed ${res.status}`);
   const buffer = await res.arrayBuffer();
   return {
@@ -54,8 +57,10 @@ export interface ParquetLoadResult {
   file: AsyncBuffer;
 }
 
-export async function loadParquetLight(): Promise<ParquetLoadResult> {
-  const file = await fetchAsyncBuffer(HNC_PARQUET_URL);
+export async function loadParquetLight(
+  signal?: AbortSignal
+): Promise<ParquetLoadResult> {
+  const file = await fetchAsyncBuffer(HNC_PARQUET_URL, signal);
   const out = await parquetReadObjects({
     file,
     columns: [

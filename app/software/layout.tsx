@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://walkthru.earth/og-software.png',
-        width: 1200,
-        height: 630,
+        url: 'https://walkthru.earth/software/imagery-desktop/feature-1-dark.png',
+        width: 1400,
+        height: 949,
         alt: 'walkthru.earth Software - Urban Analysis Tools',
       },
     ],
@@ -32,7 +32,9 @@ export const metadata: Metadata = {
     description:
       'Free, open-source software for urban analysis and pattern detection. Download tools for satellite imagery, GIS, and community research.',
     creator: '@walkthru_earth',
-    images: ['https://walkthru.earth/og-software.png'],
+    images: [
+      'https://walkthru.earth/software/imagery-desktop/feature-1-dark.png',
+    ],
   },
 };
 

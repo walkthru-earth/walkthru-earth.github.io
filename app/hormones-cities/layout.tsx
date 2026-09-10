@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://walkthru.earth/og-hormones-cities.png',
-        width: 1200,
-        height: 630,
+        url: 'https://walkthru.earth/hormones-cities-ai.png',
+        width: 780,
+        height: 1768,
         alt: 'Hormones & Cities - Neighborhood Health Insights',
       },
     ],
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     description:
       'Share anonymous wellbeing and mobility data, get back neighborhood health insights. Offline-first, privacy by design.',
     creator: '@walkthru_earth',
-    images: ['https://walkthru.earth/og-hormones-cities.png'],
+    images: ['https://walkthru.earth/hormones-cities-ai.png'],
   },
 };
 

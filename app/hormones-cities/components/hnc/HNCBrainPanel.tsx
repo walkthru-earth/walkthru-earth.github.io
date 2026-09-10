@@ -25,8 +25,18 @@ interface SceneCtx {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   controls: OrbitControls;
-  rafId: number;
   resizeObs: ResizeObserver;
+}
+
+function disposeAssembly(assembly: BrainAssembly) {
+  assembly.group.traverse((obj) => {
+    if (!(obj instanceof THREE.Mesh)) return;
+    obj.geometry.dispose();
+    const materials = Array.isArray(obj.material)
+      ? obj.material
+      : [obj.material];
+    materials.forEach((material) => material.dispose());
+  });
 }
 
 export function HNCBrainPanel({
@@ -41,9 +51,15 @@ export function HNCBrainPanel({
   const assemblyRef = useRef<BrainAssembly | null>(null);
   const [atlas, setAtlas] = useState<ParcelAtlas | null>(null);
   const onStatusRef = useRef(onStatus);
-  onStatusRef.current = onStatus;
   const onAtlasReadyRef = useRef(onAtlasReady);
-  onAtlasReadyRef.current = onAtlasReady;
+  useEffect(() => {
+    onStatusRef.current = onStatus;
+    onAtlasReadyRef.current = onAtlasReady;
+  }, [onStatus, onAtlasReady]);
+  const paintRef = useRef({ brainActivity, spotlightAlias, atlas });
+  useEffect(() => {
+    paintRef.current = { brainActivity, spotlightAlias, atlas };
+  }, [brainActivity, spotlightAlias, atlas]);
 
   // Try the parcel atlas once. Missing asset → highlighting silently no-ops.
   useEffect(() => {
@@ -120,12 +136,17 @@ export function HNCBrainPanel({
     };
     tick();
 
-    sceneRef.current = { renderer, scene, camera, controls, rafId, resizeObs };
+    sceneRef.current = { renderer, scene, camera, controls, resizeObs };
 
     return () => {
-      cancelAnimationFrame(sceneRef.current?.rafId ?? 0);
+      cancelAnimationFrame(rafId);
       resizeObs.disconnect();
       controls.dispose();
+      if (assemblyRef.current) {
+        scene.remove(assemblyRef.current.group);
+        disposeAssembly(assemblyRef.current);
+        assemblyRef.current = null;
+      }
       renderer.dispose();
       if (renderer.domElement.parentNode === container) {
         container.removeChild(renderer.domElement);
@@ -142,19 +163,14 @@ export function HNCBrainPanel({
     onStatusRef.current?.('Loading cortex…');
     loadHemispheres(surface)
       .then((assembly) => {
-        if (cancelled) return;
         const ctxNow = sceneRef.current;
-        if (!ctxNow) return;
+        if (cancelled || !ctxNow) {
+          disposeAssembly(assembly);
+          return;
+        }
         if (assemblyRef.current) {
           ctxNow.scene.remove(assemblyRef.current.group);
-          assemblyRef.current.group.traverse((obj) => {
-            if (obj instanceof THREE.Mesh) {
-              obj.geometry?.dispose();
-              const mat = obj.material as THREE.Material | THREE.Material[];
-              if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
-              else mat?.dispose();
-            }
-          });
+          disposeAssembly(assemblyRef.current);
         }
         assemblyRef.current = assembly;
         ctxNow.scene.add(assembly.group);
@@ -162,20 +178,21 @@ export function HNCBrainPanel({
         ctxNow.camera.position.set(0, 0.15, 2.4);
         ctxNow.camera.lookAt(0, 0, 0);
         // Re-apply current activity if any.
-        paintBrainActivity(assembly, brainActivity, {
-          spotlight: spotlightAlias ?? null,
-          atlas,
+        const latest = paintRef.current;
+        paintBrainActivity(assembly, latest.brainActivity, {
+          spotlight: latest.spotlightAlias ?? null,
+          atlas: latest.atlas,
         });
         onStatusRef.current?.('Cortex ready');
       })
       .catch((err) => {
+        if (cancelled) return;
         console.error('[hnc] hemisphere load failed', err);
         onStatusRef.current?.(`Cortex load error: ${(err as Error).message}`);
       });
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [surface]);
 
   // Repaint when brainActivity, spotlight, or atlas changes.

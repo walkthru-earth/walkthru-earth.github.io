@@ -2,66 +2,57 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { usePostHog } from 'posthog-js/react';
-
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider } from 'posthog-js/react';
-import { getConsentPreferences } from '@/lib/cookie-consent';
+import {
+  getConsentPreferences,
+  updatePostHogConsent,
+} from '@/lib/cookie-consent';
+
+let initialized = false;
+
+function initializePostHog(): boolean {
+  if (initialized) return true;
+  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  // Analytics is optional in local previews and static builds.
+  if (!key?.startsWith('phc_')) return false;
+
+  const consent = getConsentPreferences();
+  posthog.init(key, {
+    api_host:
+      process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
+    person_profiles: 'identified_only',
+    capture_pageview: false,
+    capture_pageleave: true,
+    // Preserve the site's existing policy: memory before a choice,
+    // persistence after acceptance, no PostHog capture after rejection.
+    persistence: consent?.analytics ? 'localStorage' : 'memory',
+    opt_out_capturing_by_default: consent?.analytics === false,
+  });
+  initialized = true;
+  if (consent) updatePostHogConsent(consent.analytics);
+  return true;
+}
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    const consent = getConsentPreferences();
-
-    // Determine persistence based on consent status
-    // - No decision yet: use 'memory' (cookieless, anonymous tracking)
-    // - Accepted: use 'localStorage' (full tracking with persistence)
-    // - Rejected: use 'memory' but opt out completely
-    const hasDecided = consent !== null;
-    const hasAccepted = consent?.analytics === true;
-
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY as string, {
-      api_host:
-        process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
-      person_profiles: 'identified_only',
-      capture_pageview: false, // Disable automatic pageview capture
-      capture_pageleave: true,
-      // Cookieless-first: use memory until user accepts
-      persistence: hasAccepted ? 'localStorage' : 'memory',
-      // Don't opt out by default - we track anonymously until decision
-      opt_out_capturing_by_default: false,
-    });
-
-    // Apply consent decision if user has already decided
-    if (hasDecided) {
-      if (hasAccepted) {
-        posthog.opt_in_capturing();
-      } else {
-        // User explicitly rejected - stop all tracking
-        posthog.opt_out_capturing();
-      }
-    }
-    // If no decision yet, tracking continues anonymously (cookieless)
+    initializePostHog();
   }, []);
-
   return <PHProvider client={posthog}>{children}</PHProvider>;
 }
 
 export function PostHogPageView(): null {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const posthog = usePostHog();
 
   useEffect(() => {
-    if (pathname && posthog) {
-      let url = window.origin + pathname;
-      if (searchParams && searchParams.toString()) {
-        url = url + `?${searchParams.toString()}`;
-      }
-      posthog.capture('$pageview', {
-        $current_url: url,
-      });
-    }
-  }, [pathname, searchParams, posthog]);
+    // Child effects may run before the provider's initialization effect.
+    if (!pathname || !initializePostHog()) return;
+    const query = searchParams.toString();
+    posthog.capture('$pageview', {
+      $current_url: `${window.location.origin}${pathname}${query ? `?${query}` : ''}`,
+    });
+  }, [pathname, searchParams]);
 
   return null;
 }

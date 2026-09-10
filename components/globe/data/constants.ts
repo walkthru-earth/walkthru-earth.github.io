@@ -18,6 +18,7 @@ export interface ViewState {
 
 /** Runtime context passed to buildQuery/loadData — values resolved at mount time. */
 export interface QueryContext {
+  signal?: AbortSignal;
   weatherPrefix: string;
   overtureRelease: string;
   h3Res: number;

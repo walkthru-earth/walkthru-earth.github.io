@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://walkthru.earth/og-image.png',
-        width: 1200,
-        height: 630,
+        url: 'https://walkthru.earth/globe-preview-dark.png',
+        width: 1755,
+        height: 1369,
         alt: 'walkthru.earth Privacy Policy',
       },
     ],
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     description:
       'Our commitment to your privacy and data protection. Learn how we handle your information.',
     creator: '@walkthru_earth',
-    images: ['https://walkthru.earth/og-image.png'],
+    images: ['https://walkthru.earth/globe-preview-dark.png'],
   },
 };
 

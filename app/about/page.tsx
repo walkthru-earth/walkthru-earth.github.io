@@ -17,9 +17,9 @@ import {
   CloudSun,
   Hexagon,
   ExternalLink,
-  Linkedin,
   Mail,
 } from 'lucide-react';
+import { Linkedin } from '@/components/shared/brand-icons';
 import { DataFlowDiagram } from '@/components/shared/data-flow';
 
 const fade = {

@@ -24,46 +24,18 @@ import {
 } from './QueryPanel';
 import { TimeSlider, MobileTimeControls } from './TimeSlider';
 import { useGlobeScroll } from './hooks/useGlobeScroll';
-import {
-  SECTIONS,
-  resolveWeatherPrefix,
-  resolveOvertureRelease,
-  h3ToHex,
-  type GlobeSection,
-  type QueryContext,
-  type ColorRange,
-  type ParquetInfo,
-} from './data/sections';
+import { SECTIONS, h3ToHex, type GlobeSection } from './data/sections';
 import {
   BASE_SATELLITE_ID,
   BASE_LAND_ID,
   BASE_BORDERS_ID,
-  computeRange,
 } from './data/constants';
 import { useUserLocation } from './hooks/useUserLocation';
 import { UserLocationCard } from './UserLocationCard';
 import { LayerPanel, type LayerControl } from './LayerPanel';
 import type { PinScreenPos } from './GlobeMap';
 import { viewportToH3Ranges } from './utils/h3-viewport';
-
-/* ── Helpers ─────────────────────────────────────────────────────── */
-
-/** Simple LRU cache — evicts oldest entry when size exceeds max. */
-function lruSet<K, V>(map: Map<K, V>, key: K, value: V, maxSize: number) {
-  if (map.size >= maxSize) {
-    const oldest = map.keys().next().value;
-    if (oldest !== undefined) map.delete(oldest);
-  }
-  map.set(key, value);
-}
-
-/** Convert hyparquet timestamp (BigInt µs, Date, or number) to epoch ms. */
-function tsToMs(v: unknown): number {
-  if (typeof v === 'bigint') return Number(v / 1000n);
-  if (v instanceof Date) return v.getTime();
-  if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
-  return 0;
-}
+import { useSectionData, useTimeSeries } from './hooks/useSectionData';
 
 /* ── Unified layer state ─────────────────────────────────────────── */
 
@@ -105,23 +77,14 @@ export function GlobeExplorer({
     initialSection
   );
 
-  const [allRows, setAllRows] = useState<Record<string, unknown>[]>([]);
-  const [colorRange, setColorRange] = useState<ColorRange>({ min: 0, max: 1 });
-  const [queryDuration, setQueryDuration] = useState<number | null>(null);
-  const [rowCount, setRowCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [parquetInfo, setParquetInfo] = useState<ParquetInfo | null>(null);
-  const [weatherPrefix, setWeatherPrefix] = useState<string | null>(null);
-  const [overtureRelease, setOvertureRelease] = useState<string | null>(null);
   const [zoom, setZoom] = useState(
-    initialZoom ?? sections[0]?.viewState.zoom ?? 1.5
+    initialZoom ?? sections[initialSection]?.viewState.zoom ?? 1.5
   );
   const [longitude, setLongitude] = useState(
-    initialLng ?? sections[0]?.viewState.longitude ?? 0
+    initialLng ?? sections[initialSection]?.viewState.longitude ?? 0
   );
   const [latitude, setLatitude] = useState(
-    initialLat ?? sections[0]?.viewState.latitude ?? 20
+    initialLat ?? sections[initialSection]?.viewState.latitude ?? 20
   );
   const [viewportBounds, setViewportBounds] = useState<
     [number, number, number, number] | null
@@ -141,6 +104,16 @@ export function GlobeExplorer({
 
   const [pinScreen, setPinScreen] = useState<PinScreenPos | null>(null);
 
+  const handlePinScreen = useCallback((next: PinScreenPos | null) => {
+    setPinScreen((previous) =>
+      previous?.visible === next?.visible &&
+      Math.abs((previous?.x ?? 0) - (next?.x ?? 0)) < 1 &&
+      Math.abs((previous?.y ?? 0) - (next?.y ?? 0)) < 1
+        ? previous
+        : next
+    );
+  }, []);
+
   // Track whether the user has manually panned/zoomed the globe.
   // When true, section switches keep the user's viewport instead of flying-to.
   const [userInteracted, setUserInteracted] = useState(false);
@@ -158,7 +131,15 @@ export function GlobeExplorer({
 
   // Per-section h3Res overrides (sparse — only stores manual user changes)
   const [h3ResOverrides, setH3ResOverrides] = useState<Record<number, number>>(
-    () => (initialH3Res != null ? { [initialSection]: initialH3Res } : {})
+    () =>
+      initialH3Res != null
+        ? {
+            [initialSection]: Math.max(
+              sections[initialSection].h3ResRange[0],
+              Math.min(sections[initialSection].h3ResRange[1], initialH3Res)
+            ),
+          }
+        : {}
   );
   const [pendingH3Res, setPendingH3Res] = useState<number | null>(null);
   const currentSection = sections[activeSection];
@@ -173,11 +154,17 @@ export function GlobeExplorer({
   // When the user has panned/zoomed, keep their current viewport instead.
   const [prevSection, setPrevSection] = useState(activeSection);
   if (prevSection !== activeSection) {
+    const previousView = sections[prevSection].viewState;
+    const nextView = currentSection.viewState;
+    const cameraChanges =
+      previousView.zoom !== nextView.zoom ||
+      previousView.longitude !== nextView.longitude ||
+      previousView.latitude !== nextView.latitude;
     console.log(
       `[Globe:Explorer] section change → #${activeSection} "${currentSection.id}" zoom=${currentSection.viewState.zoom} h3Range=[${currentSection.h3ResRange}] userInteracted=${userInteracted}`
     );
     setPrevSection(activeSection);
-    if (!userInteracted) {
+    if (!userInteracted && cameraChanges) {
       // First-time navigation: fly to section default and reset bounds
       setZoom(currentSection.viewState.zoom);
       setViewportBounds(null);
@@ -229,45 +216,28 @@ export function GlobeExplorer({
     return result;
   }, [debouncedBounds, h3Res]);
 
-  const queryCtx = useMemo<QueryContext | null>(
-    () =>
-      weatherPrefix && overtureRelease
-        ? { weatherPrefix, overtureRelease, h3Res, h3Ranges }
-        : null,
-    [weatherPrefix, overtureRelease, h3Res, h3Ranges]
+  // Wait for actual bounds before starting a detailed query on a deep link.
+  const data = useSectionData(
+    currentSection,
+    h3Res,
+    h3Ranges,
+    h3Res < 3 || debouncedBounds !== null
   );
-
-  // ── Timestamps ──
-  const timestamps = useMemo(() => {
-    if (allRows.length === 0) return [];
-    const first = allRows[0];
-    if (!first || !('timestamp' in first)) return [];
-    const set = new Set<number>();
-    for (const row of allRows) {
-      const ms = tsToMs(row.timestamp);
-      if (ms > 0) set.add(ms);
-    }
-    return Array.from(set).sort((a, b) => a - b);
-  }, [allRows]);
-
-  const layerData = useMemo(() => {
-    if (timestamps.length <= 1) return allRows;
-    const targetMs = timestamps[timeStepIndex] ?? timestamps[0];
-    const filtered = allRows.filter((r) => tsToMs(r.timestamp) === targetMs);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(
-        `[Globe:Explorer] layerData: ${allRows.length} → ${filtered.length} rows (ts step ${timeStepIndex}/${timestamps.length})`
-      );
-    }
-    return filtered;
-  }, [allRows, timestamps, timeStepIndex]);
-
-  // ── Refs ──
-  const activeSectionRef = useRef(0);
-  const loadGenRef = useRef(0);
-  useEffect(() => {
-    activeSectionRef.current = activeSection;
-  }, [activeSection]);
+  const {
+    rows: allRows,
+    range: colorRange,
+    info: parquetInfo,
+    duration: queryDuration,
+    loading: isLoading,
+    error,
+    context: queryCtx,
+  } = data;
+  const rowCount = allRows.length;
+  const { timestamps, layerData } = useTimeSeries(allRows, timeStepIndex);
+  const selectedTimeStep = Math.min(
+    timeStepIndex,
+    Math.max(0, timestamps.length - 1)
+  );
 
   // Keep URL in sync with viewport state (debounced to avoid thrashing)
   useEffect(() => {
@@ -285,20 +255,6 @@ export function GlobeExplorer({
     return () => clearTimeout(timer);
   }, [activeSection, sections, zoom, latitude, longitude, h3Res]);
 
-  /** Promise cache keyed by "sectionIdx:h3Res". LRU-evicted at 6 entries. */
-  const cacheRef = useRef<
-    Map<
-      string,
-      Promise<{
-        rows: Record<string, unknown>[];
-        duration: number;
-        range: ColorRange;
-        info: ParquetInfo | null;
-      }>
-    >
-  >(new Map());
-  const CACHE_MAX = 6;
-
   const handleCursorOverGlobe = useCallback((isOver: boolean) => {
     isOverGlobeRef.current = isOver;
   }, []);
@@ -311,160 +267,6 @@ export function GlobeExplorer({
     };
     return currentSection.buildQuery(ctx);
   }, [queryCtx, currentSection, h3Res]);
-
-  // Resolve weather prefix and Overture release once on mount
-  useEffect(() => {
-    let cancelled = false;
-    resolveWeatherPrefix().then((prefix) => {
-      if (!cancelled) setWeatherPrefix(prefix);
-    });
-    resolveOvertureRelease().then((release) => {
-      if (!cancelled) setOvertureRelease(release);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // ── Data loading ──
-  const loadSection = useCallback(
-    (sectionIdx: number, section: GlobeSection, ctx: QueryContext) => {
-      const gen = ++loadGenRef.current;
-      const isFiltered = ctx.h3Ranges != null && ctx.h3Ranges.length > 0;
-      // Unfiltered loads are cached; filtered (viewport) loads always re-fetch
-      const cacheKey = isFiltered ? null : `${sectionIdx}:${ctx.h3Res}`;
-      let loadPromise = cacheKey ? cacheRef.current.get(cacheKey) : undefined;
-
-      console.log(
-        `[Globe:Explorer] loadSection #${sectionIdx} "${section.id}" gen=${gen} h3Res=${ctx.h3Res} ` +
-          `filtered=${isFiltered} ranges=${ctx.h3Ranges?.length ?? 0} ` +
-          `cacheKey=${cacheKey ?? 'none'} cached=${!!loadPromise}`
-      );
-
-      if (!loadPromise) {
-        // Schedule loading UI update asynchronously to avoid synchronous
-        // setState within effects (react-hooks/set-state-in-effect).
-        queueMicrotask(() => {
-          if (
-            gen === loadGenRef.current &&
-            activeSectionRef.current === sectionIdx
-          ) {
-            setIsLoading(true);
-            setError(null);
-            if (!isFiltered) setParquetInfo(null);
-          }
-        });
-
-        const start = performance.now();
-        const onProgress = (partialRows: Record<string, unknown>[]) => {
-          if (gen !== loadGenRef.current) {
-            console.log(
-              `[Globe:Explorer] onProgress STALE gen=${gen} current=${loadGenRef.current} — skipped ${partialRows.length} rows`
-            );
-            return;
-          }
-          setAllRows(partialRows);
-          setRowCount(partialRows.length);
-        };
-
-        loadPromise = section.loadData(ctx, onProgress).then((result) => {
-          const duration = performance.now() - start;
-          const range = computeRange(result.rows, section.colorColumn);
-          console.log(
-            `[Globe:Explorer] loadData resolved gen=${gen} rows=${result.rows.length} ` +
-              `duration=${duration.toFixed(0)}ms colorRange=[${range.min.toFixed(2)}, ${range.max.toFixed(2)}]`
-          );
-          return { rows: result.rows, duration, range, info: result.info };
-        });
-        if (cacheKey)
-          lruSet(cacheRef.current, cacheKey, loadPromise, CACHE_MAX);
-        if (cacheKey)
-          loadPromise.catch(() => cacheRef.current.delete(cacheKey));
-      }
-
-      loadPromise
-        .then((result) => {
-          if (gen !== loadGenRef.current) {
-            if (process.env.NODE_ENV !== 'production') {
-              console.log(
-                `[Globe:Explorer] .then() STALE gen=${gen} current=${loadGenRef.current} — discarding ${result.rows.length} rows`
-              );
-            }
-            return;
-          }
-          if (process.env.NODE_ENV !== 'production') {
-            console.log(
-              `[Globe:Explorer] ✓ RENDER gen=${gen} rows=${result.rows.length} duration=${result.duration.toFixed(0)}ms`
-            );
-          }
-          setAllRows(result.rows);
-          setColorRange(result.range);
-          setQueryDuration(result.duration);
-          setRowCount(result.rows.length);
-          setParquetInfo(result.info);
-          setIsLoading(false);
-        })
-        .catch((err) => {
-          if (gen !== loadGenRef.current) {
-            if (process.env.NODE_ENV !== 'production') {
-              console.log(
-                `[Globe:Explorer] .catch() STALE gen=${gen} current=${loadGenRef.current}`
-              );
-            }
-            return;
-          }
-          const msg = err instanceof Error ? err.message : String(err);
-          console.error(`[Globe:Explorer] ✗ ERROR gen=${gen}:`, msg);
-          setError(msg);
-          // Keep existing data visible — don't blank the globe on transient
-          // network errors. The error banner tells the user something went wrong
-          // while they can still see the last successful render.
-          setIsLoading(false);
-        });
-    },
-    []
-  );
-
-  // Load current section + prefetch next
-  useEffect(() => {
-    if (!queryCtx) return;
-
-    loadSection(activeSection, currentSection, queryCtx);
-
-    // Prefetch next section (unfiltered — no viewport ranges for unseen sections)
-    const isFiltered =
-      queryCtx.h3Ranges != null && queryCtx.h3Ranges.length > 0;
-    const cacheKey = isFiltered ? null : `${activeSection}:${queryCtx.h3Res}`;
-    const currentPromise = cacheKey
-      ? cacheRef.current.get(cacheKey)
-      : undefined;
-    const nextIdx = activeSection + 1;
-    if (currentPromise && nextIdx < sections.length) {
-      const next = sections[nextIdx];
-      const nextRes = h3ResOverrides[nextIdx] ?? next.defaultH3Res;
-      const nextCtx = { ...queryCtx, h3Res: nextRes, h3Ranges: null };
-      const nextKey = `${nextIdx}:${nextRes}`;
-      currentPromise.then(() => {
-        if (activeSectionRef.current !== activeSection) return;
-        if (cacheRef.current.has(nextKey)) return;
-        const start = performance.now();
-        const prefetch = next.loadData(nextCtx).then((result) => {
-          const duration = performance.now() - start;
-          const range = computeRange(result.rows, next.colorColumn);
-          return { rows: result.rows, duration, range, info: result.info };
-        });
-        lruSet(cacheRef.current, nextKey, prefetch, CACHE_MAX);
-        prefetch.catch(() => cacheRef.current.delete(nextKey));
-      });
-    }
-  }, [
-    queryCtx,
-    activeSection,
-    currentSection,
-    sections,
-    h3ResOverrides,
-    loadSection,
-  ]);
 
   // ── Base layer controls for GlobeMap ──
   const baseControls = useMemo(
@@ -614,9 +416,8 @@ export function GlobeExplorer({
   // When user has interacted, keep their current viewport on section switch
   // instead of flying to the section's default position.
   const effectiveViewState = useMemo(
-    () =>
-      userInteracted ? { longitude, latitude, zoom } : currentSection.viewState,
-    [userInteracted, currentSection.viewState, longitude, latitude, zoom]
+    () => (userInteracted ? undefined : currentSection.viewState),
+    [userInteracted, currentSection.viewState]
   );
 
   return (
@@ -635,7 +436,7 @@ export function GlobeExplorer({
         onViewportChange={handleViewportChange}
         onTap={handleGlobeTap}
         userLocation={userLocation}
-        onUserPinScreen={setPinScreen}
+        onUserPinScreen={handlePinScreen}
         h3Res={h3Res}
         layerOpacity={singleLS.opacity}
         layerVisible={singleLS.visible}
@@ -676,7 +477,7 @@ export function GlobeExplorer({
             timestamps.length > 1 ? (
               <MobileTimeControls
                 timestamps={timestamps}
-                selectedIndex={timeStepIndex}
+                selectedIndex={selectedTimeStep}
                 onChange={setTimeStepIndex}
                 autoPlay={!isLoading}
               />
@@ -875,7 +676,7 @@ export function GlobeExplorer({
           {!isMobile && (
             <TimeSlider
               timestamps={timestamps}
-              selectedIndex={timeStepIndex}
+              selectedIndex={selectedTimeStep}
               onChange={setTimeStepIndex}
               isLoading={isLoading}
               autoPlay={!isLoading}

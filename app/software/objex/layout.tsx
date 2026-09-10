@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://walkthru.earth/og-objex.png',
-        width: 1200,
-        height: 630,
+        url: 'https://walkthru.earth/globe-preview-dark.png',
+        width: 1755,
+        height: 1369,
         alt: 'objex - Cloud Storage Explorer',
       },
     ],
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     description:
       'View Parquet, COG, PMTiles, Zarr, FlatGeobuf, STAC, and 100+ formats from S3, GCS, Azure, R2. SQL queries, geo maps -zero backend.',
     creator: '@walkthru_earth',
-    images: ['https://walkthru.earth/og-objex.png'],
+    images: ['https://walkthru.earth/globe-preview-dark.png'],
   },
 };
 

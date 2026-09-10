@@ -1,8 +1,8 @@
 # Lefthook configuration for pre-commit hooks
-# Runs fast formatting checks using Bun on staged files only
+# Runs fast formatting checks using pnpm on staged files only
 # Build step includes type-checking
 
 pre-commit:
   commands:
     lint-staged:
-      run: bunx lint-staged
+      run: pnpm exec lint-staged

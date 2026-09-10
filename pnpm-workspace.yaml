@@ -1,7 +1,4 @@
 allowBuilds:
   '@evilmartians/lefthook': true
-  '@vaadin/vaadin-usage-statistics': true
   core-js: true
-  protobufjs: true
   sharp: true
-  unrs-resolver: true

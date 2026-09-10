@@ -10,13 +10,7 @@ import { Footer } from '@/components/sections/footer';
 import { Container } from '@/components/shared/container';
 import { GradientText } from '@/components/shared/gradient-text';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Globe, Cloud, Heart, ExternalLink } from 'lucide-react';
 import { DataFlowDiagram } from '@/components/shared/data-flow';

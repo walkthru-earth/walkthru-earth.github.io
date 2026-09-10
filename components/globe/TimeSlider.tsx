@@ -153,6 +153,7 @@ export const TimeSlider = memo(function TimeSlider({
           <div className="flex w-64 flex-col sm:w-72">
             <input
               type="range"
+              aria-label="Forecast timestep"
               min={0}
               max={timestamps.length - 1}
               value={selectedIndex}
