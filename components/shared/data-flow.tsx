@@ -21,6 +21,7 @@ import {
   ArrowRight,
   CornerDownLeft,
 } from 'lucide-react';
+import { Localized } from '@/lib/i18n/i18n-provider';
 
 type NodeKind = 'open' | 'ours' | 'placeholder';
 
@@ -71,7 +72,7 @@ const sources: FlowNode[] = [
   },
   {
     label: 'Hormones & Cities',
-    sublabel: 'Wellbeing + mobility, offline-first',
+    sublabel: 'Resident surveys, planned',
     Icon: Heart,
     kind: 'ours',
     loop: true,
@@ -99,7 +100,7 @@ const outputs: FlowNode[] = [
     kind: 'ours',
   },
   {
-    label: 'AI-Ready Data',
+    label: 'Reusable Data',
     sublabel: 'Parquet, open formats',
     Icon: FlaskConical,
     kind: 'open',
@@ -112,7 +113,7 @@ const outputs: FlowNode[] = [
   },
   {
     label: 'Hormones & Cities',
-    sublabel: 'Neighborhood insights back to you',
+    sublabel: 'Urban wellbeing research, in development',
     Icon: RefreshCw,
     kind: 'ours',
     loop: true,
@@ -167,7 +168,7 @@ function FlowNode({
       </div>
       {node.stat && (
         <span
-          className={`ml-auto ${mobile ? 'text-sm' : 'text-base'} font-bold whitespace-nowrap ${
+          className={`ms-auto ${mobile ? 'text-sm' : 'text-base'} font-bold whitespace-nowrap ${
             node.kind === 'ours' ? 'text-secondary' : 'text-primary'
           }`}
         >
@@ -189,7 +190,7 @@ function FlowArrow({ delay, vertical }: { delay: number; vertical?: boolean }) {
       {vertical ? (
         <ArrowDown className="text-primary/50 h-6 w-6 animate-bounce" />
       ) : (
-        <ArrowRight className="text-primary/50 h-6 w-6" />
+        <ArrowRight className="text-primary/50 h-6 w-6 rtl:rotate-180" />
       )}
     </motion.div>
   );
@@ -252,9 +253,9 @@ function LoopBack({ delay, className }: { delay: number; className?: string }) {
     >
       <CornerDownLeft className="text-secondary/60 h-5 w-5" />
       <span className="text-secondary/70 text-sm font-medium">
-        Closed loop: anonymous wellbeing + mobility data aggregated to H3,
-        joined with indices, analyzed insights served back to your phone for
-        your neighborhood&apos;s health
+        Planned research: relate residents&apos; experiences to environmental
+        conditions. Survey methods, privacy protections, and validation are
+        still being developed.
       </span>
     </motion.div>
   );
@@ -265,63 +266,65 @@ export function DataFlowDiagram() {
   const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <div ref={ref} className="py-4">
-      {isInView && (
-        <>
-          {/* Desktop: horizontal flow */}
-          <div className="hidden flex-col gap-3 md:flex">
-            <Legend delay={0} className="mb-2 justify-center" />
+    <Localized>
+      <div ref={ref} className="py-4">
+        {isInView && (
+          <>
+            {/* Desktop: horizontal flow */}
+            <div className="hidden flex-col gap-3 md:flex">
+              <Legend delay={0} className="mb-2 justify-center" />
 
-            <div className="flex items-center justify-center gap-3">
-              <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-center gap-3">
+                <div className="flex flex-col gap-2.5">
+                  {sources.map((s, i) => (
+                    <FlowNode key={s.label} node={s} delay={i * 0.1} />
+                  ))}
+                </div>
+
+                <FlowArrow delay={0.7} />
+                <CenterNode node={processing} delay={0.8} />
+                <FlowArrow delay={1.0} />
+
+                <div className="flex flex-col gap-2.5">
+                  {outputs.map((o, i) => (
+                    <FlowNode key={o.label} node={o} delay={1.1 + i * 0.1} />
+                  ))}
+                </div>
+              </div>
+
+              <LoopBack delay={1.5} className="mt-2 justify-center" />
+            </div>
+
+            {/* Mobile: vertical flow */}
+            <div className="flex flex-col items-center gap-0 md:hidden">
+              <Legend delay={0} className="mb-3" />
+
+              <div className="flex w-full max-w-sm flex-col gap-2">
                 {sources.map((s, i) => (
-                  <FlowNode key={s.label} node={s} delay={i * 0.1} />
+                  <FlowNode key={s.label} node={s} delay={i * 0.08} mobile />
                 ))}
               </div>
 
-              <FlowArrow delay={0.7} />
-              <CenterNode node={processing} delay={0.8} />
-              <FlowArrow delay={1.0} />
+              <FlowArrow delay={0.6} vertical />
+              <CenterNode node={processing} delay={0.7} />
+              <FlowArrow delay={0.9} vertical />
 
-              <div className="flex flex-col gap-2.5">
+              <div className="flex w-full max-w-sm flex-col gap-2">
                 {outputs.map((o, i) => (
-                  <FlowNode key={o.label} node={o} delay={1.1 + i * 0.1} />
+                  <FlowNode
+                    key={o.label}
+                    node={o}
+                    delay={1.0 + i * 0.08}
+                    mobile
+                  />
                 ))}
               </div>
+
+              <LoopBack delay={1.4} className="mt-4 px-2" />
             </div>
-
-            <LoopBack delay={1.5} className="mt-2 justify-center" />
-          </div>
-
-          {/* Mobile: vertical flow */}
-          <div className="flex flex-col items-center gap-0 md:hidden">
-            <Legend delay={0} className="mb-3" />
-
-            <div className="flex w-full max-w-sm flex-col gap-2">
-              {sources.map((s, i) => (
-                <FlowNode key={s.label} node={s} delay={i * 0.08} mobile />
-              ))}
-            </div>
-
-            <FlowArrow delay={0.6} vertical />
-            <CenterNode node={processing} delay={0.7} />
-            <FlowArrow delay={0.9} vertical />
-
-            <div className="flex w-full max-w-sm flex-col gap-2">
-              {outputs.map((o, i) => (
-                <FlowNode
-                  key={o.label}
-                  node={o}
-                  delay={1.0 + i * 0.08}
-                  mobile
-                />
-              ))}
-            </div>
-
-            <LoopBack delay={1.4} className="mt-4 px-2" />
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </Localized>
   );
 }

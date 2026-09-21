@@ -10,6 +10,7 @@ import {
   type ThemeMode,
 } from './config';
 import type { HNCRow } from './types';
+import { useI18n } from '@/lib/i18n/i18n-provider';
 
 interface Props {
   rows: HNCRow[];
@@ -108,6 +109,7 @@ function fitToData(map: MlMap, rows: HNCRow[]) {
 }
 
 export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MlMap | null>(null);
   const markersRef = useRef<Map<string, MarkerRef>>(new Map());
@@ -235,7 +237,7 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
       ref={containerRef}
       className="hnc-map relative h-full w-full"
       role="region"
-      aria-label="London Borough Market street-level capture map"
+      aria-label={t('London Borough Market street-level capture map')}
       // Stop Lenis (page-level smooth scroll) from intercepting wheel/touch
       // gestures on the map. Without this, Cmd+scroll zooms the map AND scrolls
       // the page because Lenis claims the wheel event before maplibre can.

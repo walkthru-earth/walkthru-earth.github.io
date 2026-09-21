@@ -1,3 +1,6 @@
+'use client';
+
+import { Localized } from '@/lib/i18n/i18n-provider';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/sections/footer';
 import { Container } from '@/components/shared/container';
@@ -19,7 +22,7 @@ export default function PrivacyPage() {
   const lastUpdated = 'November 30, 2025';
 
   return (
-    <>
+    <Localized>
       <Navbar />
       <main className="pt-24 pb-16 md:pt-32 md:pb-24">
         <Container>
@@ -124,7 +127,7 @@ export default function PrivacyPage() {
                   consent to cookies, we collect only anonymous, aggregated data
                   that cannot identify you personally:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-1 ps-6">
                   <li>Page views and navigation patterns</li>
                   <li>General geographic region (country level)</li>
                   <li>Device type and browser information</li>
@@ -138,7 +141,7 @@ export default function PrivacyPage() {
                   If you accept analytics cookies, we may collect additional
                   information to improve our services:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-1 ps-6">
                   <li>Session duration and engagement metrics</li>
                   <li>Feature usage patterns</li>
                   <li>Returning visitor recognition</li>
@@ -150,7 +153,7 @@ export default function PrivacyPage() {
                 <p className="text-muted-foreground">
                   Our IoT sensor network collects environmental data only:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-1 ps-6">
                   <li>Temperature, humidity, and air quality measurements</li>
                   <li>Atmospheric pressure and weather conditions</li>
                   <li>
@@ -171,7 +174,7 @@ export default function PrivacyPage() {
                   Our urban wellbeing survey is designed with privacy at its
                   core:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-1 ps-6">
                   <li>All responses are completely anonymous</li>
                   <li>
                     No email addresses or personal identifiers are collected
@@ -191,7 +194,7 @@ export default function PrivacyPage() {
                   When you contact us directly via email or other means, we
                   collect:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-1 ps-6">
                   <li>Name and email address</li>
                   <li>Message content</li>
                   <li>Any other information you choose to provide</li>
@@ -209,7 +212,7 @@ export default function PrivacyPage() {
                 <p className="text-muted-foreground">
                   We use collected information to:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-2 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-2 ps-6">
                   <li>
                     <strong>Improve our platforms:</strong> Understand how users
                     interact with our websites and identify areas for
@@ -250,7 +253,7 @@ export default function PrivacyPage() {
                   We take a privacy-first approach to analytics. By default, we
                   operate in cookieless mode, which means:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-1 ps-6">
                   <li>No cookies are set until you give consent</li>
                   <li>
                     Anonymous tracking provides basic insights without
@@ -299,7 +302,7 @@ export default function PrivacyPage() {
                   We do not sell your personal information. We may share
                   information in the following circumstances:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-2 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-2 ps-6">
                   <li>
                     <strong>Service providers:</strong> We use trusted third
                     parties for analytics (PostHog, Google Analytics) and
@@ -342,7 +345,7 @@ export default function PrivacyPage() {
                   We believe in the power of open data to improve urban life.
                   Our commitment includes:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-2 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-2 ps-6">
                   <li>
                     <strong>Transparency:</strong> Environmental data from
                     OpenSensor.Space is publicly available in open Parquet
@@ -381,7 +384,7 @@ export default function PrivacyPage() {
                   Depending on your location, you may have the following rights
                   regarding your personal information:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-2 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-2 ps-6">
                   <li>
                     <strong>Access:</strong> Request a copy of the personal
                     information we hold about you
@@ -431,7 +434,7 @@ export default function PrivacyPage() {
                   We implement appropriate technical and organizational measures
                   to protect your information:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="text-muted-foreground list-disc space-y-1 ps-6">
                   <li>HTTPS encryption for all data transmission</li>
                   <li>Secure cloud infrastructure with access controls</li>
                   <li>Regular security assessments and updates</li>
@@ -525,6 +528,6 @@ export default function PrivacyPage() {
         </Container>
       </main>
       <Footer />
-    </>
+    </Localized>
   );
 }

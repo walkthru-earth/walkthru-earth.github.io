@@ -7,6 +7,7 @@ import { regionInfo } from './regions';
 import { aoiSigma, type RegionBaseline } from './baselines';
 import { signTone } from './colormap';
 import type { ScoreScale } from './config';
+import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
 
 interface Props {
   row: HNCRow | null;
@@ -69,23 +70,26 @@ function formatTimestamp(ts: HNCRow['captured_at']): string {
 }
 
 export function FrameMeta({ row }: FrameMetaProps) {
+  const { t } = useI18n();
   const meta = useMemo(() => {
-    if (!row) return 'Pick an image';
+    if (!row) return t('Pick an image');
     const heading =
       row.compass_angle != null
         ? `${Math.round(row.compass_angle)}°`
-        : 'no heading';
-    return `${formatTimestamp(row.captured_at)} · ${row.camera_type ?? 'unknown'} · ${heading}`;
-  }, [row]);
+        : t('no heading');
+    return `${formatTimestamp(row.captured_at)} · ${row.camera_type ?? t('unknown')} · ${heading}`;
+  }, [row, t]);
   return (
-    <div>
-      <h3 className="text-foreground text-sm font-semibold tracking-tight sm:text-base">
-        Frame
-      </h3>
-      <p className="text-muted-foreground font-mono text-[11px] sm:text-xs">
-        {meta}
-      </p>
-    </div>
+    <Localized>
+      <div>
+        <h3 className="text-foreground text-sm font-semibold tracking-tight sm:text-base">
+          Frame
+        </h3>
+        <p className="text-muted-foreground font-mono text-[11px] sm:text-xs">
+          {meta}
+        </p>
+      </div>
+    </Localized>
   );
 }
 
@@ -96,6 +100,7 @@ export function FrameImage({
   total,
   fill,
 }: FrameImageProps) {
+  const { t } = useI18n();
   const sizing = fill ? 'h-full w-full flex-1' : 'aspect-[4/3] w-full';
   return (
     <div
@@ -106,12 +111,16 @@ export function FrameImage({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={heavy.blobUrl}
-          alt={row ? `Mapillary frame ${row.image_id}` : 'Selected frame'}
+          alt={
+            row
+              ? t('Mapillary frame {id}', { id: row.image_id })
+              : t('Selected frame')
+          }
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
         <div className="text-muted-foreground absolute inset-0 flex items-center justify-center font-mono text-xs">
-          {row ? 'Decoding…' : 'No image selected'}
+          {t(row ? 'Decoding…' : 'No image selected')}
         </div>
       )}
       {total > 0 && (
@@ -129,16 +138,18 @@ export function FrameWalker({
   onNext,
   onTogglePlay,
 }: WalkerProps) {
+  const { t } = useI18n();
   return (
     <div
+      dir="ltr"
       className="bg-card/70 border-border supports-[backdrop-filter]:bg-card/50 inline-flex items-center gap-2 rounded-full border p-1.5 shadow-sm backdrop-blur-md"
       role="group"
-      aria-label="Frame walker"
+      aria-label={t('Frame walker')}
     >
       <button
         type="button"
         onClick={onPrev}
-        aria-label="Previous frame"
+        aria-label={t('Previous frame')}
         className="hover:border-primary hover:text-primary focus-visible:ring-ring border-border text-foreground inline-flex h-9 w-9 items-center justify-center rounded-full border bg-transparent transition focus-visible:ring-2 focus-visible:outline-none active:scale-95"
       >
         <ChevronLeft className="h-4 w-4" />
@@ -146,7 +157,7 @@ export function FrameWalker({
       <button
         type="button"
         onClick={onTogglePlay}
-        aria-label={isPlaying ? 'Pause auto-walk' : 'Auto-walk frames'}
+        aria-label={t(isPlaying ? 'Pause auto-walk' : 'Auto-walk frames')}
         aria-pressed={isPlaying}
         className="from-primary to-secondary text-primary-foreground inline-flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br shadow-md transition hover:scale-105 active:scale-95"
       >
@@ -159,7 +170,7 @@ export function FrameWalker({
       <button
         type="button"
         onClick={onNext}
-        aria-label="Next frame"
+        aria-label={t('Next frame')}
         className="hover:border-primary hover:text-primary focus-visible:ring-ring border-border text-foreground inline-flex h-9 w-9 items-center justify-center rounded-full border bg-transparent transition focus-visible:ring-2 focus-visible:outline-none active:scale-95"
       >
         <ChevronRight className="h-4 w-4" />
@@ -174,6 +185,7 @@ export function FrameWalker({
  * is capped so it stays readable when there are many frames.
  */
 export function FrameScrub({ index, total, onSeek }: ScrubProps) {
+  const { t } = useI18n();
   const trackRef = useRef<HTMLDivElement | null>(null);
 
   const tickCount = Math.min(total, 64);
@@ -199,7 +211,10 @@ export function FrameScrub({ index, total, onSeek }: ScrubProps) {
   );
 
   return (
-    <div className="flex items-center gap-3 font-mono text-[10px] tabular-nums">
+    <div
+      dir="ltr"
+      className="flex items-center gap-3 font-mono text-[10px] tabular-nums"
+    >
       <span className="text-muted-foreground w-10 text-right">
         {String(index + 1).padStart(2, '0')}
       </span>
@@ -207,7 +222,7 @@ export function FrameScrub({ index, total, onSeek }: ScrubProps) {
         ref={trackRef}
         className="hnc-scrub flex-1"
         role="slider"
-        aria-label="Frame scrubber"
+        aria-label={t('Frame scrubber')}
         aria-valuemin={1}
         aria-valuemax={Math.max(1, total)}
         aria-valuenow={index + 1}
@@ -258,7 +273,7 @@ export function FrameScrub({ index, total, onSeek }: ScrubProps) {
 }
 
 /**
- * "What this image is doing in the visual cortex."
+ * The model's predicted response to this image.
  *
  * Bars are diverging from a central baseline. Right of center = predicted
  * activity above the model's per-region baseline, left of center = below.
@@ -276,6 +291,7 @@ export function CorticalRegions({
   onScaleChange,
   compact = false,
 }: RegionsProps) {
+  const { t } = useI18n();
   // Effective scale. AOI is only meaningful with baselines loaded.
   const effectiveScale: ScoreScale =
     baselines && (scale ?? 'aoi') === 'aoi' ? 'aoi' : 'raw';
@@ -301,130 +317,139 @@ export function CorticalRegions({
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col py-3 sm:py-4">
-      <div className="mb-2 flex items-start justify-between gap-3 sm:mb-3">
-        <div className="min-w-0">
-          <p className="hnc-eyebrow">What this image triggers</p>
-          {!compact && (
-            <p className="text-muted-foreground mt-1 max-w-prose text-[11px] leading-relaxed sm:text-xs">
-              {effectiveScale === 'aoi'
-                ? 'σ units relative to this AOI’s baseline. +2σ = unusually high for that region.'
-                : 'Raw model output. Switch to AOI σ for frame-relative readings.'}
-            </p>
-          )}
-        </div>
-        {baselines && onScaleChange && (
-          <div
-            className="hnc-seg shrink-0"
-            role="group"
-            aria-label="Score scale"
-          >
-            <button
-              type="button"
-              className="hnc-seg-opt"
-              data-active={effectiveScale === 'aoi'}
-              onClick={() => onScaleChange('aoi')}
-            >
-              AOI σ
-            </button>
-            <button
-              type="button"
-              className="hnc-seg-opt"
-              data-active={effectiveScale === 'raw'}
-              onClick={() => onScaleChange('raw')}
-            >
-              Raw z
-            </button>
+    <Localized>
+      <div className="flex min-h-0 flex-1 flex-col py-3 sm:py-4">
+        <div className="mb-2 flex items-start justify-between gap-3 sm:mb-3">
+          <div className="min-w-0">
+            <p className="hnc-eyebrow">Model response to this image</p>
+            {!compact && (
+              <p className="text-muted-foreground mt-1 max-w-prose text-[11px] leading-relaxed sm:text-xs">
+                {effectiveScale === 'aoi'
+                  ? 'σ units relative to this AOI’s baseline. +2σ = unusually high for that region.'
+                  : 'Raw model output. Switch to AOI σ for frame-relative readings.'}
+              </p>
+            )}
           </div>
-        )}
-      </div>
-
-      {/* Diverging bar chart, centred on a 0-baseline axis */}
-      <ol
-        className="flex flex-1 flex-col gap-2 overflow-y-auto pr-1"
-        data-lenis-prevent
-      >
-        {ranked.length === 0 && (
-          <li className="text-muted-foreground font-mono text-xs italic">
-            No regional summary
-          </li>
-        )}
-        {ranked.map((region, i) => {
-          const pct = max > 0 ? (Math.abs(region.value) / max) * 50 : 0;
-          const negative = region.value < 0;
-          const info = regionInfo(region.name);
-          const selected = selectedAlias === region.name;
-          const clickable = !!onSelectAlias;
-          const unit = effectiveScale === 'aoi' ? 'σ' : 'z';
-          const display = `${region.value >= 0 ? '+' : ''}${region.value.toFixed(2)}${unit}`;
-          return (
-            <li key={`${region.name}-${i}`}>
+          {baselines && onScaleChange && (
+            <div
+              className="hnc-seg shrink-0"
+              role="group"
+              aria-label="Score scale"
+            >
               <button
                 type="button"
-                disabled={!clickable}
-                onClick={() => onSelectAlias?.(selected ? null : region.name)}
-                className={`grid w-full grid-cols-[minmax(7rem,9rem)_1fr_auto] items-center gap-3 rounded-md px-2 py-1 text-left transition sm:grid-cols-[minmax(8rem,11rem)_1fr_auto] sm:gap-4 ${
-                  selected ? 'bg-foreground/5 ring-foreground/15 ring-1' : ''
-                } ${
-                  clickable
-                    ? 'hover:bg-foreground/5 cursor-pointer'
-                    : 'cursor-default'
-                }`}
-                aria-pressed={selected}
-                title={`${info.full} · ${info.blurb}${atlasAvailable === false ? '' : ' · click to spotlight on the cortex'} · raw z = ${region.raw >= 0 ? '+' : ''}${region.raw.toFixed(3)}${effectiveScale === 'aoi' ? ` · AOI σ = ${display}` : ''}`}
+                className="hnc-seg-opt"
+                data-active={effectiveScale === 'aoi'}
+                onClick={() => onScaleChange('aoi')}
               >
-                <div className="min-w-0">
-                  <p className="text-foreground truncate text-[12px] font-semibold sm:text-sm">
-                    {info.feeling}
-                  </p>
-                  <p className="text-muted-foreground truncate font-mono text-[10px] sm:text-[11px]">
-                    {info.tech}
-                  </p>
-                </div>
-                <div
-                  className="relative h-2 w-full overflow-hidden rounded-full"
-                  aria-label={`${info.feeling} ${negative ? 'below' : 'above'} baseline`}
-                >
-                  <span
-                    className="bg-muted/40 absolute inset-0"
-                    aria-hidden="true"
-                  />
-                  <span
-                    className="bg-foreground/20 absolute inset-y-0 left-1/2 w-px"
-                    aria-hidden="true"
-                  />
-                  <span
-                    className={`absolute inset-y-0 ${negative ? 'right-1/2 rounded-l-full' : 'left-1/2 rounded-r-full'} ${signTone(region.value).barFill}`}
-                    style={{ width: `${pct.toFixed(1)}%` }}
-                    aria-hidden="true"
-                  />
-                </div>
-                <span className="text-muted-foreground font-mono text-[10px] tabular-nums sm:text-[11px]">
-                  {display}
-                </span>
+                AOI σ
               </button>
-            </li>
-          );
-        })}
-      </ol>
-
-      {ranked.length > 0 && (
-        <div className="text-muted-foreground mt-3 flex items-center justify-between font-mono text-[10px] tracking-wide uppercase sm:text-[11px]">
-          <span>Below baseline</span>
-          <span aria-hidden="true">|</span>
-          <span>Above baseline</span>
+              <button
+                type="button"
+                className="hnc-seg-opt"
+                data-active={effectiveScale === 'raw'}
+                onClick={() => onScaleChange('raw')}
+              >
+                Raw z
+              </button>
+            </div>
+          )}
         </div>
-      )}
 
-      {atlasAvailable === false && ranked.length > 0 && (
-        <p className="text-muted-foreground/80 mt-3 text-[10px] leading-snug sm:text-[11px]">
-          Region highlighting on the 3D cortex needs the HCP MMP1 parcel atlas
-          (see{' '}
-          <code className="font-mono">hnc/scripts/gen_parcel_aliases.py</code>).
-          Without it, this list is read-only.
-        </p>
-      )}
-    </div>
+        {/* Diverging bar chart, centred on a 0-baseline axis */}
+        <ol
+          className="flex flex-1 flex-col gap-2 overflow-y-auto pr-1"
+          data-lenis-prevent
+        >
+          {ranked.length === 0 && (
+            <li className="text-muted-foreground font-mono text-xs italic">
+              No regional summary
+            </li>
+          )}
+          {ranked.map((region, i) => {
+            const pct = max > 0 ? (Math.abs(region.value) / max) * 50 : 0;
+            const negative = region.value < 0;
+            const info = regionInfo(region.name);
+            const selected = selectedAlias === region.name;
+            const clickable = !!onSelectAlias;
+            const unit = effectiveScale === 'aoi' ? 'σ' : 'z';
+            const display = `${region.value >= 0 ? '+' : ''}${region.value.toFixed(2)}${unit}`;
+            return (
+              <li key={`${region.name}-${i}`}>
+                <button
+                  type="button"
+                  disabled={!clickable}
+                  onClick={() => onSelectAlias?.(selected ? null : region.name)}
+                  className={`grid w-full grid-cols-[minmax(7rem,9rem)_1fr_auto] items-center gap-3 rounded-md px-2 py-1 text-start transition sm:grid-cols-[minmax(8rem,11rem)_1fr_auto] sm:gap-4 ${
+                    selected ? 'bg-foreground/5 ring-foreground/15 ring-1' : ''
+                  } ${
+                    clickable
+                      ? 'hover:bg-foreground/5 cursor-pointer'
+                      : 'cursor-default'
+                  }`}
+                  aria-pressed={selected}
+                  title={`${info.full} · ${t(info.blurb)}${atlasAvailable === false ? '' : ` · ${t('click to spotlight on the cortex')}`} · raw z = ${region.raw >= 0 ? '+' : ''}${region.raw.toFixed(3)}${effectiveScale === 'aoi' ? ` · AOI σ = ${display}` : ''}`}
+                >
+                  <div className="min-w-0">
+                    <p className="text-foreground truncate text-[12px] font-semibold sm:text-sm">
+                      {t(info.feeling)}
+                    </p>
+                    <p className="text-muted-foreground truncate font-mono text-[10px] sm:text-[11px]">
+                      {info.tech}
+                    </p>
+                  </div>
+                  <div
+                    dir="ltr"
+                    className="relative h-2 w-full overflow-hidden rounded-full"
+                    aria-label={t('{feeling} {position} baseline', {
+                      feeling: t(info.feeling),
+                      position: t(negative ? 'below' : 'above'),
+                    })}
+                  >
+                    <span
+                      className="bg-muted/40 absolute inset-0"
+                      aria-hidden="true"
+                    />
+                    <span
+                      className="bg-foreground/20 absolute inset-y-0 left-1/2 w-px"
+                      aria-hidden="true"
+                    />
+                    <span
+                      className={`absolute inset-y-0 ${negative ? 'right-1/2 rounded-l-full' : 'left-1/2 rounded-r-full'} ${signTone(region.value).barFill}`}
+                      style={{ width: `${pct.toFixed(1)}%` }}
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <span className="text-muted-foreground font-mono text-[10px] tabular-nums sm:text-[11px]">
+                    {display}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+
+        {ranked.length > 0 && (
+          <div
+            dir="ltr"
+            className="text-muted-foreground mt-3 flex items-center justify-between font-mono text-[10px] tracking-wide uppercase sm:text-[11px]"
+          >
+            <span>Below baseline</span>
+            <span aria-hidden="true">|</span>
+            <span>Above baseline</span>
+          </div>
+        )}
+
+        {atlasAvailable === false && ranked.length > 0 && (
+          <p className="text-muted-foreground/80 mt-3 text-[10px] leading-snug sm:text-[11px]">
+            Region highlighting on the 3D cortex needs the HCP MMP1 parcel atlas
+            (see{' '}
+            <code className="font-mono">hnc/scripts/gen_parcel_aliases.py</code>
+            ). Without it, this list is read-only.
+          </p>
+        )}
+      </div>
+    </Localized>
   );
 }
 

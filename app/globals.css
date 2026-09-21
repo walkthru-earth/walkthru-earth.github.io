@@ -45,6 +45,26 @@
   --radius: 0.5rem;
 }
 
+html[dir='rtl'] body {
+  font-family: var(--font-cairo), Tahoma, Arial, sans-serif;
+}
+
+:lang(ar),
+:lang(ar-EG) {
+  font-family: var(--font-cairo), Tahoma, Arial, sans-serif;
+  letter-spacing: normal;
+}
+
+html[dir='rtl'] [data-slot='dropdown-menu-content'],
+html[dir='rtl'] [data-slot='sheet-content'],
+html[dir='rtl'] [data-slot='dialog-content'] {
+  text-align: right;
+}
+
+html[dir='rtl'] .rtl-flip {
+  transform: scaleX(-1);
+}
+
 .dark {
   /* Dark Mode - Night Earth Tones */
   --background: hsl(0 0% 7%); /* Deep charcoal */

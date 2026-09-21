@@ -11,6 +11,7 @@ import {
   type ParcelAtlas,
 } from './brain-mesh';
 import type { SurfaceMode } from './config';
+import { useI18n } from '@/lib/i18n/i18n-provider';
 
 interface Props {
   surface: SurfaceMode;
@@ -46,6 +47,7 @@ export function HNCBrainPanel({
   onAtlasReady,
   onStatus,
 }: Props) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<SceneCtx | null>(null);
   const assemblyRef = useRef<BrainAssembly | null>(null);
@@ -208,7 +210,7 @@ export function HNCBrainPanel({
       ref={containerRef}
       className="hnc-brain relative h-full w-full"
       role="region"
-      aria-label="Predicted cortical activity, fsaverage5 surface"
+      aria-label={t('Predicted cortical activity, fsaverage5 surface')}
       // Lenis smooth-scroll otherwise eats the wheel event before OrbitControls.
       data-lenis-prevent
     />

@@ -22,6 +22,7 @@ import {
   Boxes,
   Bot,
 } from 'lucide-react';
+import { Localized } from '@/lib/i18n/i18n-provider';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
@@ -39,25 +40,25 @@ interface FlowNode {
 const sources: FlowNode[] = [
   {
     label: 'IoT sensors',
-    sublabel: 'PM2.5, noise, temp, light',
+    sublabel: 'Air quality, temperature, light',
     Icon: Cpu,
     kind: 'sensor',
   },
   {
-    label: 'Mobile app',
-    sublabel: 'Wellbeing + mobility, offline-first',
+    label: 'Planned surveys',
+    sublabel: 'Residents’ experiences',
     Icon: Smartphone,
     kind: 'app',
   },
   {
     label: 'Open data',
-    sublabel: 'LandScan, Overture, OSM',
+    sublabel: 'Environmental and geographic context',
     Icon: Database,
     kind: 'open',
   },
   {
-    label: 'Street imagery',
-    sublabel: 'Mapillary, what the city looks like',
+    label: 'Local context',
+    sublabel: 'Places and their surroundings',
     Icon: Camera,
     kind: 'open',
   },
@@ -65,20 +66,20 @@ const sources: FlowNode[] = [
 
 const processing: FlowNode[] = [
   {
-    label: 'On-device privacy',
-    sublabel: 'No account, no tracking',
+    label: 'Survey safeguards',
+    sublabel: 'Consent and privacy to establish',
     Icon: Lock,
     kind: 'process',
   },
   {
     label: 'H3 hexagonal grid',
-    sublabel: '~500 m cells, 50+ indices',
+    sublabel: 'Compare geographic context',
     Icon: Hexagon,
     kind: 'process',
   },
   {
     label: 'Open table formats',
-    sublabel: 'GeoParquet + Iceberg, AI-ready',
+    sublabel: 'Reusable environmental datasets',
     Icon: Boxes,
     kind: 'process',
   },
@@ -86,8 +87,8 @@ const processing: FlowNode[] = [
 
 const aiLayer: FlowNode[] = [
   {
-    label: 'Brain encoder · TRIBE v2',
-    sublabel: 'Predicts cortical response to street scenes',
+    label: 'Research and validation',
+    sublabel: 'Methods and limits to establish',
     Icon: Brain,
     kind: 'ai',
   },
@@ -96,19 +97,19 @@ const aiLayer: FlowNode[] = [
 const outputs: FlowNode[] = [
   {
     label: 'You',
-    sublabel: 'Neighborhood health insights',
+    sublabel: 'Understand local conditions',
     Icon: Smartphone,
     kind: 'app',
   },
   {
     label: 'Families',
-    sublabel: 'Find healthy areas',
+    sublabel: 'Ask about daily surroundings',
     Icon: Home,
     kind: 'output',
   },
   {
     label: 'Planners',
-    sublabel: 'Evidence for parks',
+    sublabel: 'Investigate local needs',
     Icon: MapPin,
     kind: 'output',
   },
@@ -120,7 +121,7 @@ const outputs: FlowNode[] = [
   },
   {
     label: 'Policymakers',
-    sublabel: 'Health regulations',
+    sublabel: 'Examine environmental evidence',
     Icon: Landmark,
     kind: 'output',
   },
@@ -132,7 +133,7 @@ const outputs: FlowNode[] = [
   },
   {
     label: 'AI agents',
-    sublabel: 'Query the city as a memory',
+    sublabel: 'Query published datasets',
     Icon: Bot,
     kind: 'ai',
   },
@@ -259,7 +260,7 @@ function Arrow({ delay, vertical }: { delay: number; vertical?: boolean }) {
       {vertical ? (
         <ArrowDown className="text-primary/40 h-5 w-5 animate-bounce" />
       ) : (
-        <ArrowRight className="text-primary/40 h-5 w-5" />
+        <ArrowRight className="text-primary/40 h-5 w-5 rtl:rotate-180" />
       )}
     </motion.div>
   );
@@ -283,7 +284,9 @@ function Legend({ delay, className }: { delay: number; className?: string }) {
       </div>
       <div className="flex items-center gap-1.5">
         <Circle className="text-secondary h-2.5 w-2.5 fill-current" />
-        <span className="text-muted-foreground text-xs font-medium">App</span>
+        <span className="text-muted-foreground text-xs font-medium">
+          People
+        </span>
       </div>
       <div className="flex items-center gap-1.5">
         <Circle className="text-muted-foreground h-2.5 w-2.5 fill-current" />
@@ -294,7 +297,7 @@ function Legend({ delay, className }: { delay: number; className?: string }) {
       <div className="flex items-center gap-1.5">
         <Circle className="h-2.5 w-2.5 fill-current text-rose-500 dark:text-rose-300" />
         <span className="text-muted-foreground text-xs font-medium">
-          AI layer
+          Research and tools
         </span>
       </div>
     </motion.div>
@@ -308,75 +311,77 @@ export function HormonesFlow() {
   const inView = useInView(ref, { once: true, margin: '-60px' });
 
   return (
-    <div ref={ref} className="py-2">
-      {inView && (
-        <>
-          {/* ── Desktop: horizontal ────────────────────────────── */}
-          <div className="hidden flex-col gap-3 md:flex">
-            <Legend delay={0} className="mb-1 justify-center" />
+    <Localized>
+      <div ref={ref} className="py-2">
+        {inView && (
+          <>
+            {/* ── Desktop: horizontal ────────────────────────────── */}
+            <div className="hidden flex-col gap-3 md:flex">
+              <Legend delay={0} className="mb-1 justify-center" />
 
-            <div className="flex items-stretch justify-center gap-2 lg:gap-3">
-              {/* Sources column */}
-              <div className="flex flex-col justify-center gap-2">
+              <div className="flex items-stretch justify-center gap-2 lg:gap-3">
+                {/* Sources column */}
+                <div className="flex flex-col justify-center gap-2">
+                  {sources.map((s, i) => (
+                    <Node key={s.label} node={s} delay={i * 0.08} />
+                  ))}
+                </div>
+
+                <Arrow delay={0.4} />
+                <div className="flex flex-col justify-center">
+                  <CenterColumn nodes={processing} delay={0.5} />
+                </div>
+                <Arrow delay={0.7} />
+
+                {/* AI layer — TRIBE v2 + open table formats */}
+                <div className="flex flex-col justify-center gap-2">
+                  {aiLayer.map((n, i) => (
+                    <Node key={n.label} node={n} delay={0.8 + i * 0.08} />
+                  ))}
+                </div>
+
+                <Arrow delay={1.0} />
+
+                {/* Outputs — 2 columns, last item (AI agents) spans both */}
+                <div className="grid grid-cols-2 gap-2">
+                  {outputs.map((o, i) => (
+                    <Node key={o.label} node={o} delay={1.1 + i * 0.06} />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Mobile: vertical ───────────────────────────────── */}
+            <div className="flex flex-col items-center gap-0 md:hidden">
+              <Legend delay={0} className="mb-3" />
+
+              <div className="flex w-full max-w-xs flex-col gap-2">
                 {sources.map((s, i) => (
-                  <Node key={s.label} node={s} delay={i * 0.08} />
+                  <Node key={s.label} node={s} delay={i * 0.07} compact />
                 ))}
               </div>
 
-              <Arrow delay={0.4} />
-              <div className="flex flex-col justify-center">
-                <CenterColumn nodes={processing} delay={0.5} />
-              </div>
-              <Arrow delay={0.7} />
+              <Arrow delay={0.3} vertical />
+              <CenterColumn nodes={processing} delay={0.4} compact />
+              <Arrow delay={0.6} vertical />
 
-              {/* AI layer — TRIBE v2 + open table formats */}
-              <div className="flex flex-col justify-center gap-2">
+              <div className="flex w-full max-w-xs flex-col gap-2">
                 {aiLayer.map((n, i) => (
-                  <Node key={n.label} node={n} delay={0.8 + i * 0.08} />
+                  <Node key={n.label} node={n} delay={0.7 + i * 0.07} compact />
                 ))}
               </div>
 
-              <Arrow delay={1.0} />
+              <Arrow delay={0.9} vertical />
 
-              {/* Outputs — 2 columns, last item (AI agents) spans both */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid w-full max-w-xs grid-cols-2 gap-2">
                 {outputs.map((o, i) => (
-                  <Node key={o.label} node={o} delay={1.1 + i * 0.06} />
+                  <Node key={o.label} node={o} delay={1.0 + i * 0.05} compact />
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* ── Mobile: vertical ───────────────────────────────── */}
-          <div className="flex flex-col items-center gap-0 md:hidden">
-            <Legend delay={0} className="mb-3" />
-
-            <div className="flex w-full max-w-xs flex-col gap-2">
-              {sources.map((s, i) => (
-                <Node key={s.label} node={s} delay={i * 0.07} compact />
-              ))}
-            </div>
-
-            <Arrow delay={0.3} vertical />
-            <CenterColumn nodes={processing} delay={0.4} compact />
-            <Arrow delay={0.6} vertical />
-
-            <div className="flex w-full max-w-xs flex-col gap-2">
-              {aiLayer.map((n, i) => (
-                <Node key={n.label} node={n} delay={0.7 + i * 0.07} compact />
-              ))}
-            </div>
-
-            <Arrow delay={0.9} vertical />
-
-            <div className="grid w-full max-w-xs grid-cols-2 gap-2">
-              {outputs.map((o, i) => (
-                <Node key={o.label} node={o} delay={1.0 + i * 0.05} compact />
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </Localized>
   );
 }

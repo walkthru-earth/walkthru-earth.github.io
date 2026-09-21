@@ -41,6 +41,10 @@ Hormones & Cities has its own MapLibre map and Three.js brain view. Its Parquet 
 
 Theme switching uses `next-themes` classes and CSS variables in `app/globals.css`. Use existing tokens and components rather than duplicating theme rules. WebGL palettes must remain legible in both themes.
 
+Interface localization lives in `lib/i18n/`. The client-side provider persists the selected `en`, `ar-EG`, or `ar` locale, keeps the document `lang` and `dir` attributes synchronized, and falls back to English source copy when a catalog entry is absent. User-facing components own explicit `Localized` render boundaries (or call `t` for composed strings); do not translate React-owned text by mutating the DOM. Arabic uses the committed Cairo font and logical CSS properties so both Arabic variants share a complete RTL layout without a runtime translation or font service.
+
+Section navigation mirrors its arrows and horizontal drawer swipes in RTL; the current/total counter stays an isolated LTR number pair. Do not mirror physical map controls, SQL, scientific color scales, or time-series axes with reading direction.
+
 Analytics configuration lives in `app/providers.tsx`; consent persistence and Google consent integration live in `lib/cookie-consent.ts` and the consent components. Check those files together when changing analytics. `NEXT_PUBLIC_*` configuration is compiled into public browser code.
 
 Static export means no request-time middleware, server API, server-only secret, or image optimization endpoint. Do not document application response headers as enforced by `next.config.mjs`; the actual serving host owns them. React Strict Mode remains disabled in configuration as an existing WebGL development workaround; re-enabling it needs a browser lifecycle check against the installed deck.gl/luma.gl versions.

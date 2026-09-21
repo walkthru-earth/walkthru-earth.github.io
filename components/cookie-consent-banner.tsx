@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Localized } from '@/lib/i18n/i18n-provider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -77,10 +78,10 @@ export function CookieConsentBanner() {
   if (!showBanner) return null;
 
   return (
-    <>
+    <Localized>
       {/* Cookie Banner */}
       <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-50 border-t shadow-lg backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-3 md:px-12 lg:px-24">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-6 py-3 md:px-12 lg:px-24">
           <Cookie className="text-primary hidden h-5 w-5 flex-shrink-0 sm:block" />
           <p className="text-muted-foreground min-w-0 flex-1 text-sm leading-snug">
             We use analytics cookies to understand how you use our site.{' '}
@@ -171,6 +172,6 @@ export function CookieConsentBanner() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </Localized>
   );
 }

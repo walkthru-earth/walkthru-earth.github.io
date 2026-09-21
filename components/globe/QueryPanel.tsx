@@ -2,6 +2,7 @@
 
 import { memo, useState } from 'react';
 import type { ParquetInfo } from './data/sections';
+import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
 
 interface QueryPanelProps {
   query: string;
@@ -80,6 +81,7 @@ function ParquetStatsGrid({
   px?: string;
   showFileSize?: boolean;
 }) {
+  const { t } = useI18n();
   const rows: [string, string][] = [];
   if (showFileSize) rows.push(['File size', formatBytes(info.fileSize)]);
   rows.push(['Rows', info.numRows.toLocaleString()]);
@@ -91,7 +93,7 @@ function ParquetStatsGrid({
     >
       {rows.map(([label, value]) => (
         <div key={label} className="contents">
-          <div className="text-muted-foreground font-medium">{label}</div>
+          <div className="text-muted-foreground font-medium">{t(label)}</div>
           <div className="text-foreground text-right font-bold">{value}</div>
         </div>
       ))}
@@ -106,6 +108,7 @@ function ParquetSchemaSection({
   info: ParquetInfo;
   px?: string;
 }) {
+  const { t } = useI18n();
   const [schemaOpen, setSchemaOpen] = useState(false);
   return (
     <div className="border-border/50 border-t">
@@ -115,7 +118,7 @@ function ParquetSchemaSection({
         className={`flex w-full items-center justify-between ${px} py-2`}
       >
         <span className="text-muted-foreground text-2xs font-bold tracking-wider uppercase">
-          Schema ({info.columns.length} columns)
+          {t('Schema ({count} columns)', { count: info.columns.length })}
         </span>
         <ChevronIcon open={schemaOpen} />
       </button>
@@ -125,11 +128,13 @@ function ParquetSchemaSection({
             <thead>
               <tr className="text-muted-foreground">
                 <th className="w-[55%] pb-1.5 text-left font-semibold">
-                  Column
+                  {t('Column')}
                 </th>
-                <th className="w-[25%] pb-1.5 text-left font-semibold">Type</th>
+                <th className="w-[25%] pb-1.5 text-left font-semibold">
+                  {t('Type')}
+                </th>
                 <th className="w-[20%] pb-1.5 text-right font-semibold">
-                  Codec
+                  {t('Codec')}
                 </th>
               </tr>
             </thead>
@@ -184,63 +189,65 @@ export function ParquetInfoPanel({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        aria-label="Parquet file info"
-        aria-expanded={open}
-        className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10 ${
-          open
-            ? 'border-success-border bg-success-muted text-success'
-            : 'border-border/50 bg-background/90 text-muted-foreground hover:bg-accent'
-        }`}
-      >
-        {isLoading ? (
-          <span className="bg-warning h-2.5 w-2.5 animate-pulse rounded-full" />
-        ) : (
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        )}
-      </button>
-
-      {open && info && (
-        <div className="border-border/50 bg-background/95 absolute top-full left-0 z-10 mt-2 w-72 rounded-xl border shadow-xl backdrop-blur-md sm:w-80">
-          <div className="border-border/50 flex items-center gap-2 border-b px-4 py-2.5">
+    <Localized>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-label="Parquet file info"
+          aria-expanded={open}
+          className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10 ${
+            open
+              ? 'border-success-border bg-success-muted text-success'
+              : 'border-border/50 bg-background/90 text-muted-foreground hover:bg-accent'
+          }`}
+        >
+          {isLoading ? (
+            <span className="bg-warning h-2.5 w-2.5 animate-pulse rounded-full" />
+          ) : (
             <svg
-              className="text-success h-4 w-4"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2}
+              strokeWidth={2.5}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="text-foreground font-mono text-sm font-bold">
-              Parquet Metadata
-            </span>
+          )}
+        </button>
+
+        {open && info && (
+          <div className="border-border/50 bg-background/95 absolute top-full left-0 z-10 mt-2 w-72 rounded-xl border shadow-xl backdrop-blur-md sm:w-80">
+            <div className="border-border/50 flex items-center gap-2 border-b px-4 py-2.5">
+              <svg
+                className="text-success h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <span className="text-foreground font-mono text-sm font-bold">
+                Parquet Metadata
+              </span>
+            </div>
+            <ParquetStatsGrid info={info} px="px-4" showFileSize />
+            <ParquetSchemaSection info={info} px="px-4" />
+            <ParquetCreatedBy info={info} px="px-4" />
           </div>
-          <ParquetStatsGrid info={info} px="px-4" showFileSize />
-          <ParquetSchemaSection info={info} px="px-4" />
-          <ParquetCreatedBy info={info} px="px-4" />
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </Localized>
   );
 }
 
@@ -268,6 +275,7 @@ function SQLToggleButton({
   duration: number | null;
   className?: string;
 }) {
+  const { t } = useI18n();
   return (
     <button onClick={onToggle} aria-expanded={expanded} className={className}>
       <span
@@ -279,8 +287,8 @@ function SQLToggleButton({
       {isLoading && (
         <span className="text-warning animate-pulse">
           {rowCount > 0
-            ? `${rowCount.toLocaleString()} rows...`
-            : 'querying...'}
+            ? t('{count} rows...', { count: rowCount.toLocaleString() })
+            : t('querying...')}
         </span>
       )}
       {!isLoading && duration !== null && (
@@ -293,7 +301,11 @@ function SQLToggleButton({
 
 function SQLCodeBlock({ query }: { query: string }) {
   return (
-    <pre className="text-foreground overflow-x-auto p-3 font-mono text-xs leading-relaxed sm:p-4">
+    <pre
+      dir="ltr"
+      translate="no"
+      className="text-foreground overflow-x-auto p-3 font-mono text-xs leading-relaxed sm:p-4"
+    >
       <code>
         {tokenizeSQL(query).map((tok, i) => (
           <span key={i} className={TOKEN_CLASSES[tok.type]}>
@@ -314,6 +326,7 @@ function SQLStatsBar({
   rowCount: number;
   duration: number | null;
 }) {
+  const { t } = useI18n();
   if (!error && rowCount === 0 && duration === null) return null;
   return (
     <div className="text-muted-foreground border-border/50 text-2xs flex items-center gap-3 border-t px-3 py-2 font-mono">
@@ -321,7 +334,11 @@ function SQLStatsBar({
         <span className="text-error">{error}</span>
       ) : (
         <>
-          {rowCount > 0 && <span>{rowCount.toLocaleString()} rows</span>}
+          {rowCount > 0 && (
+            <span>
+              {t('{count} rows', { count: rowCount.toLocaleString() })}
+            </span>
+          )}
           {duration !== null && <span>{duration.toFixed(0)}ms</span>}
         </>
       )}
@@ -375,34 +392,36 @@ export function ParquetInfoInline({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border-border/50 rounded-lg border">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        aria-expanded={expanded}
-        className="text-foreground/80 flex w-full items-center gap-2 px-3 py-2 font-mono text-xs"
-      >
-        <span
-          className={`inline-block h-2 w-2 rounded-full transition-colors ${
-            isLoading ? 'bg-warning animate-pulse' : 'bg-info'
-          }`}
-        />
-        Parquet
-        {info && (
-          <span className="text-muted-foreground">
-            {formatBytes(info.fileSize)}
-          </span>
-        )}
-        <ChevronIcon open={expanded} className="" />
-      </button>
+    <Localized>
+      <div className="border-border/50 rounded-lg border">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+          className="text-foreground/80 flex w-full items-center gap-2 px-3 py-2 font-mono text-xs"
+        >
+          <span
+            className={`inline-block h-2 w-2 rounded-full transition-colors ${
+              isLoading ? 'bg-warning animate-pulse' : 'bg-info'
+            }`}
+          />
+          Parquet
+          {info && (
+            <span className="text-muted-foreground">
+              {formatBytes(info.fileSize)}
+            </span>
+          )}
+          <ChevronIcon open={expanded} className="" />
+        </button>
 
-      {expanded && info && (
-        <div className="border-border/50 border-t">
-          <ParquetStatsGrid info={info} />
-          <ParquetSchemaSection info={info} />
-          <ParquetCreatedBy info={info} />
-        </div>
-      )}
-    </div>
+        {expanded && info && (
+          <div className="border-border/50 border-t">
+            <ParquetStatsGrid info={info} />
+            <ParquetSchemaSection info={info} />
+            <ParquetCreatedBy info={info} />
+          </div>
+        )}
+      </div>
+    </Localized>
   );
 }
 
@@ -420,47 +439,29 @@ export const QueryPanel = memo(function QueryPanel({
   if (!query) return null;
 
   return (
-    <div className="absolute bottom-4 left-8 z-20 hidden sm:block">
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setExpanded(!expanded)}
-          aria-label="SQL query"
-          aria-expanded={expanded}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10 ${
-            expanded
-              ? 'border-success-border bg-success-muted text-success'
-              : 'border-border/50 bg-background/90 text-muted-foreground hover:bg-accent'
-          }`}
-        >
-          {isLoading ? (
-            <span className="bg-warning h-2.5 w-2.5 animate-pulse rounded-full" />
-          ) : (
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-          )}
-        </button>
-
-        {expanded && (
-          <div className="border-border/50 bg-background/95 absolute bottom-full left-0 mb-2 w-80 overflow-hidden rounded-xl border shadow-xl backdrop-blur-md sm:w-96">
-            <div className="border-border/50 flex items-center gap-2 border-b px-4 py-2.5">
+    <Localized>
+      <div className="absolute bottom-4 left-8 z-20 hidden sm:block">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            aria-label="SQL query"
+            aria-expanded={expanded}
+            className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10 ${
+              expanded
+                ? 'border-success-border bg-success-muted text-success'
+                : 'border-border/50 bg-background/90 text-muted-foreground hover:bg-accent'
+            }`}
+          >
+            {isLoading ? (
+              <span className="bg-warning h-2.5 w-2.5 animate-pulse rounded-full" />
+            ) : (
               <svg
-                className="text-success h-4 w-4"
+                className="h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth={2}
+                strokeWidth={2.5}
               >
                 <path
                   strokeLinecap="round"
@@ -468,24 +469,44 @@ export const QueryPanel = memo(function QueryPanel({
                   d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <span className="text-foreground font-mono text-sm font-bold">
-                SQL Query
-              </span>
-              {!isLoading && duration !== null && (
-                <span className="text-muted-foreground ml-auto font-mono text-xs">
-                  {duration.toFixed(0)}ms
+            )}
+          </button>
+
+          {expanded && (
+            <div className="border-border/50 bg-background/95 absolute bottom-full left-0 mb-2 w-80 overflow-hidden rounded-xl border shadow-xl backdrop-blur-md sm:w-96">
+              <div className="border-border/50 flex items-center gap-2 border-b px-4 py-2.5">
+                <svg
+                  className="text-success h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="text-foreground font-mono text-sm font-bold">
+                  SQL Query
                 </span>
-              )}
+                {!isLoading && duration !== null && (
+                  <span className="text-muted-foreground ml-auto font-mono text-xs">
+                    {duration.toFixed(0)}ms
+                  </span>
+                )}
+              </div>
+              <SQLCodeBlock query={query} />
+              <SQLStatsBar
+                error={error}
+                rowCount={rowCount}
+                duration={duration}
+              />
             </div>
-            <SQLCodeBlock query={query} />
-            <SQLStatsBar
-              error={error}
-              rowCount={rowCount}
-              duration={duration}
-            />
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </Localized>
   );
 });

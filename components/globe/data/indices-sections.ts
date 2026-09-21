@@ -313,10 +313,10 @@ FROM '${buildingParquet(ctx.h3Res)}'`,
    * ──────────────────────────────────────────────────────────────── */
   {
     id: 'landslide-vulnerability',
-    title: 'Buildings on Unstable Ground',
-    subtitle: 'Himalayan Risk',
+    title: 'Buildings on Steep Terrain',
+    subtitle: 'Himalayan Slopes',
     description:
-      'Cross-joining buildings with terrain slope to find structures on dangerous ground. The steepest inhabited terrain on Earth.',
+      'Cross-joining buildings with terrain slope to flag structures on steep ground. Slope is one screening signal, not a site-level stability or hazard assessment.',
     describeData: (rows) => {
       const maxSlope = col(rows, 'slope', 'max');
       const maxBldg = col(rows, 'building_count', 'max');
@@ -399,7 +399,7 @@ WHERE b.building_count > 0`,
     title: 'Vertical Living Index',
     subtitle: 'Pearl River Delta',
     description:
-      'Buildings per person. A proxy for how vertically compressed human living is. Low ratios mean more people sharing each structure, reshaping daily stress, social interaction, and mental health.',
+      'Buildings per person is a rough proxy for how many people share built space. It does not measure crowding inside homes, stress, or mental health.',
     describeData: (rows) => {
       const minBpp = rows.reduce((m, r) => {
         const v = Number(r.bldg_per_person);

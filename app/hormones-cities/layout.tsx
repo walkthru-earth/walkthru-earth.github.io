@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Hormones & Cities - Neighborhood Health Insights | walkthru.earth',
+  title: 'Hormones & Cities - Urban Wellbeing Research | walkthru.earth',
   description:
-    'Share anonymous wellbeing and mobility data from your phone, get back analyzed health insights for your neighborhood. Offline-first, privacy by design, aggregated to H3 hexagons. Launching mid-2026.',
+    'An emerging research initiative exploring urban environments and everyday wellbeing, with planned resident surveys and an experimental street imagery model.',
   keywords:
-    'neighborhood health, urban wellbeing, anonymous mobility data, offline-first, privacy by design, H3 hexagons, livability, mental health, sustainable cities',
+    'urban wellbeing, environmental data, resident surveys, street imagery, urban research, neighborhood experience',
   alternates: {
     canonical: 'https://walkthru.earth/hormones-cities',
   },
   openGraph: {
-    title: 'Hormones & Cities - Neighborhood Health Insights',
+    title: 'Hormones & Cities - Urban Wellbeing Research',
     description:
-      'Share anonymous wellbeing and mobility data, get back neighborhood health insights. Offline-first, privacy by design. Launching mid-2026.',
+      'Explore an early street imagery experiment and our plans to study environmental conditions alongside residents’ experiences.',
     url: 'https://walkthru.earth/hormones-cities',
     siteName: 'walkthru.earth',
     locale: 'en_US',
@@ -22,15 +22,15 @@ export const metadata: Metadata = {
         url: 'https://walkthru.earth/hormones-cities-ai.png',
         width: 780,
         height: 1768,
-        alt: 'Hormones & Cities - Neighborhood Health Insights',
+        alt: 'Hormones & Cities app prototype',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hormones & Cities - Neighborhood Health Insights',
+    title: 'Hormones & Cities - Urban Wellbeing Research',
     description:
-      'Share anonymous wellbeing and mobility data, get back neighborhood health insights. Offline-first, privacy by design.',
+      'An emerging research initiative exploring urban environments, residents’ experiences, and everyday wellbeing.',
     creator: '@walkthru_earth',
     images: ['https://walkthru.earth/hormones-cities-ai.png'],
   },

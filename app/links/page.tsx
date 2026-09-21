@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Mail, Globe, ExternalLink } from 'lucide-react';
@@ -10,18 +11,8 @@ import {
   Facebook,
 } from '@/components/shared/brand-icons';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
-
-export const metadata: Metadata = {
-  title: 'Links | walkthru.earth',
-  description:
-    'All links to walkthru.earth - social media, projects, and ways to connect with us.',
-  alternates: { canonical: 'https://walkthru.earth/links' },
-  openGraph: {
-    title: 'Links | walkthru.earth',
-    description: 'Connect with walkthru.earth - all our links in one place',
-    url: 'https://walkthru.earth/links',
-  },
-};
+import { LanguageSelector } from '@/components/navigation/language-selector';
+import { Localized } from '@/lib/i18n/i18n-provider';
 
 const mainLinks = [
   {
@@ -34,14 +25,14 @@ const mainLinks = [
   },
   {
     title: 'OpenSensor.Space',
-    description: 'Real-time environmental monitoring',
+    description: 'Open environmental monitoring',
     url: 'https://opensensor.space',
     icon: ExternalLink,
     color: 'bg-green-500/10 text-green-600 border-green-500/20',
   },
   {
-    title: 'Hormones & Cities App',
-    description: 'Measure how your city affects you',
+    title: 'Hormones & Cities',
+    description: 'Urban environments and wellbeing research',
     url: '/hormones-cities',
     icon: ExternalLink,
     color: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
@@ -128,115 +119,123 @@ const socialLinks = [
 
 export default function LinksPage() {
   return (
-    <main className="bg-background min-h-dvh">
-      {/* Theme Toggle */}
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggle />
-      </div>
-
-      <div className="mx-auto max-w-md px-4 py-12">
-        {/* Profile Header */}
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-block">
-            <Image
-              src="/icon.svg"
-              alt="walkthru.earth"
-              width={80}
-              height={80}
-              className="mx-auto mb-4"
-            />
-          </Link>
-          <h1 className="text-3xl font-bold">walkthru.earth</h1>
-          <p className="text-muted-foreground mt-2">
-            People-first urban intelligence
-          </p>
+    <Localized>
+      <main className="bg-background min-h-dvh">
+        <div className="fixed end-4 top-4 z-50 flex items-center gap-1">
+          <LanguageSelector compact />
+          <ThemeToggle />
         </div>
 
-        {/* Main Links */}
-        <div className="mb-8 space-y-3">
-          {mainLinks.map((link) => {
-            const content = (
-              <>
-                {link.image ? (
-                  <Image
-                    src={link.image}
-                    alt={link.title}
-                    width={24}
-                    height={24}
-                    className="h-6 w-6"
-                  />
-                ) : link.icon ? (
-                  <link.icon className="h-6 w-6" />
-                ) : null}
-                <div className="flex-1">
-                  <div className="font-semibold">{link.title}</div>
-                  <div className="text-base opacity-80">{link.description}</div>
-                </div>
-                {!link.internal && (
-                  <ExternalLink className="h-4 w-4 opacity-50" />
-                )}
-              </>
-            );
-            const cls = `flex items-center gap-4 rounded-xl border p-4 transition-all hover:scale-[1.02] hover:shadow-md ${link.color}`;
+        <div className="mx-auto max-w-md px-4 py-12">
+          {/* Profile Header */}
+          <div className="mb-8 text-center">
+            <Link href="/" className="inline-block">
+              <Image
+                src="/icon.svg"
+                alt="walkthru.earth"
+                width={80}
+                height={80}
+                className="mx-auto mb-4"
+              />
+            </Link>
+            <h1 className="text-3xl font-bold">walkthru.earth</h1>
+            <p className="text-muted-foreground mt-2">
+              People-first urban intelligence
+            </p>
+          </div>
 
-            return link.internal ? (
-              <Link key={link.title} href={link.url} className={cls}>
-                {content}
-              </Link>
-            ) : (
-              <a
-                key={link.title}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cls}
-              >
-                {content}
-              </a>
-            );
-          })}
-        </div>
+          {/* Main Links */}
+          <div className="mb-8 space-y-3">
+            {mainLinks.map((link) => {
+              const content = (
+                <>
+                  {link.image ? (
+                    <Image
+                      src={link.image}
+                      alt={link.title}
+                      width={24}
+                      height={24}
+                      className="h-6 w-6"
+                    />
+                  ) : link.icon ? (
+                    <link.icon className="h-6 w-6" />
+                  ) : null}
+                  <div className="flex-1">
+                    <div className="font-semibold">{link.title}</div>
+                    <div className="text-base opacity-80">
+                      {link.description}
+                    </div>
+                  </div>
+                  {!link.internal && (
+                    <ExternalLink className="h-4 w-4 opacity-50" />
+                  )}
+                </>
+              );
+              const cls = `flex items-center gap-4 rounded-xl border p-4 transition-all hover:scale-[1.02] hover:shadow-md ${link.color}`;
 
-        {/* Contact */}
-        <div className="mb-8">
-          <a
-            href="mailto:hi@walkthru.earth"
-            className="border-primary bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2 rounded-xl border p-4 font-semibold transition-all"
-          >
-            <Mail className="h-5 w-5" />
-            hi@walkthru.earth
-          </a>
-        </div>
+              return link.internal ? (
+                <Link key={link.title} href={link.url} className={cls}>
+                  {content}
+                </Link>
+              ) : (
+                <a
+                  key={link.title}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cls}
+                >
+                  {content}
+                </a>
+              );
+            })}
+          </div>
 
-        {/* Social Links */}
-        <div className="mb-8">
-          <p className="text-muted-foreground mb-4 text-center text-base">
-            Follow us
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {socialLinks.map((link) => (
-              <a
-                key={link.title}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={link.title}
-                className={`bg-card text-muted-foreground border-border flex h-12 w-12 items-center justify-center rounded-full border transition-all ${link.hoverColor}`}
-              >
-                {link.icon ? <link.icon className="h-5 w-5" /> : link.iconPath}
-              </a>
-            ))}
+          {/* Contact */}
+          <div className="mb-8">
+            <a
+              href="mailto:hi@walkthru.earth"
+              className="border-primary bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2 rounded-xl border p-4 font-semibold transition-all"
+            >
+              <Mail className="h-5 w-5" />
+              hi@walkthru.earth
+            </a>
+          </div>
+
+          {/* Social Links */}
+          <div className="mb-8">
+            <p className="text-muted-foreground mb-4 text-center text-base">
+              Follow us
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.title}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={link.title}
+                  className={`bg-card text-muted-foreground border-border flex h-12 w-12 items-center justify-center rounded-full border transition-all ${link.hoverColor}`}
+                >
+                  {link.icon ? (
+                    <link.icon className="h-5 w-5" />
+                  ) : (
+                    link.iconPath
+                  )}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-muted-foreground text-center text-base">
+            <p>Cities built for people</p>
+            <p className="mt-1 opacity-60">
+              © {new Date().getFullYear()} walkthru.earth
+            </p>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="text-muted-foreground text-center text-base">
-          <p>Cities built for people</p>
-          <p className="mt-1 opacity-60">
-            © {new Date().getFullYear()} walkthru.earth
-          </p>
-        </div>
-      </div>
-    </main>
+      </main>
+    </Localized>
   );
 }

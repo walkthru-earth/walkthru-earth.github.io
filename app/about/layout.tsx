@@ -3,12 +3,12 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'About | walkthru.earth',
   description:
-    'Meet the team building open urban intelligence, geospatial datasets, and tools for healthier cities.',
+    'Meet the team building open environmental data and tools to understand the places we live, with human health and wellbeing at the center.',
   alternates: { canonical: 'https://walkthru.earth/about' },
   openGraph: {
     title: 'About | walkthru.earth',
     description:
-      'Meet the team building open urban intelligence and tools for healthier cities.',
+      'Meet the team exploring the connection between environmental conditions, human health, and everyday wellbeing.',
     url: 'https://walkthru.earth/about',
   },
 };

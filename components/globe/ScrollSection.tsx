@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import Image from 'next/image';
+import { useI18n } from '@/lib/i18n/i18n-provider';
 // NOTE: We intentionally avoid Vaul/Radix drawer here because Radix Dialog
 // sets body { pointer-events: none } which blocks all map interaction.
 // A simple CSS-animated panel gives us full control without that issue.
@@ -68,6 +69,7 @@ function SectionDots({
   size?: 'sm' | 'md';
   onNavigateTo?: (index: number) => void;
 }) {
+  const { t } = useI18n();
   const clickable = onNavigateTo ? 'cursor-pointer hover:brightness-150' : '';
   return (
     <div className="flex items-center gap-0.5">
@@ -82,7 +84,7 @@ function SectionDots({
           <button
             key={i}
             type="button"
-            aria-label={`Go to section ${i + 1}`}
+            aria-label={t('Go to section {number}', { number: i + 1 })}
             onClick={onNavigateTo ? () => onNavigateTo(i) : undefined}
             className={`${size === 'sm' ? 'h-1' : 'h-1.5'} min-w-0 appearance-none rounded-full border-none p-0 transition-all duration-500 ${clickable} ${bg} ${isActive ? 'flex-[3]' : 'flex-1'}`}
           />
@@ -103,6 +105,7 @@ function NavArrow({
   onClick: () => void;
   size?: 'sm' | 'md';
 }) {
+  const { t } = useI18n();
   const d = direction === -1 ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7';
   const sz = size === 'sm' ? 'h-8 w-8' : 'h-9 w-9 sm:h-10 sm:w-10';
   const ico = size === 'sm' ? 'h-4 w-4' : 'h-4 w-4 sm:h-5 sm:w-5';
@@ -111,11 +114,12 @@ function NavArrow({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      aria-label={direction === -1 ? 'Previous section' : 'Next section'}
+      aria-label={t(direction === -1 ? 'Previous section' : 'Next section')}
       className={`flex ${sz} border-border/50 bg-muted text-foreground hover:bg-accent items-center justify-center rounded-full border shadow-sm transition-all active:scale-95 disabled:opacity-20`}
     >
       <svg
-        className={ico}
+        className={`${ico} rtl:rotate-180`}
+        aria-hidden="true"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -138,7 +142,11 @@ function SectionContent({
   onNavigateTo,
   queryPanel,
 }: ScrollSectionProps) {
-  const description = resolvedDescription ?? section.description;
+  const { locale, t } = useI18n();
+  const description =
+    locale === 'en'
+      ? (resolvedDescription ?? section.description)
+      : section.description;
   return (
     <>
       <div
@@ -157,35 +165,38 @@ function SectionContent({
 
       {section.subtitle && (
         <p className="text-success mb-1 font-mono text-sm font-medium tracking-wider uppercase sm:text-base">
-          {section.subtitle}
+          {t(section.subtitle)}
         </p>
       )}
 
       <h2 className="text-foreground mb-2 text-xl leading-tight font-bold sm:mb-3 sm:text-3xl">
-        {section.title}
+        {t(section.title)}
       </h2>
 
       <p className="text-muted-foreground mb-3 text-base leading-relaxed sm:mb-4 sm:text-lg">
-        {description}
+        {t(description)}
       </p>
 
       {section.stat.value && (
         <div className="mb-3 flex items-baseline gap-2 sm:mb-4">
           <span className="text-foreground text-2xl font-extrabold sm:text-3xl">
-            {section.stat.value}
+            {t(section.stat.value)}
           </span>
           <span className="text-muted-foreground text-sm font-medium sm:text-base">
-            {section.stat.label}
+            {t(section.stat.label)}
           </span>
         </div>
       )}
 
       {section.colorLegend.length > 0 && (
-        <div>
+        <div dir="ltr">
           <div
             className="h-1.5 w-full rounded-full sm:h-2"
             role="img"
-            aria-label={`Color scale from ${section.colorLegend[0].label} to ${section.colorLegend[section.colorLegend.length - 1].label}`}
+            aria-label={t('Color scale from {start} to {end}', {
+              start: t(section.colorLegend[0].label),
+              end: t(section.colorLegend[section.colorLegend.length - 1].label),
+            })}
             style={{
               background: `linear-gradient(to right, ${section.colorLegend.map((l) => l.color).join(', ')})`,
             }}
@@ -196,7 +207,7 @@ function SectionContent({
                 key={i}
                 className="text-muted-foreground text-sm font-medium"
               >
-                {l.label}
+                {t(l.label)}
               </span>
             ))}
           </div>
@@ -217,7 +228,7 @@ function SectionContent({
             height={12}
             className="rounded-sm sm:h-3.5 sm:w-3.5"
           />
-          <span className="text-foreground">Data</span>
+          <span className="text-foreground">{t('Data')}</span>
         </a>
         <a
           href={section.githubUrl}
@@ -241,7 +252,7 @@ function SectionContent({
           >
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
-          <span className="text-foreground">Star</span>
+          <span className="text-foreground">{t('Star')}</span>
         </a>
       </div>
 
@@ -253,7 +264,10 @@ function SectionContent({
           disabled={sectionIndex === 0}
           onClick={() => onSwipe?.(-1)}
         />
-        <span className="text-muted-foreground text-sm font-semibold tabular-nums sm:text-base">
+        <span
+          dir="ltr"
+          className="text-muted-foreground text-sm font-semibold tabular-nums sm:text-base"
+        >
           {sectionIndex + 1} / {totalSections}
         </span>
         <NavArrow
@@ -343,7 +357,9 @@ function useDrawerGestures(
         e.preventDefault();
         if (Math.abs(dx) > 60) {
           fired = true;
-          onSwipeRef.current?.(dx < 0 ? 1 : -1);
+          const isRtl = window.getComputedStyle(el).direction === 'rtl';
+          const isNext = isRtl ? dx > 0 : dx < 0;
+          onSwipeRef.current?.(isNext ? 1 : -1);
         }
       }
 
@@ -395,8 +411,12 @@ function MobileDrawerContent({
   isLoading,
   rowCount,
 }: ScrollSectionProps) {
+  const { locale, t } = useI18n();
   const [expanded, setExpanded] = useState(false);
-  const description = resolvedDescription ?? section.description;
+  const description =
+    locale === 'en'
+      ? (resolvedDescription ?? section.description)
+      : section.description;
 
   return (
     <>
@@ -417,13 +437,13 @@ function MobileDrawerContent({
 
       {section.subtitle && (
         <p className="text-success mb-0.5 font-mono text-xs font-medium tracking-wider uppercase">
-          {section.subtitle}
+          {t(section.subtitle)}
         </p>
       )}
 
       <div className="mb-2 flex items-center justify-between gap-2">
         <h2 className="text-foreground min-w-0 flex-1 truncate text-lg leading-tight font-bold">
-          {section.title}
+          {t(section.title)}
         </h2>
         {isLoading && (
           <div className="flex flex-shrink-0 items-center gap-1.5">
@@ -441,11 +461,14 @@ function MobileDrawerContent({
       </div>
 
       {section.colorLegend.length > 0 && (
-        <div className="mb-2">
+        <div className="mb-2" dir="ltr">
           <div
             className="h-1.5 w-full rounded-full"
             role="img"
-            aria-label={`Color scale from ${section.colorLegend[0].label} to ${section.colorLegend[section.colorLegend.length - 1].label}`}
+            aria-label={t('Color scale from {start} to {end}', {
+              start: t(section.colorLegend[0].label),
+              end: t(section.colorLegend[section.colorLegend.length - 1].label),
+            })}
             style={{
               background: `linear-gradient(to right, ${section.colorLegend.map((l) => l.color).join(', ')})`,
             }}
@@ -456,7 +479,7 @@ function MobileDrawerContent({
                 key={i}
                 className="text-muted-foreground text-xs font-medium"
               >
-                {l.label}
+                {t(l.label)}
               </span>
             ))}
           </div>
@@ -476,7 +499,7 @@ function MobileDrawerContent({
           onClick={() => setExpanded((v) => !v)}
           className="text-muted-foreground flex items-center gap-1 text-xs font-medium"
         >
-          {expanded ? 'Less' : 'More'}
+          {t(expanded ? 'Less' : 'More')}
           <svg
             className={`h-3 w-3 transition-transform ${expanded ? 'rotate-180' : ''}`}
             fill="none"
@@ -503,16 +526,16 @@ function MobileDrawerContent({
       {expanded && (
         <div className="border-border/30 mt-2 border-t pt-2">
           <p className="text-muted-foreground mb-2 text-sm leading-relaxed">
-            {description}
+            {t(description)}
           </p>
 
           {section.stat.value && (
             <div className="mb-2 flex items-baseline gap-2">
               <span className="text-foreground text-xl font-extrabold">
-                {section.stat.value}
+                {t(section.stat.value)}
               </span>
               <span className="text-muted-foreground text-xs font-medium">
-                {section.stat.label}
+                {t(section.stat.label)}
               </span>
             </div>
           )}
@@ -531,7 +554,7 @@ function MobileDrawerContent({
                 height={12}
                 className="rounded-sm"
               />
-              <span className="text-foreground">Data</span>
+              <span className="text-foreground">{t('Data')}</span>
             </a>
             <a
               href={section.githubUrl}
@@ -555,7 +578,7 @@ function MobileDrawerContent({
               >
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
-              <span className="text-foreground">Star</span>
+              <span className="text-foreground">{t('Star')}</span>
             </a>
           </div>
 
@@ -568,6 +591,7 @@ function MobileDrawerContent({
 }
 
 function MobileDrawer(props: ScrollSectionProps) {
+  const { t } = useI18n();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const { section, sectionIndex, totalSections, isLoading, rowCount, onSwipe } =
@@ -629,7 +653,7 @@ function MobileDrawer(props: ScrollSectionProps) {
                   </span>
                 )}
                 <span className="text-foreground truncate text-sm font-medium">
-                  {section.title}
+                  {t(section.title)}
                 </span>
                 {isLoading && rowCount !== undefined && rowCount > 0 && (
                   <span className="text-warning flex-shrink-0 animate-pulse text-xs tabular-nums">
@@ -684,6 +708,7 @@ function MobileDrawer(props: ScrollSectionProps) {
 /* ── Desktop card (draggable) ─────────────────────────────────────── */
 
 function DesktopCard(props: ScrollSectionProps) {
+  const { t } = useI18n();
   const cardRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{
     startX: number;
@@ -754,7 +779,11 @@ function DesktopCard(props: ScrollSectionProps) {
         cursor: dragging ? 'grabbing' : 'grab',
       }}
       role="region"
-      aria-label={`Section ${props.sectionIndex + 1} of ${props.totalSections}: ${props.section.title}`}
+      aria-label={t('Section {current} of {total}: {title}', {
+        current: props.sectionIndex + 1,
+        total: props.totalSections,
+        title: t(props.section.title),
+      })}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -793,6 +822,7 @@ function LoadingOverlay({
   isLoading: boolean;
   rowCount: number;
 }) {
+  const { t } = useI18n();
   // Subscribe to worker phase events. Kept inside the component so no props
   // need to thread through GlobeExplorer → ScrollSection. Ignore events from
   // strictly-older request ids so a superseded load's late progress can't
@@ -808,7 +838,7 @@ function LoadingOverlay({
 
   if (!isLoading) return null;
 
-  const label = phase ? PHASE_LABELS[phase.phase] : 'Loading';
+  const label = t(phase ? PHASE_LABELS[phase.phase] : 'Loading');
   const hasProgress =
     phase &&
     typeof phase.current === 'number' &&
@@ -839,7 +869,7 @@ function LoadingOverlay({
               </span>
             ) : rowCount > 0 ? (
               <span className="text-success text-3xs leading-tight tabular-nums">
-                {humanCount(rowCount)} rows
+                {t('{count} rows', { count: humanCount(rowCount) })}
               </span>
             ) : null}
             {phase && (

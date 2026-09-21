@@ -13,3 +13,11 @@ export const quicksand = localFont({
     'sans-serif',
   ],
 });
+
+export const cairo = localFont({
+  src: './fonts/Cairo-Variable.ttf',
+  display: 'swap',
+  variable: '--font-cairo',
+  weight: '200 1000',
+  fallback: ['Tahoma', 'Arial', 'sans-serif'],
+});

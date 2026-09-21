@@ -1,18 +1,19 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { quicksand } from './fonts';
+import { cairo, quicksand } from './fonts';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { SmoothScroll } from '@/components/shared/smooth-scroll';
 import { PostHogProvider, PostHogPageView } from './providers';
 import { ConsentInit } from '@/components/consent-init';
 import { CookieConsentBanner } from '@/components/cookie-consent-banner';
+import { I18nProvider } from '@/lib/i18n/i18n-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'walkthru.earth - People-First Urban Intelligence',
+  title: 'walkthru.earth - Health, Wellbeing & the Places We Live',
   description:
-    'Detecting hidden patterns of daily life and turning them into people-first solutions that support wellbeing in cities globally. Building infrastructure and tools to understand and improve urban life.',
+    'Open environmental data, monitoring, and tools to understand how the places we live shape human health and everyday wellbeing.',
   keywords:
     'urban wellbeing, livability index, city data, sustainable communities, urban analytics, IoT sensors, environmental monitoring',
   authors: [{ name: 'walkthru.earth' }],
@@ -22,9 +23,9 @@ export const metadata: Metadata = {
     canonical: 'https://walkthru.earth',
   },
   openGraph: {
-    title: 'walkthru.earth - People-First Urban Intelligence',
+    title: 'walkthru.earth - Health, Wellbeing & the Places We Live',
     description:
-      'Detecting hidden patterns of daily life and turning them into people-first solutions for urban wellbeing',
+      'Open environmental data and tools to understand the places we live, with human health and wellbeing at the center.',
     url: 'https://walkthru.earth',
     siteName: 'walkthru.earth',
     locale: 'en_US',
@@ -34,15 +35,15 @@ export const metadata: Metadata = {
         url: 'https://walkthru.earth/globe-preview-dark.png',
         width: 1755,
         height: 1369,
-        alt: 'walkthru.earth - People-First Urban Intelligence',
+        alt: 'walkthru.earth environmental data globe',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'walkthru.earth - People-First Urban Intelligence',
+    title: 'walkthru.earth - Health, Wellbeing & the Places We Live',
     description:
-      'Detecting hidden patterns of daily life and turning them into people-first solutions for urban wellbeing',
+      'Open environmental data and tools to understand the places we live, with human health and wellbeing at the center.',
     creator: '@walkthru_earth',
     images: ['https://walkthru.earth/globe-preview-dark.png'],
   },
@@ -70,7 +71,7 @@ export default function RootLayout({
     url: 'https://walkthru.earth',
     logo: 'https://walkthru.earth/icon.svg',
     description:
-      'Detecting hidden patterns of daily life and turning them into people-first solutions that support wellbeing in cities globally. Building infrastructure and tools to understand and improve urban life since March 2025.',
+      'Open environmental data, monitoring, and tools to understand how the places we live shape human health and everyday wellbeing.',
     sameAs: [
       'https://github.com/walkthru-earth',
       'https://www.linkedin.com/company/walkthru-earth/',
@@ -101,7 +102,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       lang="en"
       suppressHydrationWarning
-      className={quicksand.variable}
+      className={`${quicksand.variable} ${cairo.variable}`}
     >
       <head>
         <script
@@ -115,16 +116,18 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <PostHogPageView />
           </Suspense>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <SmoothScroll />
-            {children}
-            <CookieConsentBanner />
-          </ThemeProvider>
+          <I18nProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <SmoothScroll />
+              {children}
+              <CookieConsentBanner />
+            </ThemeProvider>
+          </I18nProvider>
         </PostHogProvider>
         <GoogleAnalytics gaId="G-CZBNSV0DW4" />
       </body>

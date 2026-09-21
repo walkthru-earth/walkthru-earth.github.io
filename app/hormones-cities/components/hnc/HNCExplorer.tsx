@@ -24,6 +24,7 @@ import { loadRegionBaselines, type RegionBaseline } from './baselines';
 import { RegionRadar } from './RegionRadar';
 import { regionInfo } from './regions';
 import type { HNCHeavy, HNCRow } from './types';
+import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
 import './hnc.css';
 
 interface SegOption<T extends string> {
@@ -42,8 +43,9 @@ function Segmented<T extends string>({
   onChange: (v: T) => void;
   ariaLabel: string;
 }) {
+  const { t } = useI18n();
   return (
-    <div className="hnc-seg" role="group" aria-label={ariaLabel}>
+    <div className="hnc-seg" role="group" aria-label={t(ariaLabel)}>
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -52,7 +54,7 @@ function Segmented<T extends string>({
           data-active={opt.value === value}
           onClick={() => onChange(opt.value)}
         >
-          {opt.label}
+          {t(opt.label)}
         </button>
       ))}
     </div>
@@ -60,10 +62,11 @@ function Segmented<T extends string>({
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
+  const { t } = useI18n();
   return (
     <div className="flex min-w-0 flex-col gap-0.5 text-left">
       <span className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
-        {label}
+        {t(label)}
       </span>
       <span
         className="text-foreground font-mono text-xs leading-snug break-words sm:text-sm"
@@ -76,6 +79,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
 }
 
 export function HNCExplorer() {
+  const { t } = useI18n();
   const { resolvedTheme } = useTheme();
   const themeMode: ThemeMode = resolvedTheme === 'dark' ? 'dark' : 'light';
 
@@ -267,233 +271,262 @@ export function HNCExplorer() {
 
   const topRegion = selectedRow?.top_regions?.[0] ?? null;
 
+  const statusMessage = (() => {
+    const patterns: [RegExp, string][] = [
+      [/^Loaded (.+) images$/, 'Loaded {count} images'],
+      [/^Cache ready · (.+) frames$/, 'Cache ready · {count} frames'],
+      [/^Parquet error: (.+)$/, 'Parquet error: {message}'],
+      [/^Heavy decode error: (.+)$/, 'Heavy decode error: {message}'],
+      [/^Cortex load error: (.+)$/, 'Cortex load error: {message}'],
+    ];
+    for (const [pattern, source] of patterns) {
+      const match = status.msg.match(pattern);
+      if (!match) continue;
+      return t(source, {
+        count: match[1],
+        message: match[1],
+      });
+    }
+    return t(status.msg);
+  })();
+
   return (
-    <div className="hnc-shell text-foreground relative flex w-full flex-col gap-3">
-      <div className="hnc-panel flex flex-col gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4">
-        <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:gap-5">
-          <StatTile
-            label="Frames"
-            value={rows.length ? rows.length.toLocaleString() : '—'}
-          />
-          <StatTile
-            label="Strongest signal"
-            value={
-              topRegion
-                ? `${regionInfo(topRegion.name).feeling} · ${
-                    Number(topRegion.score) >= 0 ? 'above' : 'below'
-                  } baseline`
-                : '—'
-            }
-          />
-        </div>
-        <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:flex-nowrap sm:justify-end sm:gap-4">
-          <FrameWalker
-            isPlaying={isPlaying}
-            onPrev={() => {
-              setIsPlaying(false);
-              stepRef.current(-1);
-            }}
-            onNext={() => {
-              setIsPlaying(false);
-              stepRef.current(1);
-            }}
-            onTogglePlay={() => setIsPlaying((p) => !p)}
-          />
-          <Segmented<string>
-            ariaLabel="Auto-walk speed"
-            value={String(playSpeed)}
-            onChange={(v) => setPlaySpeed(parseFloat(v))}
-            options={[
-              { label: '0.5×', value: '0.5' },
-              { label: '1×', value: '1' },
-              { label: '2×', value: '2' },
-              { label: '4×', value: '4' },
-              { label: '8×', value: '8' },
-              { label: '30×', value: '30' },
-            ]}
-          />
-          <Segmented
-            ariaLabel="Surface mode"
-            value={surface}
-            onChange={setSurface}
-            options={[
-              { label: 'Inflated', value: 'inflated' },
-              { label: 'Pial', value: 'pial' },
-            ]}
-          />
-        </div>
-      </div>
-
-      <div className="relative grid w-full gap-3 md:gap-3 lg:h-[calc(100svh-9rem)] lg:min-h-[640px] lg:grid-cols-[minmax(260px,1fr)_minmax(440px,1.6fr)_minmax(300px,1.1fr)]">
-        <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
-          <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2.5 pb-1.5 sm:px-4">
-            <div className="min-w-0">
-              <span className="hnc-eyebrow">Source · Mapillary</span>
-              <FrameMeta row={selectedRow} />
-            </div>
-          </header>
-          <div className="flex min-h-0 flex-[3] flex-col px-3 pb-2 sm:px-4">
-            <FrameImage
-              row={selectedRow}
-              heavy={selectedHeavy}
-              index={selectedIndex >= 0 ? selectedIndex : 0}
-              total={rows.length}
-              fill
+    <Localized>
+      <div className="hnc-shell text-foreground relative flex w-full flex-col gap-3">
+        <div className="hnc-panel flex flex-col gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4">
+          <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:gap-5">
+            <StatTile
+              label="Frames"
+              value={rows.length ? rows.length.toLocaleString() : '—'}
+            />
+            <StatTile
+              label="Strongest signal"
+              value={
+                topRegion
+                  ? t('{feeling} · {position} baseline', {
+                      feeling: t(regionInfo(topRegion.name).feeling),
+                      position: t(
+                        Number(topRegion.score) >= 0 ? 'above' : 'below'
+                      ),
+                    })
+                  : '—'
+              }
             />
           </div>
-
-          <div className="shrink-0 px-3 pb-2 sm:px-4">
-            <FrameScrub
-              index={selectedIndex >= 0 ? selectedIndex : 0}
-              total={rows.length}
-              onSeek={(i) => {
+          <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:flex-nowrap sm:justify-end sm:gap-4">
+            <FrameWalker
+              isPlaying={isPlaying}
+              onPrev={() => {
                 setIsPlaying(false);
-                seekTo(i);
+                stepRef.current(-1);
               }}
+              onNext={() => {
+                setIsPlaying(false);
+                stepRef.current(1);
+              }}
+              onTogglePlay={() => setIsPlaying((p) => !p)}
+            />
+            <Segmented<string>
+              ariaLabel="Auto-walk speed"
+              value={String(playSpeed)}
+              onChange={(v) => setPlaySpeed(parseFloat(v))}
+              options={[
+                { label: '0.5×', value: '0.5' },
+                { label: '1×', value: '1' },
+                { label: '2×', value: '2' },
+                { label: '4×', value: '4' },
+                { label: '8×', value: '8' },
+                { label: '30×', value: '30' },
+              ]}
+            />
+            <Segmented
+              ariaLabel="Surface mode"
+              value={surface}
+              onChange={setSurface}
+              options={[
+                { label: 'Inflated', value: 'inflated' },
+                { label: 'Pial', value: 'pial' },
+              ]}
             />
           </div>
+        </div>
 
-          <div
-            className="border-border/60 shrink-0 border-t"
-            aria-hidden="true"
-          />
-
-          <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2 pb-1 sm:px-4">
-            <div className="min-w-0">
-              <span className="hnc-eyebrow">Sample area</span>
-              <h3 className="text-foreground truncate text-xs font-semibold sm:text-sm">
-                London · Borough Market AOI
-              </h3>
+        <div className="relative grid w-full gap-3 md:gap-3 lg:h-[calc(100svh-9rem)] lg:min-h-[640px] lg:grid-cols-[minmax(260px,1fr)_minmax(440px,1.6fr)_minmax(300px,1.1fr)]">
+          <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
+            <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2.5 pb-1.5 sm:px-4">
+              <div className="min-w-0">
+                <span className="hnc-eyebrow">Source · Mapillary</span>
+                <FrameMeta row={selectedRow} />
+              </div>
+            </header>
+            <div className="flex min-h-0 flex-[3] flex-col px-3 pb-2 sm:px-4">
+              <FrameImage
+                row={selectedRow}
+                heavy={selectedHeavy}
+                index={selectedIndex >= 0 ? selectedIndex : 0}
+                total={rows.length}
+                fill
+              />
             </div>
-            <span className="text-muted-foreground hidden font-mono text-[10px] sm:inline">
-              Tap a marker
-            </span>
-          </header>
-          <div className="flex min-h-[28svh] flex-[2] flex-col lg:min-h-0">
-            <div className="hnc-map-canvas">
-              <HNCMapPanel
-                rows={rows}
-                selectedId={selectedId}
-                themeMode={themeMode}
-                onSelect={(id) => {
+
+            <div className="shrink-0 px-3 pb-2 sm:px-4">
+              <FrameScrub
+                index={selectedIndex >= 0 ? selectedIndex : 0}
+                total={rows.length}
+                onSeek={(i) => {
                   setIsPlaying(false);
-                  setSelectedId(id);
+                  seekTo(i);
                 }}
               />
             </div>
-          </div>
-        </section>
 
-        <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
-          <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2.5 pb-1.5 sm:px-4">
-            <div className="min-w-0 flex-1">
-              <span className="hnc-eyebrow">Model · TRIBE v2</span>
-              <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="border-border/60 shrink-0 border-t"
+              aria-hidden="true"
+            />
+
+            <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2 pb-1 sm:px-4">
+              <div className="min-w-0">
+                <span className="hnc-eyebrow">Sample area</span>
                 <h3 className="text-foreground truncate text-xs font-semibold sm:text-sm">
-                  Predicted cortex · fsaverage5
+                  London · Borough Market AOI
                 </h3>
-                {selectedAlias && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAlias(null)}
-                    className="border-foreground/15 bg-foreground/5 text-foreground hover:bg-foreground/10 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium transition"
-                    aria-label={`Clear ${regionInfo(selectedAlias).feeling} spotlight`}
-                    title="Clear spotlight (Esc)"
-                  >
-                    <span className="bg-secondary inline-block h-1.5 w-1.5 rounded-full" />
-                    <span className="truncate">
-                      {regionInfo(selectedAlias).feeling}
-                    </span>
-                    <span className="text-muted-foreground font-mono text-[9px]">
-                      {regionInfo(selectedAlias).tech}
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      className="text-muted-foreground ml-0.5"
-                    >
-                      ✕
-                    </span>
-                  </button>
-                )}
+              </div>
+              <span className="text-muted-foreground hidden font-mono text-[10px] sm:inline">
+                Tap a marker
+              </span>
+            </header>
+            <div className="flex min-h-[28svh] flex-[2] flex-col lg:min-h-0">
+              <div className="hnc-map-canvas">
+                <HNCMapPanel
+                  rows={rows}
+                  selectedId={selectedId}
+                  themeMode={themeMode}
+                  onSelect={(id) => {
+                    setIsPlaying(false);
+                    setSelectedId(id);
+                  }}
+                />
               </div>
             </div>
-            <span className="text-muted-foreground hidden font-mono text-[10px] sm:inline">
-              20 484 vertices
-            </span>
-          </header>
-          <div className="flex min-h-[40svh] flex-1 flex-col lg:min-h-0">
-            <div className="hnc-brain-canvas">
-              <HNCBrainPanel
-                surface={surface}
-                brainActivity={selectedHeavy?.brainActivity ?? null}
-                spotlightAlias={selectedAlias}
-                onAtlasReady={setAtlasAvailable}
-                onStatus={(m) => setStatusMsg(m)}
-              />
-            </div>
-          </div>
-          <div className="shrink-0 px-3 pt-1.5 pb-2 sm:px-4">
-            <div
-              className="text-muted-foreground flex items-center gap-2 font-mono text-[10px]"
-              title="Per-frame symmetric scale clipped to the 99th percentile of |activity|, mirrored around 0. Following the TRIBE v2 tutorial, we never quote absolute z values."
-            >
-              <span className="whitespace-nowrap">Below</span>
-              <span
-                className="border-border relative h-1.5 flex-1 rounded-full border"
-                style={{ background: HNC_LEGEND_GRADIENT }}
-                aria-hidden="true"
-              >
-                <span className="bg-foreground/40 absolute top-1/2 left-1/2 h-2.5 w-px -translate-x-1/2 -translate-y-1/2" />
-              </span>
-              <span className="whitespace-nowrap">Above</span>
-              <span className="text-muted-foreground/70 ml-1 hidden whitespace-nowrap sm:inline">
-                · per-frame 99th pct.
-              </span>
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
-          <div className="shrink-0 px-3 pt-2.5 sm:px-4">
-            {selectedRow && (
-              <RegionRadar
+          <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
+            <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2.5 pb-1.5 sm:px-4">
+              <div className="min-w-0 flex-1">
+                <span className="hnc-eyebrow">Model · TRIBE v2</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-foreground truncate text-xs font-semibold sm:text-sm">
+                    Predicted cortex · fsaverage5
+                  </h3>
+                  {selectedAlias && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAlias(null)}
+                      className="border-foreground/15 bg-foreground/5 text-foreground hover:bg-foreground/10 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium transition"
+                      aria-label={t('Clear {feeling} spotlight', {
+                        feeling: t(regionInfo(selectedAlias).feeling),
+                      })}
+                      title="Clear spotlight (Esc)"
+                    >
+                      <span className="bg-secondary inline-block h-1.5 w-1.5 rounded-full" />
+                      <span className="truncate">
+                        {t(regionInfo(selectedAlias).feeling)}
+                      </span>
+                      <span className="text-muted-foreground font-mono text-[9px]">
+                        {regionInfo(selectedAlias).tech}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="text-muted-foreground ml-0.5"
+                      >
+                        ✕
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <span className="text-muted-foreground hidden font-mono text-[10px] sm:inline">
+                20 484 vertices
+              </span>
+            </header>
+            <div className="flex min-h-[40svh] flex-1 flex-col lg:min-h-0">
+              <div className="hnc-brain-canvas">
+                <HNCBrainPanel
+                  surface={surface}
+                  brainActivity={selectedHeavy?.brainActivity ?? null}
+                  spotlightAlias={selectedAlias}
+                  onAtlasReady={setAtlasAvailable}
+                  onStatus={(m) => setStatusMsg(m)}
+                />
+              </div>
+            </div>
+            <div className="shrink-0 px-3 pt-1.5 pb-2 sm:px-4">
+              <div
+                dir="ltr"
+                className="text-muted-foreground flex items-center gap-2 font-mono text-[10px]"
+                title="Per-frame symmetric scale clipped to the 99th percentile of |activity|, mirrored around 0. Following the TRIBE v2 tutorial, we never quote absolute z values."
+              >
+                <span className="whitespace-nowrap">Below</span>
+                <span
+                  className="border-border relative h-1.5 flex-1 rounded-full border"
+                  style={{ background: HNC_LEGEND_GRADIENT }}
+                  aria-hidden="true"
+                >
+                  <span className="bg-foreground/40 absolute top-1/2 left-1/2 h-2.5 w-px -translate-x-1/2 -translate-y-1/2" />
+                </span>
+                <span className="whitespace-nowrap">Above</span>
+                <span className="text-muted-foreground/70 ml-1 hidden whitespace-nowrap sm:inline">
+                  · per-frame 99th pct.
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
+            <div className="shrink-0 px-3 pt-2.5 sm:px-4">
+              {selectedRow && (
+                <RegionRadar
+                  row={selectedRow}
+                  baselines={baselines}
+                  selectedAlias={selectedAlias}
+                  onSelectAlias={setSelectedAlias}
+                />
+              )}
+            </div>
+            <div
+              className="border-border/60 mt-2 shrink-0 border-t"
+              aria-hidden="true"
+            />
+            <div className="flex min-h-0 flex-1 flex-col px-3 sm:px-4">
+              <CorticalRegions
                 row={selectedRow}
-                baselines={baselines}
                 selectedAlias={selectedAlias}
                 onSelectAlias={setSelectedAlias}
+                atlasAvailable={atlasAvailable}
+                baselines={baselines}
+                scale={scoreScale}
+                onScaleChange={setScoreScale}
+                compact
               />
-            )}
-          </div>
-          <div
-            className="border-border/60 mt-2 shrink-0 border-t"
-            aria-hidden="true"
-          />
-          <div className="flex min-h-0 flex-1 flex-col px-3 sm:px-4">
-            <CorticalRegions
-              row={selectedRow}
-              selectedAlias={selectedAlias}
-              onSelectAlias={setSelectedAlias}
-              atlasAvailable={atlasAvailable}
-              baselines={baselines}
-              scale={scoreScale}
-              onScaleChange={setScoreScale}
-              compact
-            />
-          </div>
-        </section>
-      </div>
+            </div>
+          </section>
+        </div>
 
-      {/* ── Status pill ─────────────────────────────────────────────── */}
-      <div className="pointer-events-none flex justify-center">
-        <span
-          className={`hnc-status-pill ${status.isError ? 'is-error' : ''}`}
-          role="status"
-          aria-live="polite"
-        >
-          {heavyLoading && !status.isError ? `${status.msg}` : status.msg}
-        </span>
+        {/* ── Status pill ─────────────────────────────────────────────── */}
+        <div className="pointer-events-none flex justify-center">
+          <span
+            className={`hnc-status-pill ${status.isError ? 'is-error' : ''}`}
+            role="status"
+            aria-live="polite"
+          >
+            {heavyLoading && !status.isError
+              ? `${statusMessage}`
+              : statusMessage}
+          </span>
+        </div>
       </div>
-    </div>
+    </Localized>
   );
 }
 
