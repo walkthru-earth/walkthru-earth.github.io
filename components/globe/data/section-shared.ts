@@ -1,5 +1,5 @@
 import { type LoadResult, type ParquetInfo } from '../utils/parquet-loader';
-import { S3_BASE, S3_BUCKET } from './constants';
+import { DATA_BASE } from './constants';
 import type { ViewState, QueryContext, ColorRange } from './constants';
 import {
   memoizePromise,
@@ -8,7 +8,7 @@ import {
 } from './live-data';
 
 export type { ParquetInfo, ViewState, QueryContext, ColorRange };
-export { S3_BASE, S3_BUCKET };
+export { DATA_BASE };
 
 export interface GlobeSection {
   id: string;
@@ -78,20 +78,20 @@ export const weatherParquet = (prefix: string, res: number) =>
   `${prefix}/h3_res=${res}/data.parquet`;
 
 export const buildingParquet = (res: number) =>
-  `${S3_BASE}/indices/building/v2/h3/h3_res=${res}/data.parquet`;
+  `${DATA_BASE}/indices/building/v2/h3/h3_res=${res}/data.parquet`;
 
 export const populationParquet = (res: number, scenario = 'SSP2') =>
-  `${S3_BASE}/indices/population/v2/scenario=${scenario}/h3_res=${res}/data.parquet`;
+  `${DATA_BASE}/indices/population/v2/scenario=${scenario}/h3_res=${res}/data.parquet`;
 
 export const terrainParquet = (res: number) =>
-  `${S3_BASE}/dem-terrain/v2/h3/h3_res=${res}/data.parquet`;
+  `${DATA_BASE}/dem-terrain/v2/h3/h3_res=${res}/data.parquet`;
 
 export const placesParquet = (release: string, res: number) =>
-  `${S3_BASE}/indices/places-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
+  `${DATA_BASE}/indices/places-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
 export const transportParquet = (release: string, res: number) =>
-  `${S3_BASE}/indices/transportation-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
+  `${DATA_BASE}/indices/transportation-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
 export const baseParquet = (release: string, res: number) =>
-  `${S3_BASE}/indices/base-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
+  `${DATA_BASE}/indices/base-index/v1/release=${release}/h3/h3_res=${res}/data.parquet`;
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 

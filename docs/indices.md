@@ -6,7 +6,7 @@
 
 Dataset configuration is split into weather, indices, and composites modules under `components/globe/data/`. `sections.ts` assembles the registry; `section-shared.ts` owns shared types, URL builders, and dataset helpers; `constants.ts` owns base URLs, view/query types, and percentile color ranges. A section's `loadData` performs JavaScript data operations, while `buildQuery` describes equivalent SQL for the query panel.
 
-Live weather and Overture discovery follows every S3 listing page before choosing the newest partition. Numeric hours and release revision suffixes compare numerically. Each page request has a 15-second timeout; concurrent discovery calls share work, successful results expire after five minutes, and failures can retry. See the [S3 ListObjectsV2 API](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html) for the continuation-token contract.
+All indices Parquet downloads, including resolved weather partitions and composite sources, use `https://data.source.coop/walkthru-earth`. Partition discovery continues to use direct S3 ListObjectsV2 requests. Live weather and Overture discovery follows every S3 listing page before choosing the newest partition. Numeric hours and release revision suffixes compare numerically. Each page request has a 15-second timeout; concurrent discovery calls share work, successful results expire after five minutes, and failures can retry. See the [S3 ListObjectsV2 API](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html) for the continuation-token contract.
 
 The [scoped agent guide](../components/globe/AGENTS.md) maps individual changes to files.
 
@@ -122,4 +122,9 @@ respectively. All responses were complete HTTP 206 responses with matching
 SHA-256 hashes between endpoints. The proxy advertised HTTP/3, which this curl
 build could not test, and its HEAD response reported `cf-cache-status: DYNAMIC`.
 This small, variable network sample does not establish Firefox page-loading
-performance or justify switching the dataset URLs yet.
+performance. The dataset download URLs were subsequently switched to the proxy
+at the user's request; partition discovery retains direct S3 listings. The
+switch passes 170 tests, lint, type checking, formatting, and the production
+static build. URL regressions cover every dataset builder and resolved weather
+partitions. Firefox verification of the switched production export was
+interrupted by concurrent browser use.

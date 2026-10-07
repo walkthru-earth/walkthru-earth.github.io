@@ -149,9 +149,9 @@ describe('live partition discovery', () => {
       .mockResolvedValueOnce(listing([`${prefix}/date=2026-09-10`]))
       .mockResolvedValueOnce(listing([`${prefix}/date=2026-09-10/hour=12`]));
     vi.stubGlobal('fetch', fetch);
-    expect(
-      await resolveLatestPartitionChain(prefix, ['date', 'hour'])
-    ).toContain(`${prefix}/date=2026-09-10/hour=12`);
+    expect(await resolveLatestPartitionChain(prefix, ['date', 'hour'])).toBe(
+      `https://data.source.coop/${prefix}/date=2026-09-10/hour=12`
+    );
     expect(new URL(fetch.mock.calls[1][0]).searchParams.get('prefix')).toBe(
       `${prefix}/date=2026-09-10/`
     );

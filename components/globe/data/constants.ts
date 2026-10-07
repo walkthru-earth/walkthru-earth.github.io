@@ -6,7 +6,8 @@
 
 export const S3_BUCKET =
   'https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop';
-export const S3_BASE = `${S3_BUCKET}/walkthru-earth`;
+export const DATA_ORIGIN = 'https://data.source.coop';
+export const DATA_BASE = `${DATA_ORIGIN}/walkthru-earth`;
 
 /* ── Shared types ─────────────────────────────────────────────────── */
 

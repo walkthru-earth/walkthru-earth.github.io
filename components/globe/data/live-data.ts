@@ -1,5 +1,5 @@
 /** Resolve live Hive partitions with paginated S3 ListObjectsV2 requests. */
-import { S3_BUCKET } from './constants';
+import { DATA_ORIGIN, S3_BUCKET } from './constants';
 
 const PARTITION_TTL_MS = 5 * 60 * 1000;
 
@@ -133,5 +133,5 @@ export async function resolveLatestPartitionChain(
 ): Promise<string> {
   let current = bucketKey;
   for (const key of keys) current = await resolveLatestPartition(current, key);
-  return `${S3_BUCKET}/${current}`;
+  return `${DATA_ORIGIN}/${current}`;
 }
