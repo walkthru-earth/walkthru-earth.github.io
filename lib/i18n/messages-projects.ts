@@ -3,6 +3,18 @@ import type { MessageCatalog } from './types';
 const phrase = (ar: string, arEG = ar) => ({ ar, arEG });
 
 export const projectMessages: MessageCatalog = {
+  'Loading street map…': phrase(
+    'جارٍ تحميل خريطة الشوارع…',
+    'بنحمّل خريطة الشوارع…'
+  ),
+  'Street map unavailable. Capture locations are still selectable.': phrase(
+    'خريطة الشوارع غير متاحة. لا يزال بإمكانك اختيار مواقع التقاط الصور.',
+    'خريطة الشوارع مش متاحة. لسه تقدر تختار أماكن التقاط الصور.'
+  ),
+  'Retry street map': phrase(
+    'إعادة محاولة تحميل خريطة الشوارع',
+    'جرّب تحميل خريطة الشوارع تاني'
+  ),
   'CapyBrain research repository': phrase(
     'مستودع أبحاث CapyBrain',
     'مستودع أبحاث CapyBrain'

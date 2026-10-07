@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import type { Map as MlMap, Marker } from 'maplibre-gl';
 import {
   CAPYBRAIN_FLY,
   CAPYBRAIN_INITIAL_VIEW,
-  CAPYBRAIN_MAP_STYLE,
   type ThemeMode,
 } from './config';
 import type { CapyBrainRow } from './types';
 import { useI18n } from '@/lib/i18n/i18n-provider';
+import { fallbackBasemap, loadBasemap, type BasemapStatus } from './basemap';
 
 interface Props {
   rows: CapyBrainRow[];
@@ -115,6 +115,8 @@ export function CapyBrainMapPanel({
   onSelect,
 }: Props) {
   const { t } = useI18n();
+  const [basemapStatus, setBasemapStatus] = useState<BasemapStatus>('loading');
+  const [retry, setRetry] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MlMap | null>(null);
   const markersRef = useRef<Map<string, MarkerRef>>(new Map());
@@ -129,7 +131,7 @@ export function CapyBrainMapPanel({
     const markers = markersRef.current;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: CAPYBRAIN_MAP_STYLE[themeMode],
+      style: fallbackBasemap(themeMode),
       center: CAPYBRAIN_INITIAL_VIEW.center,
       zoom: CAPYBRAIN_INITIAL_VIEW.zoom,
       pitch: CAPYBRAIN_INITIAL_VIEW.pitch,
@@ -151,12 +153,12 @@ export function CapyBrainMapPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // React to theme changes.
+  // Each theme change or explicit retry owns its listeners and timeout.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    map.setStyle(CAPYBRAIN_MAP_STYLE[themeMode]);
-  }, [themeMode]);
+    return loadBasemap(map, themeMode, setBasemapStatus);
+  }, [themeMode, retry]);
 
   // Sync markers whenever rows change.
   useEffect(() => {
@@ -195,11 +197,8 @@ export function CapyBrainMapPanel({
       fitToData(map, rows);
     };
 
-    if (map.loaded()) {
-      apply();
-    } else {
-      map.once('load', apply);
-    }
+    // DOM markers and camera transforms do not depend on remote style loading.
+    apply();
   }, [rows]);
 
   // Sync selection visuals + camera fly.
@@ -218,7 +217,7 @@ export function CapyBrainMapPanel({
 
     if (selectedId) {
       const row = rows.find((r) => r.image_id === selectedId);
-      if (row && map.loaded()) {
+      if (row) {
         // Cinematic walk: bearing aligns with the photo's compass heading so
         // the map turns to face the direction the camera looked, pitch tilts
         // forward for first-person feel, and the parabolic flyTo eases between
@@ -231,22 +230,44 @@ export function CapyBrainMapPanel({
           pitch: CAPYBRAIN_FLY.pitch,
           duration: CAPYBRAIN_FLY.durationMs,
           curve: CAPYBRAIN_FLY.curve,
-          essential: true,
+          essential: false,
         });
       }
     }
   }, [selectedId, themeMode, rows]);
 
   return (
-    <div
-      ref={containerRef}
-      className="capybrain-map relative h-full w-full"
-      role="region"
-      aria-label={t('London Borough Market street-level capture map')}
-      // Stop Lenis (page-level smooth scroll) from intercepting wheel/touch
-      // gestures on the map. Without this, Cmd+scroll zooms the map AND scrolls
-      // the page because Lenis claims the wheel event before maplibre can.
-      data-lenis-prevent
-    />
+    <div className="relative h-full w-full">
+      <div
+        ref={containerRef}
+        className="capybrain-map relative h-full w-full"
+        role="region"
+        aria-label={t('London Borough Market street-level capture map')}
+        // Stop Lenis (page-level smooth scroll) from intercepting wheel/touch
+        // gestures on the map. Without this, Cmd+scroll zooms the map AND scrolls
+        // the page because Lenis claims the wheel event before maplibre can.
+        data-lenis-prevent
+      />
+      {basemapStatus !== 'ready' && (
+        <div className="border-border bg-background/95 text-foreground absolute inset-x-3 bottom-8 z-10 rounded-xl border p-3 text-sm shadow-sm">
+          <p role="status" className="text-xs leading-relaxed">
+            {t(
+              basemapStatus === 'loading'
+                ? 'Loading street map…'
+                : 'Street map unavailable. Capture locations are still selectable.'
+            )}
+          </p>
+          {basemapStatus === 'unavailable' && (
+            <button
+              type="button"
+              className="border-border hover:bg-muted focus-visible:outline-ring mt-2 rounded-md border px-3 py-1.5 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+              onClick={() => setRetry((value) => value + 1)}
+            >
+              {t('Retry street map')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

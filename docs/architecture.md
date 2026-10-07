@@ -38,6 +38,12 @@ The indices explorer uses standalone deck.gl GlobeView, H3HexagonLayer, satellit
 
 CapyBrain has its own MapLibre map and Three.js brain view. Its Parquet loader first reads lightweight metadata columns, then image and activity columns from an in-memory file. This is a separate transport requirement: its host can apply HTTP compression, so a HEAD response's length may not represent the decompressed Parquet byte offsets. Keep that constraint distinct from Source Cooperative range requests.
 
+If CapyBrain's street basemap fails or takes longer than 15 seconds to load,
+the map uses a theme-aware background that needs no network requests. DOM
+markers for capture locations remain selectable, and a retry button lets the
+visitor reload the street basemap. This fallback does not provide offline
+streets; it preserves access to the available capture locations.
+
 ## Shared behavior
 
 Theme switching uses `next-themes` classes and CSS variables in `app/globals.css`. Use existing tokens and components rather than duplicating theme rules. WebGL palettes must remain legible in both themes.
