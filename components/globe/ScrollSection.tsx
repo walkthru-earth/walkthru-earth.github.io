@@ -115,7 +115,7 @@ function NavArrow({
       disabled={disabled}
       onClick={onClick}
       aria-label={t(direction === -1 ? 'Previous section' : 'Next section')}
-      className={`flex ${sz} border-border/50 bg-muted text-foreground hover:bg-accent items-center justify-center rounded-full border shadow-sm transition-all active:scale-95 disabled:opacity-20`}
+      className={`flex ${sz} border-primary bg-primary text-solid-foreground hover:bg-primary/85 items-center justify-center rounded-full border-2 transition-colors active:scale-95 disabled:opacity-20`}
     >
       <svg
         className={`${ico} rtl:rotate-180`}
@@ -169,7 +169,7 @@ function SectionContent({
         </p>
       )}
 
-      <h2 className="text-foreground mb-2 text-xl leading-tight font-bold sm:mb-3 sm:text-3xl">
+      <h2 className="text-foreground mb-2 text-xl leading-tight font-extrabold sm:mb-3 sm:text-3xl">
         {t(section.title)}
       </h2>
 
@@ -219,7 +219,7 @@ function SectionContent({
           href={section.sourceCoopUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="border-border/50 bg-muted hover:bg-accent flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors sm:px-3.5 sm:py-2 sm:text-base"
+          className="border-border bg-primary text-solid-foreground hover:bg-primary/85 flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-bold transition-colors sm:px-3.5 sm:py-2 sm:text-base"
         >
           <Image
             src="/source-coop-logo.png"
@@ -228,16 +228,16 @@ function SectionContent({
             height={12}
             className="rounded-sm sm:h-3.5 sm:w-3.5"
           />
-          <span className="text-foreground">{t('Data')}</span>
+          <span className="text-solid-foreground">{t('Data')}</span>
         </a>
         <a
           href={section.githubUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="border-border/50 bg-muted hover:bg-accent flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors sm:px-3.5 sm:py-2 sm:text-base"
+          className="border-border bg-primary text-solid-foreground hover:bg-primary/85 flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-bold transition-colors sm:px-3.5 sm:py-2 sm:text-base"
         >
           <svg
-            className="text-foreground h-3.5 w-3.5 sm:h-4 sm:w-4"
+            className="text-solid-foreground h-3.5 w-3.5 sm:h-4 sm:w-4"
             viewBox="0 0 24 24"
             fill="currentColor"
             aria-hidden="true"
@@ -245,14 +245,14 @@ function SectionContent({
             <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
           </svg>
           <svg
-            className="text-warning h-3 w-3 sm:h-3.5 sm:w-3.5"
+            className="text-solid-foreground h-3 w-3 sm:h-3.5 sm:w-3.5"
             viewBox="0 0 24 24"
             fill="currentColor"
             aria-hidden="true"
           >
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
-          <span className="text-foreground">{t('Star')}</span>
+          <span className="text-solid-foreground">{t('Star')}</span>
         </a>
       </div>
 
@@ -442,7 +442,7 @@ function MobileDrawerContent({
       )}
 
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="text-foreground min-w-0 flex-1 truncate text-lg leading-tight font-bold">
+        <h2 className="text-foreground min-w-0 flex-1 truncate text-lg leading-tight font-extrabold">
           {t(section.title)}
         </h2>
         {isLoading && (
@@ -545,7 +545,7 @@ function MobileDrawerContent({
               href={section.sourceCoopUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="border-border/50 bg-muted hover:bg-accent flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+              className="border-border bg-primary text-solid-foreground hover:bg-primary/85 flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-colors"
             >
               <Image
                 src="/source-coop-logo.png"
@@ -554,16 +554,16 @@ function MobileDrawerContent({
                 height={12}
                 className="rounded-sm"
               />
-              <span className="text-foreground">{t('Data')}</span>
+              <span className="text-solid-foreground">{t('Data')}</span>
             </a>
             <a
               href={section.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="border-border/50 bg-muted hover:bg-accent flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+              className="border-border bg-primary text-solid-foreground hover:bg-primary/85 flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-colors"
             >
               <svg
-                className="text-foreground h-3.5 w-3.5"
+                className="text-solid-foreground h-3.5 w-3.5"
                 viewBox="0 0 24 24"
                 fill="currentColor"
                 aria-hidden="true"
@@ -571,14 +571,14 @@ function MobileDrawerContent({
                 <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
               </svg>
               <svg
-                className="text-warning h-3 w-3"
+                className="text-solid-foreground h-3 w-3"
                 viewBox="0 0 24 24"
                 fill="currentColor"
                 aria-hidden="true"
               >
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
-              <span className="text-foreground">{t('Star')}</span>
+              <span className="text-solid-foreground">{t('Star')}</span>
             </a>
           </div>
 
@@ -618,7 +618,7 @@ function MobileDrawer(props: ScrollSectionProps) {
       {!open && (
         <div
           ref={attachBarGestures}
-          className="border-border/50 bg-background/90 fixed inset-x-0 bottom-0 z-30 flex flex-col border-t shadow-lg backdrop-blur-xl"
+          className="bg-background fixed inset-x-0 bottom-0 z-30 flex flex-col border-t-2"
           style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
           {props.timeControls && (
@@ -688,7 +688,7 @@ function MobileDrawer(props: ScrollSectionProps) {
 
       {/* Simple CSS-animated bottom panel — no Vaul/Radix, no body style mutations */}
       <div
-        className={`border-border/50 bg-background/95 fixed inset-x-0 bottom-0 z-30 flex max-h-[45vh] flex-col rounded-t-[10px] border-t shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out ${
+        className={`bg-background fixed inset-x-0 bottom-0 z-30 flex max-h-[45vh] flex-col rounded-t-3xl border-t-2 transition-transform duration-300 ease-out ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
@@ -789,12 +789,12 @@ function DesktopCard(props: ScrollSectionProps) {
       onPointerUp={onPointerUp}
     >
       <div
-        className={`border-border/50 bg-background/95 relative rounded-2xl border shadow-2xl backdrop-blur-md select-none ${dragging ? 'opacity-90' : ''}`}
+        className={`brand-panel bg-background relative rounded-3xl p-0 select-none ${dragging ? 'opacity-90' : ''}`}
       >
         {/* Drag handle bar */}
-        <div className="border-border/30 flex items-center justify-center border-b py-1.5">
+        <div className="bg-primary text-solid-foreground flex items-center justify-center border-b-2 py-1.5">
           <svg
-            className="text-muted-foreground/40 h-4 w-4"
+            className="h-4 w-4"
             viewBox="0 0 16 16"
             fill="currentColor"
             aria-hidden="true"
@@ -854,7 +854,7 @@ function LoadingOverlay({
         {/* Pulsing ring — sized to comfortably contain the content pill. */}
         <div className="border-success/30 h-28 w-28 animate-ping rounded-full border-2 sm:h-36 sm:w-36" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-background/85 flex flex-col items-center rounded-full px-3.5 py-2 text-center shadow-sm backdrop-blur-md">
+          <div className="bg-background flex flex-col items-center rounded-full border-2 px-3.5 py-2 text-center">
             <span className="text-foreground text-xs leading-tight font-medium">
               {label}
               {percent != null && (

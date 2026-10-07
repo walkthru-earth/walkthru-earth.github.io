@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { SECTION_IDS } from '@/components/globe/data/section-ids';
 import { parseViewportParams } from '@/components/globe/utils/viewport-params';
 import { Localized } from '@/lib/i18n/i18n-provider';
+import { BrandPanel } from '@/components/shared/brand-ui';
 
 const GlobeExplorer = dynamic(
   () => import('@/components/globe/GlobeExplorer').then((m) => m.GlobeExplorer),
@@ -14,12 +15,12 @@ const GlobeExplorer = dynamic(
     loading: () => (
       <Localized>
         <div className="bg-background flex h-dvh items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-2" />
-            <p className="text-muted-foreground font-mono text-sm">
+          <BrandPanel tone="green" className="flex flex-col items-center gap-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <p className="font-mono text-sm font-bold">
               Loading Globe Explorer...
             </p>
-          </div>
+          </BrandPanel>
         </div>
       </Localized>
     ),
@@ -47,12 +48,15 @@ export default function IndicesPage() {
       fallback={
         <Localized>
           <div className="bg-background flex h-dvh items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-2" />
-              <p className="text-muted-foreground font-mono text-sm">
+            <BrandPanel
+              tone="green"
+              className="flex flex-col items-center gap-4"
+            >
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <p className="font-mono text-sm font-bold">
                 Loading Globe Explorer...
               </p>
-            </div>
+            </BrandPanel>
           </div>
         </Localized>
       }

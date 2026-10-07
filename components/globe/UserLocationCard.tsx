@@ -5,6 +5,7 @@ import type { UserLocation } from './hooks/useUserLocation';
 import { h3ToHex, type GlobeSection } from './data/sections';
 import type { PinScreenPos } from './GlobeMap';
 import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
+import { BrandPanel } from '@/components/shared/brand-ui';
 
 interface UserLocationCardProps {
   location: UserLocation;
@@ -60,23 +61,24 @@ export const UserLocationCard = memo(function UserLocationCard({
         }}
       >
         {/* Card body */}
-        <div className="pointer-events-auto relative mb-3 w-72 rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-950/90 to-slate-900/90 px-5 py-4 shadow-2xl shadow-amber-400/20 backdrop-blur-xl sm:w-80">
+        <BrandPanel
+          tone="amber"
+          className="pointer-events-auto relative mb-3 w-72 rounded-2xl px-5 py-4 sm:w-80"
+        >
           {/* Header */}
           <div className="mb-2.5 flex items-center gap-2.5">
             <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-400" />
+              <span className="bg-solid-foreground absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
+              <span className="bg-solid-foreground relative inline-flex h-3 w-3 rounded-full" />
             </span>
-            <span className="text-sm font-semibold text-amber-300">
-              Your Location
-            </span>
+            <span className="text-sm font-bold">Your Location</span>
           </div>
 
           {/* City / coords */}
-          <p className="mb-1 text-base font-bold text-white">{locationLabel}</p>
+          <p className="mb-1 text-base font-bold">{locationLabel}</p>
 
           {/* Section title */}
-          <p className="mb-3 text-xs font-medium tracking-wide text-amber-400/70 uppercase">
+          <p className="mb-3 text-xs font-bold tracking-wide uppercase">
             {t(section.title)}
           </p>
 
@@ -91,8 +93,8 @@ export const UserLocationCard = memo(function UserLocationCard({
                     key={line}
                     className="flex items-baseline justify-between gap-4"
                   >
-                    <span className="text-xs text-slate-400">{t(label)}</span>
-                    <span className="text-sm font-semibold text-white tabular-nums">
+                    <span className="text-xs">{t(label)}</span>
+                    <span className="text-sm font-bold tabular-nums">
                       {value}
                     </span>
                   </div>
@@ -100,7 +102,7 @@ export const UserLocationCard = memo(function UserLocationCard({
               })}
             </div>
           ) : (
-            <p className="text-xs text-slate-500 italic">
+            <p className="text-xs italic">
               {layerData.length === 0
                 ? 'Loading data...'
                 : 'No data at this resolution for your area'}
@@ -108,15 +110,15 @@ export const UserLocationCard = memo(function UserLocationCard({
           )}
 
           {/* H3 cell ref */}
-          <div className="mt-3 border-t border-white/10 pt-2">
-            <p className="text-2xs truncate font-mono text-slate-500">
+          <div className="border-solid-foreground/20 mt-3 border-t pt-2">
+            <p className="text-2xs truncate font-mono">
               {t('H3 res')} {h3Res} &middot; {userH3 ?? '—'}
             </p>
           </div>
-        </div>
+        </BrandPanel>
 
         {/* Connector line from card to pin top */}
-        <div className="mx-auto h-5 w-px bg-gradient-to-b from-amber-400/60 to-amber-400/0" />
+        <div className="bg-secondary mx-auto h-5 w-0.5" />
       </div>
     </Localized>
   );

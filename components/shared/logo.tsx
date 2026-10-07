@@ -34,7 +34,7 @@ export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
         />
       </div>
       {showText && (
-        <span className="text-2xl font-semibold tracking-tight">
+        <span className="text-lg font-bold tracking-tight whitespace-nowrap sm:text-2xl">
           walkthru<span className="text-muted-foreground">.earth</span>
         </span>
       )}

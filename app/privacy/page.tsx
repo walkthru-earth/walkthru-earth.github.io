@@ -4,6 +4,13 @@ import { Localized } from '@/lib/i18n/i18n-provider';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/sections/footer';
 import { Container } from '@/components/shared/container';
+import {
+  BrandEyebrow,
+  BrandHero,
+  BrandIcon,
+  BrandPage,
+  BrandPanel,
+} from '@/components/shared/brand-ui';
 import Link from 'next/link';
 import {
   Shield,
@@ -24,15 +31,15 @@ export default function PrivacyPage() {
   return (
     <Localized>
       <Navbar />
-      <main className="pt-24 pb-16 md:pt-32 md:pb-24">
-        <Container>
-          {/* Header */}
-          <div className="mx-auto max-w-4xl">
-            <div className="mb-12 text-center md:mb-16">
-              <div className="bg-primary/10 text-primary mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium">
+      <BrandPage className="pb-16 md:pb-24">
+        <BrandHero tone="blue" className="pt-28 pb-16 md:pt-36 md:pb-20">
+          <Container>
+            {/* Header */}
+            <div className="mx-auto max-w-4xl text-center">
+              <BrandEyebrow>
                 <Shield className="h-4 w-4" />
                 Privacy First
-              </div>
+              </BrandEyebrow>
               <h1 className="mb-6">Privacy Policy</h1>
               <p className="text-muted-foreground text-lg md:text-xl">
                 At walkthru.earth, we believe privacy is a fundamental right.
@@ -43,59 +50,65 @@ export default function PrivacyPage() {
                 Last updated: {lastUpdated}
               </p>
             </div>
+          </Container>
+        </BrandHero>
 
+        <Container className="pt-12 md:pt-16">
+          <div className="mx-auto max-w-4xl">
             {/* Table of Contents */}
-            <nav className="bg-muted/50 mb-12 rounded-xl p-6 md:mb-16 md:p-8">
-              <h2 className="mb-4 text-xl font-semibold">Contents</h2>
-              <ul className="grid gap-2 text-sm md:grid-cols-2 md:gap-3">
-                {[
-                  { href: '#overview', label: 'Overview' },
-                  { href: '#what-we-collect', label: 'What We Collect' },
-                  { href: '#how-we-use', label: 'How We Use Information' },
-                  { href: '#cookies', label: 'Cookies & Analytics' },
-                  { href: '#sharing', label: 'Information Sharing' },
-                  { href: '#open-data', label: 'Open Data Principles' },
-                  { href: '#your-rights', label: 'Your Rights' },
-                  { href: '#security', label: 'Data Security' },
-                  { href: '#children', label: "Children's Privacy" },
-                  { href: '#changes', label: 'Policy Changes' },
-                  { href: '#contact', label: 'Contact Us' },
-                ].map((item) => (
-                  <li key={item.href}>
-                    <a
-                      href={item.href}
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+            <nav className="mb-12 md:mb-16">
+              <BrandPanel tone="amber">
+                <h2 className="mb-5 text-2xl md:text-3xl">Contents</h2>
+                <ul className="grid gap-2 text-sm md:grid-cols-2 md:gap-3">
+                  {[
+                    { href: '#overview', label: 'Overview' },
+                    { href: '#what-we-collect', label: 'What We Collect' },
+                    { href: '#how-we-use', label: 'How We Use Information' },
+                    { href: '#cookies', label: 'Cookies & Analytics' },
+                    { href: '#sharing', label: 'Information Sharing' },
+                    { href: '#open-data', label: 'Open Data Principles' },
+                    { href: '#your-rights', label: 'Your Rights' },
+                    { href: '#security', label: 'Data Security' },
+                    { href: '#children', label: "Children's Privacy" },
+                    { href: '#changes', label: 'Policy Changes' },
+                    { href: '#contact', label: 'Contact Us' },
+                  ].map((item) => (
+                    <li key={item.href}>
+                      <a
+                        href={item.href}
+                        className="focus-visible:ring-ring inline-block rounded-lg px-2 py-1 font-bold underline-offset-4 hover:underline focus-visible:ring-2"
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </BrandPanel>
             </nav>
 
             {/* Content Sections */}
-            <div className="prose-lg space-y-12 md:space-y-16">
+            <div className="prose-lg space-y-6 md:space-y-8">
               {/* Overview */}
-              <section id="overview">
+              <section id="overview" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Eye className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Overview</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">Overview</h2>
                 </div>
                 <p className="text-muted-foreground">
                   This Privacy Policy applies to walkthru.earth and its
                   associated platforms, including{' '}
                   <Link
                     href="/opensensor"
-                    className="text-primary hover:underline"
+                    className="text-foreground underline underline-offset-4"
                   >
                     opensensor.space
                   </Link>{' '}
                   and{' '}
                   <Link
                     href="/hormones-cities"
-                    className="text-primary hover:underline"
+                    className="text-foreground underline underline-offset-4"
                   >
                     Hormones & Cities
                   </Link>
@@ -111,12 +124,15 @@ export default function PrivacyPage() {
               </section>
 
               {/* What We Collect */}
-              <section id="what-we-collect">
+              <section
+                id="what-we-collect"
+                className="brand-panel scroll-mt-24"
+              >
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Database className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">What We Collect</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">What We Collect</h2>
                 </div>
 
                 <h3 className="mt-6 text-lg font-semibold">
@@ -202,12 +218,14 @@ export default function PrivacyPage() {
               </section>
 
               {/* How We Use Information */}
-              <section id="how-we-use">
+              <section id="how-we-use" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Settings className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">How We Use Information</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">
+                    How We Use Information
+                  </h2>
                 </div>
                 <p className="text-muted-foreground">
                   We use collected information to:
@@ -240,12 +258,14 @@ export default function PrivacyPage() {
               </section>
 
               {/* Cookies & Analytics */}
-              <section id="cookies">
+              <section id="cookies" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <FileText className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Cookies & Analytics</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">
+                    Cookies & Analytics
+                  </h2>
                 </div>
 
                 <h3 className="mt-6 text-lg font-semibold">Our Approach</h3>
@@ -266,14 +286,14 @@ export default function PrivacyPage() {
                   Types of Cookies We Use
                 </h3>
                 <div className="mt-4 space-y-4">
-                  <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="bg-muted rounded-2xl border-2 p-5">
                     <h4 className="font-semibold">Essential Cookies</h4>
                     <p className="text-muted-foreground mt-1 text-base">
                       Required for basic website functionality. These cannot be
                       disabled and do not track personal information.
                     </p>
                   </div>
-                  <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="bg-muted rounded-2xl border-2 p-5">
                     <h4 className="font-semibold">Analytics Cookies</h4>
                     <p className="text-muted-foreground mt-1 text-base">
                       Help us understand visitor interactions through PostHog
@@ -291,12 +311,14 @@ export default function PrivacyPage() {
               </section>
 
               {/* Information Sharing */}
-              <section id="sharing">
+              <section id="sharing" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Share2 className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Information Sharing</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">
+                    Information Sharing
+                  </h2>
                 </div>
                 <p className="text-muted-foreground">
                   We do not sell your personal information. We may share
@@ -315,7 +337,7 @@ export default function PrivacyPage() {
                       href="https://source.coop/walkthru-earth"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline"
+                      className="text-foreground underline underline-offset-4"
                     >
                       Source Cooperative
                     </a>{' '}
@@ -334,12 +356,14 @@ export default function PrivacyPage() {
               </section>
 
               {/* Open Data Principles */}
-              <section id="open-data">
+              <section id="open-data" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Globe className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Open Data Principles</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">
+                    Open Data Principles
+                  </h2>
                 </div>
                 <p className="text-muted-foreground">
                   We believe in the power of open data to improve urban life.
@@ -373,12 +397,12 @@ export default function PrivacyPage() {
               </section>
 
               {/* Your Rights */}
-              <section id="your-rights">
+              <section id="your-rights" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Users className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Your Rights</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">Your Rights</h2>
                 </div>
                 <p className="text-muted-foreground">
                   Depending on your location, you may have the following rights
@@ -414,7 +438,7 @@ export default function PrivacyPage() {
                   To exercise these rights, please contact us at{' '}
                   <a
                     href="mailto:hi@walkthru.earth"
-                    className="text-primary hover:underline"
+                    className="text-foreground underline underline-offset-4"
                   >
                     hi@walkthru.earth
                   </a>
@@ -423,12 +447,12 @@ export default function PrivacyPage() {
               </section>
 
               {/* Data Security */}
-              <section id="security">
+              <section id="security" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Lock className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Data Security</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">Data Security</h2>
                 </div>
                 <p className="text-muted-foreground">
                   We implement appropriate technical and organizational measures
@@ -450,12 +474,14 @@ export default function PrivacyPage() {
               </section>
 
               {/* Children's Privacy */}
-              <section id="children">
+              <section id="children" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Shield className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Children&apos;s Privacy</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">
+                    Children&apos;s Privacy
+                  </h2>
                 </div>
                 <p className="text-muted-foreground">
                   Our platforms are not directed at children under 13 years of
@@ -466,12 +492,12 @@ export default function PrivacyPage() {
               </section>
 
               {/* Policy Changes */}
-              <section id="changes">
+              <section id="changes" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <FileText className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Policy Changes</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">Policy Changes</h2>
                 </div>
                 <p className="text-muted-foreground">
                   We may update this Privacy Policy from time to time. We will
@@ -487,24 +513,24 @@ export default function PrivacyPage() {
               </section>
 
               {/* Contact Us */}
-              <section id="contact">
+              <section id="contact" className="brand-panel scroll-mt-24">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary rounded-lg p-2">
+                  <BrandIcon className="h-11 w-11">
                     <Mail className="h-5 w-5" />
-                  </div>
-                  <h2 className="m-0">Contact Us</h2>
+                  </BrandIcon>
+                  <h2 className="m-0 text-2xl md:text-3xl">Contact Us</h2>
                 </div>
                 <p className="text-muted-foreground">
                   If you have any questions, concerns, or requests regarding
                   this Privacy Policy or our data practices, please contact us:
                 </p>
-                <div className="bg-muted/30 mt-4 rounded-lg p-6">
+                <BrandPanel tone="green" className="mt-5">
                   <p className="font-semibold">walkthru.earth</p>
                   <p className="text-muted-foreground mt-2">
                     Email:{' '}
                     <a
                       href="mailto:hi@walkthru.earth"
-                      className="text-primary hover:underline"
+                      className="font-bold underline underline-offset-4"
                     >
                       hi@walkthru.earth
                     </a>
@@ -513,12 +539,12 @@ export default function PrivacyPage() {
                     Website:{' '}
                     <a
                       href="https://walkthru.earth"
-                      className="text-primary hover:underline"
+                      className="font-bold underline underline-offset-4"
                     >
                       walkthru.earth
                     </a>
                   </p>
-                </div>
+                </BrandPanel>
                 <p className="text-muted-foreground mt-4">
                   We aim to respond to all inquiries within 30 days.
                 </p>
@@ -526,7 +552,7 @@ export default function PrivacyPage() {
             </div>
           </div>
         </Container>
-      </main>
+      </BrandPage>
       <Footer />
     </Localized>
   );

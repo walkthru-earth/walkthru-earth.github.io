@@ -196,10 +196,10 @@ export function ParquetInfoPanel({
           onClick={() => setOpen(!open)}
           aria-label="Parquet file info"
           aria-expanded={open}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10 ${
+          className={`brand-panel flex h-9 w-9 items-center justify-center rounded-full p-0 transition-colors sm:h-10 sm:w-10 ${
             open
-              ? 'border-success-border bg-success-muted text-success'
-              : 'border-border/50 bg-background/90 text-muted-foreground hover:bg-accent'
+              ? 'border-primary bg-primary text-solid-foreground'
+              : 'bg-background text-foreground hover:bg-primary hover:text-solid-foreground'
           }`}
         >
           {isLoading ? (
@@ -222,10 +222,10 @@ export function ParquetInfoPanel({
         </button>
 
         {open && info && (
-          <div className="border-border/50 bg-background/95 absolute top-full left-0 z-10 mt-2 w-72 rounded-xl border shadow-xl backdrop-blur-md sm:w-80">
-            <div className="border-border/50 flex items-center gap-2 border-b px-4 py-2.5">
+          <div className="brand-panel bg-background absolute top-full left-0 z-10 mt-2 w-72 rounded-2xl p-0 sm:w-80">
+            <div className="bg-primary text-solid-foreground flex items-center gap-2 border-b-2 px-4 py-2.5">
               <svg
-                className="text-success h-4 w-4"
+                className="h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -237,7 +237,7 @@ export function ParquetInfoPanel({
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <span className="text-foreground font-mono text-sm font-bold">
+              <span className="font-mono text-sm font-bold">
                 Parquet Metadata
               </span>
             </div>
@@ -360,7 +360,7 @@ export function QueryPanelInline({
   if (!query) return null;
 
   return (
-    <div className="border-border/50 rounded-lg border">
+    <div className="brand-panel bg-background rounded-xl p-0">
       <SQLToggleButton
         expanded={expanded}
         onToggle={() => setExpanded(!expanded)}
@@ -393,7 +393,7 @@ export function ParquetInfoInline({
 
   return (
     <Localized>
-      <div className="border-border/50 rounded-lg border">
+      <div className="brand-panel bg-background rounded-xl p-0">
         <button
           onClick={() => setExpanded(!expanded)}
           aria-expanded={expanded}
@@ -447,10 +447,10 @@ export const QueryPanel = memo(function QueryPanel({
             onClick={() => setExpanded(!expanded)}
             aria-label="SQL query"
             aria-expanded={expanded}
-            className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10 ${
+            className={`brand-panel flex h-9 w-9 items-center justify-center rounded-full p-0 transition-colors sm:h-10 sm:w-10 ${
               expanded
-                ? 'border-success-border bg-success-muted text-success'
-                : 'border-border/50 bg-background/90 text-muted-foreground hover:bg-accent'
+                ? 'border-primary bg-primary text-solid-foreground'
+                : 'bg-background text-foreground hover:bg-primary hover:text-solid-foreground'
             }`}
           >
             {isLoading ? (
@@ -473,10 +473,10 @@ export const QueryPanel = memo(function QueryPanel({
           </button>
 
           {expanded && (
-            <div className="border-border/50 bg-background/95 absolute bottom-full left-0 mb-2 w-80 overflow-hidden rounded-xl border shadow-xl backdrop-blur-md sm:w-96">
-              <div className="border-border/50 flex items-center gap-2 border-b px-4 py-2.5">
+            <div className="brand-panel bg-background absolute bottom-full left-0 mb-2 w-80 overflow-hidden rounded-2xl p-0 sm:w-96">
+              <div className="bg-primary text-solid-foreground flex items-center gap-2 border-b-2 px-4 py-2.5">
                 <svg
-                  className="text-success h-4 w-4"
+                  className="h-4 w-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -488,11 +488,9 @@ export const QueryPanel = memo(function QueryPanel({
                     d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="text-foreground font-mono text-sm font-bold">
-                  SQL Query
-                </span>
+                <span className="font-mono text-sm font-bold">SQL Query</span>
                 {!isLoading && duration !== null && (
-                  <span className="text-muted-foreground ml-auto font-mono text-xs">
+                  <span className="ml-auto font-mono text-xs">
                     {duration.toFixed(0)}ms
                   </span>
                 )}

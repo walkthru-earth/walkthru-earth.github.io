@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Container } from '@/components/shared/container';
+import { BrandIcon } from '@/components/shared/brand-ui';
 import { Logo } from '@/components/shared/logo';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { LanguageSelector } from './language-selector';
@@ -39,7 +40,7 @@ export function Navbar() {
 
   return (
     <Localized>
-      <nav className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
+      <nav className="bg-background sticky top-0 z-50 w-full border-b-2">
         <Container>
           <div className="flex h-16 items-center justify-between md:h-20">
             <Logo size="md" showText />
@@ -49,12 +50,12 @@ export function Navbar() {
               <div className="hidden items-center gap-6 md:flex">
                 <Link
                   href="/indices"
-                  className="hover:text-primary text-base font-medium transition-colors"
+                  className="hover:text-primary hover:bg-secondary hover:text-solid-foreground rounded-full px-3 py-2 text-base font-bold transition-colors"
                 >
                   Globe Explorer
                 </Link>
                 <DropdownMenu dir={direction}>
-                  <DropdownMenuTrigger className="hover:text-primary flex items-center gap-1 text-base font-medium transition-colors">
+                  <DropdownMenuTrigger className="hover:text-primary hover:bg-secondary hover:text-solid-foreground flex items-center gap-1 rounded-full px-3 py-2 text-base font-bold transition-colors">
                     Projects
                     <ChevronDown className="h-3.5 w-3.5" />
                   </DropdownMenuTrigger>
@@ -64,9 +65,14 @@ export function Navbar() {
                         href="/opensensor"
                         className="flex cursor-pointer items-center gap-2"
                       >
-                        <Cloud className="text-primary h-4 w-4" />
+                        <BrandIcon
+                          tone="opensensor"
+                          className="h-8 w-8 rounded-xl"
+                        >
+                          <Cloud aria-hidden="true" />
+                        </BrandIcon>
                         <div>
-                          <div className="font-medium">OpenSensor.Space</div>
+                          <div className="font-bold">OpenSensor.Space</div>
                           <div className="text-muted-foreground text-sm">
                             Environmental monitoring
                           </div>
@@ -78,9 +84,14 @@ export function Navbar() {
                         href="/hormones-cities"
                         className="flex cursor-pointer items-center gap-2"
                       >
-                        <Heart className="text-secondary h-4 w-4" />
+                        <BrandIcon
+                          tone="wellbeing"
+                          className="h-8 w-8 rounded-xl"
+                        >
+                          <Heart aria-hidden="true" />
+                        </BrandIcon>
                         <div>
-                          <div className="font-medium">Hormones & Cities</div>
+                          <div className="font-bold">Hormones & Cities</div>
                           <div className="text-muted-foreground text-sm">
                             Urban environments and wellbeing
                           </div>
@@ -94,7 +105,7 @@ export function Navbar() {
                       >
                         <Download className="text-primary h-4 w-4" />
                         <div>
-                          <div className="font-medium">Software</div>
+                          <div className="font-bold">Software</div>
                           <div className="text-muted-foreground text-sm">
                             Tools & apps
                           </div>
@@ -105,7 +116,7 @@ export function Navbar() {
                 </DropdownMenu>
                 <Link
                   href="/about"
-                  className="hover:text-primary text-base font-medium transition-colors"
+                  className="hover:text-primary hover:bg-secondary hover:text-solid-foreground rounded-full px-3 py-2 text-base font-bold transition-colors"
                 >
                   About
                 </Link>
@@ -155,31 +166,43 @@ export function Navbar() {
                   <nav className="mt-6 flex flex-col gap-1">
                     <Link
                       href="/indices"
-                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-medium transition-colors"
+                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-bold transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <Globe className="text-primary h-4 w-4" />
+                      <BrandIcon tone="earth" className="h-8 w-8 rounded-xl">
+                        <Globe aria-hidden="true" />
+                      </BrandIcon>
                       Globe Explorer
                     </Link>
                     <Link
                       href="/opensensor"
-                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-medium transition-colors"
+                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-bold transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <Cloud className="text-primary h-4 w-4" />
+                      <BrandIcon
+                        tone="opensensor"
+                        className="h-8 w-8 rounded-xl"
+                      >
+                        <Cloud aria-hidden="true" />
+                      </BrandIcon>
                       OpenSensor
                     </Link>
                     <Link
                       href="/hormones-cities"
-                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-medium transition-colors"
+                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-bold transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <Heart className="text-secondary h-4 w-4" />
+                      <BrandIcon
+                        tone="wellbeing"
+                        className="h-8 w-8 rounded-xl"
+                      >
+                        <Heart aria-hidden="true" />
+                      </BrandIcon>
                       Hormones & Cities
                     </Link>
                     <Link
                       href="/software"
-                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-medium transition-colors"
+                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-bold transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Download className="text-primary h-4 w-4" />
@@ -190,7 +213,7 @@ export function Navbar() {
 
                     <Link
                       href="/about"
-                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-medium transition-colors"
+                      className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-bold transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       About

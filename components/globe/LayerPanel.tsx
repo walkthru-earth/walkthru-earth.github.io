@@ -38,7 +38,7 @@ export const LayerPanel = memo(function LayerPanel({
         <PopoverTrigger asChild>
           <button
             type="button"
-            className="border-border/50 bg-background/90 text-muted-foreground hover:bg-accent flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-colors sm:h-10 sm:w-10"
+            className="brand-panel bg-background text-foreground hover:bg-primary hover:text-solid-foreground flex h-9 w-9 items-center justify-center rounded-full p-0 transition-colors sm:h-10 sm:w-10"
             aria-label="Layer controls"
           >
             <svg
@@ -60,10 +60,10 @@ export const LayerPanel = memo(function LayerPanel({
           side="bottom"
           align="end"
           sideOffset={8}
-          className="border-border/50 bg-background/95 w-64 rounded-xl border p-0 shadow-2xl backdrop-blur-xl"
+          className="brand-panel bg-background w-64 rounded-2xl border-2 p-0 shadow-none"
         >
-          <div className="border-border/30 border-b px-3.5 py-2.5">
-            <p className="text-foreground text-xs font-semibold">Layers</p>
+          <div className="bg-primary text-solid-foreground border-b-2 px-3.5 py-2.5">
+            <p className="text-xs font-bold">Layers</p>
           </div>
           <div className="max-h-80 space-y-0.5 overflow-y-auto p-1.5">
             {layers.map((layer) => (
@@ -86,7 +86,7 @@ export const LayerPanel = memo(function LayerPanel({
                   <span
                     className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border transition-colors ${
                       layer.visible
-                        ? 'border-primary bg-primary text-primary-foreground'
+                        ? 'border-primary bg-primary text-solid-foreground'
                         : 'border-muted-foreground/40 bg-transparent'
                     }`}
                   >

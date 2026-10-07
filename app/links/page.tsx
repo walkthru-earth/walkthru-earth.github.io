@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Mail, Globe, ExternalLink } from 'lucide-react';
+import { Mail, Globe, Heart, ExternalLink } from 'lucide-react';
 import {
   Github,
   Linkedin,
@@ -13,6 +13,7 @@ import {
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { LanguageSelector } from '@/components/navigation/language-selector';
 import { Localized } from '@/lib/i18n/i18n-provider';
+import { BrandHero, BrandPage, BrandPanel } from '@/components/shared/brand-ui';
 
 const mainLinks = [
   {
@@ -20,22 +21,22 @@ const mainLinks = [
     description: 'Our main website',
     url: '/',
     icon: Globe,
-    color: 'bg-primary/10 text-primary border-primary/20',
+    color: 'brand-tone-green',
     internal: true,
   },
   {
     title: 'OpenSensor.Space',
     description: 'Open environmental monitoring',
     url: 'https://opensensor.space',
-    icon: ExternalLink,
-    color: 'bg-green-500/10 text-green-600 border-green-500/20',
+    image: '/opensensor-icon-512.png',
+    color: 'brand-tone-opensensor',
   },
   {
     title: 'Hormones & Cities',
     description: 'Urban environments and wellbeing research',
     url: '/hormones-cities',
-    icon: ExternalLink,
-    color: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+    icon: Heart,
+    color: 'brand-tone-wellbeing',
     internal: true,
   },
   {
@@ -43,14 +44,14 @@ const mainLinks = [
     description: 'Datasets on Source Cooperative',
     url: 'https://source.coop/walkthru-earth',
     image: '/source-coop-logo.png',
-    color: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    color: 'brand-tone-ink',
   },
   {
     title: 'Presentations',
     description: 'Our talks and slides',
     url: 'https://walkthru.earth/talks',
     icon: ExternalLink,
-    color: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    color: 'brand-tone-amber',
   },
 ];
 
@@ -120,29 +121,34 @@ const socialLinks = [
 export default function LinksPage() {
   return (
     <Localized>
-      <main className="bg-background min-h-dvh">
-        <div className="fixed end-4 top-4 z-50 flex items-center gap-1">
+      <BrandPage className="bg-background min-h-dvh">
+        <div className="bg-background fixed end-4 top-4 z-50 flex items-center gap-1 rounded-full border-2 p-1">
           <LanguageSelector compact />
           <ThemeToggle />
         </div>
 
-        <div className="mx-auto max-w-md px-4 py-12">
+        <div className="mx-auto max-w-xl px-4 pt-24 pb-12">
           {/* Profile Header */}
-          <div className="mb-8 text-center">
+          <BrandHero
+            tone="green"
+            className="mb-8 rounded-[2rem] px-6 py-12 text-center"
+          >
             <Link href="/" className="inline-block">
               <Image
                 src="/icon.svg"
                 alt="walkthru.earth"
                 width={80}
                 height={80}
-                className="mx-auto mb-4"
+                className="bg-background mx-auto mb-5 rounded-3xl border-2 p-3"
               />
             </Link>
-            <h1 className="text-3xl font-bold">walkthru.earth</h1>
-            <p className="text-muted-foreground mt-2">
-              People-first urban intelligence
+            <h1 className="text-[clamp(2rem,7vw,3rem)]! break-all">
+              walkthru.earth
+            </h1>
+            <p className="mt-3 text-lg font-bold">
+              Open tools for the relationships between people and places.
             </p>
-          </div>
+          </BrandHero>
 
           {/* Main Links */}
           <div className="mb-8 space-y-3">
@@ -161,17 +167,17 @@ export default function LinksPage() {
                     <link.icon className="h-6 w-6" />
                   ) : null}
                   <div className="flex-1">
-                    <div className="font-semibold">{link.title}</div>
+                    <div className="text-xl font-bold">{link.title}</div>
                     <div className="text-base opacity-80">
                       {link.description}
                     </div>
                   </div>
                   {!link.internal && (
-                    <ExternalLink className="h-4 w-4 opacity-50" />
+                    <ExternalLink className="h-5 w-5 shrink-0" />
                   )}
                 </>
               );
-              const cls = `flex items-center gap-4 rounded-xl border p-4 transition-all hover:scale-[1.02] hover:shadow-md ${link.color}`;
+              const cls = `brand-panel brand-solid flex items-center gap-4 p-5 transition-transform hover:-translate-y-1 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 ${link.color}`;
 
               return link.internal ? (
                 <Link key={link.title} href={link.url} className={cls}>
@@ -195,7 +201,7 @@ export default function LinksPage() {
           <div className="mb-8">
             <a
               href="mailto:hi@walkthru.earth"
-              className="border-primary bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2 rounded-xl border p-4 font-semibold transition-all"
+              className="brand-panel brand-solid brand-tone-green focus-visible:ring-ring flex items-center justify-center gap-2 p-5 text-lg font-bold transition-transform hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-offset-4 motion-reduce:transform-none"
             >
               <Mail className="h-5 w-5" />
               hi@walkthru.earth
@@ -203,10 +209,8 @@ export default function LinksPage() {
           </div>
 
           {/* Social Links */}
-          <div className="mb-8">
-            <p className="text-muted-foreground mb-4 text-center text-base">
-              Follow us
-            </p>
+          <BrandPanel className="mb-8">
+            <p className="mb-5 text-center text-lg font-bold">Follow us</p>
             <div className="flex flex-wrap justify-center gap-3">
               {socialLinks.map((link) => (
                 <a
@@ -215,7 +219,7 @@ export default function LinksPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title={link.title}
-                  className={`bg-card text-muted-foreground border-border flex h-12 w-12 items-center justify-center rounded-full border transition-all ${link.hoverColor}`}
+                  className={`bg-background text-foreground border-border focus-visible:ring-ring flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ${link.hoverColor}`}
                 >
                   {link.icon ? (
                     <link.icon className="h-5 w-5" />
@@ -225,17 +229,16 @@ export default function LinksPage() {
                 </a>
               ))}
             </div>
-          </div>
+          </BrandPanel>
 
           {/* Footer */}
           <div className="text-muted-foreground text-center text-base">
-            <p>Cities built for people</p>
             <p className="mt-1 opacity-60">
               © {new Date().getFullYear()} walkthru.earth
             </p>
           </div>
         </div>
-      </main>
+      </BrandPage>
     </Localized>
   );
 }

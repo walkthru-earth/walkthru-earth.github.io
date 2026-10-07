@@ -72,28 +72,27 @@ const socials = [
 export function Footer() {
   return (
     <Localized>
-      <footer className="bg-muted/50 border-t">
+      <footer className="bg-foreground text-background border-t-2">
         <Container>
           <div className="py-12 md:py-16">
             <div className="flex flex-col gap-10 md:flex-row md:justify-between">
               {/* Brand */}
               <div className="max-w-sm">
-                <h3 className="mb-3 text-xl font-semibold">walkthru.earth</h3>
-                <p className="text-muted-foreground text-base leading-relaxed">
-                  Open environmental data and tools for understanding the places
-                  we live, with human health and wellbeing at the center.
+                <h3 className="mb-4 text-3xl font-bold">walkthru.earth</h3>
+                <p className="text-background/75 text-lg leading-relaxed">
+                  Open tools for the relationships between people and places.
                 </p>
               </div>
 
               {/* Links */}
               <div className="flex gap-16">
                 <div>
-                  <h4 className="mb-3 text-base font-semibold">Product</h4>
+                  <h4 className="mb-3 text-base font-bold">Product</h4>
                   <ul className="space-y-2">
                     <li>
                       <Link
                         href="/indices"
-                        className="text-muted-foreground hover:text-foreground text-base transition-colors"
+                        className="text-background/75 hover:text-background text-base transition-colors"
                       >
                         Globe Explorer
                       </Link>
@@ -101,7 +100,7 @@ export function Footer() {
                     <li>
                       <Link
                         href="/opensensor"
-                        className="text-muted-foreground hover:text-foreground text-base transition-colors"
+                        className="text-background/75 hover:text-background text-base transition-colors"
                       >
                         OpenSensor
                       </Link>
@@ -109,7 +108,7 @@ export function Footer() {
                     <li>
                       <Link
                         href="/software"
-                        className="text-muted-foreground hover:text-foreground text-base transition-colors"
+                        className="text-background/75 hover:text-background text-base transition-colors"
                       >
                         Software
                       </Link>
@@ -117,12 +116,12 @@ export function Footer() {
                   </ul>
                 </div>
                 <div>
-                  <h4 className="mb-3 text-base font-semibold">Company</h4>
+                  <h4 className="mb-3 text-base font-bold">Company</h4>
                   <ul className="space-y-2">
                     <li>
                       <Link
                         href="/about"
-                        className="text-muted-foreground hover:text-foreground text-base transition-colors"
+                        className="text-background/75 hover:text-background text-base transition-colors"
                       >
                         About
                       </Link>
@@ -130,7 +129,7 @@ export function Footer() {
                     <li>
                       <Link
                         href="/privacy"
-                        className="text-muted-foreground hover:text-foreground text-base transition-colors"
+                        className="text-background/75 hover:text-background text-base transition-colors"
                       >
                         Privacy
                       </Link>
@@ -138,7 +137,7 @@ export function Footer() {
                     <li>
                       <Link
                         href="/links"
-                        className="text-muted-foreground hover:text-foreground text-base transition-colors"
+                        className="text-background/75 hover:text-background text-base transition-colors"
                       >
                         All links
                       </Link>
@@ -149,10 +148,10 @@ export function Footer() {
 
               {/* Connect */}
               <div>
-                <h4 className="mb-3 text-base font-semibold">Connect</h4>
+                <h4 className="mb-3 text-base font-bold">Connect</h4>
                 <a
                   href="mailto:hi@walkthru.earth"
-                  className="text-muted-foreground hover:text-foreground mb-3 flex items-center gap-2 text-base transition-colors"
+                  className="text-background/75 hover:text-background mb-3 flex items-center gap-2 text-base transition-colors"
                 >
                   <Mail className="h-4 w-4" />
                   hi@walkthru.earth
@@ -164,7 +163,7 @@ export function Footer() {
                       href={s.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-background/75 hover:text-background transition-colors"
                     >
                       <s.icon className="h-5 w-5" />
                       <span className="sr-only">{s.label}</span>
@@ -174,7 +173,7 @@ export function Footer() {
               </div>
             </div>
 
-            <div className="text-muted-foreground mt-10 border-t pt-6 text-center text-sm">
+            <div className="text-background/75 border-background/20 mt-10 border-t pt-6 text-center text-sm">
               © {new Date().getFullYear()} walkthru.earth · CC BY 4.0
             </div>
           </div>

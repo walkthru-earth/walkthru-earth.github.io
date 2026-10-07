@@ -3,6 +3,66 @@ import type { MessageCatalog } from './types';
 const phrase = (ar: string, arEG = ar) => ({ ar, arEG });
 
 export const projectMessages: MessageCatalog = {
+  'Supported devices': phrase('الأجهزة المدعومة'),
+  'Collect, explore, and share local air quality and weather readings.': phrase(
+    'اجمع قراءات جودة الهواء والطقس في منطقتك، واستكشفها وشاركها.',
+    'اجمع قراءات جودة الهوا والطقس في منطقتك، واستكشفها وشاركها.'
+  ),
+  'Collect readings on your device, with local buffering while offline.':
+    phrase(
+      'اجمع القراءات على جهازك، مع تخزينها مؤقتًا عند انقطاع الاتصال.',
+      'اجمع القراءات على جهازك، وخزّنها مؤقتًا لما الإنترنت يفصل.'
+    ),
+  'Save Parquet files to S3-compatible storage without a separate database.':
+    phrase(
+      'احفظ ملفات Parquet في تخزين متوافق مع S3 دون قاعدة بيانات منفصلة.',
+      'احفظ ملفات Parquet في تخزين متوافق مع S3، من غير قاعدة بيانات منفصلة.'
+    ),
+  'Explore readings in your browser with DuckDB-WASM.': phrase(
+    'استكشف القراءات في متصفحك باستخدام DuckDB-WASM.',
+    'استكشف القراءات من متصفحك باستخدام DuckDB-WASM.'
+  ),
+  'Connect your station.': phrase('وصّل محطتك.'),
+  'Share readings from your own environmental sensor.': phrase(
+    'شارك قراءات مستشعرك البيئي.',
+    'شارك قراءات مستشعرك البيئي.'
+  ),
+  'A research prototype exploring how environmental conditions relate to residents’ experiences.':
+    phrase(
+      'نموذج بحثي أولي يستكشف العلاقة بين الظروف البيئية وتجارب السكان.',
+      'نموذج بحثي أولي بيستكشف العلاقة بين الظروف البيئية وتجارب السكان.'
+    ),
+  'Explore the experiment': phrase('استكشف التجربة', 'جرّب الاستكشاف'),
+  'Research approach': phrase('النهج البحثي', 'طريقة البحث'),
+  'Explore the data': phrase('استكشف البيانات'),
+  'We aim to connect environmental readings with residents’ feedback. Survey consent, privacy, sampling, and validation are still being developed.':
+    phrase(
+      'نسعى إلى ربط القراءات البيئية بآراء السكان. وما زلنا نطوّر ضوابط الموافقة والخصوصية واختيار العينات والتحقق من نتائج الاستبيانات.',
+      'هدفنا نربط القراءات البيئية بآراء السكان. ولسه بنطوّر ضوابط الموافقة والخصوصية واختيار العينات والتحقق من نتائج الاستبيانات.'
+    ),
+  'Possible topics, not validated neighborhood scores.': phrase(
+    'موضوعات محتملة للبحث، وليست تقييمات معتمدة للأحياء.',
+    'موضوعات ممكن ندرسها، مش تقييمات معتمدة للأحياء.'
+  ),
+  'Street images around Borough Market, London, processed with Meta’s': phrase(
+    'صور شوارع حول سوق بورو في لندن، عولجت باستخدام نموذج ميتا',
+    'صور شوارع حوالين سوق بورو في لندن، اتعالجت باستخدام نموذج ميتا'
+  ),
+  'model to visualize predicted brain activity.': phrase(
+    'لعرض نشاط الدماغ المتوقع.',
+    'لعرض نشاط المخ المتوقع.'
+  ),
+  'Select a marker to explore a prediction. This model does not measure anyone’s brain activity, hormones, emotions, or health, or establish how a place makes people feel.':
+    phrase(
+      'اختر علامة لاستكشاف التنبؤ. لا يقيس هذا النموذج نشاط الدماغ أو الهرمونات أو المشاعر أو صحة أي شخص، ولا يثبت كيف يؤثر المكان في شعور الناس.',
+      'اختار علامة عشان تستكشف التنبؤ. النموذج ده ما بيقيسش نشاط المخ أو الهرمونات أو المشاعر أو صحة أي شخص، وما بيثبتش المكان بيخلّي الناس تحس بإيه.'
+    ),
+  'Source code:': phrase('الشفرة المصدرية:', 'الكود المصدري:'),
+  'Methods and licenses': phrase('المنهجية والتراخيص', 'الطريقة والتراخيص'),
+  'Explore environmental context on our live globe.': phrase(
+    'استكشف الظروف البيئية على الكرة الأرضية التفاعلية.',
+    'استكشف الظروف البيئية على الكرة الأرضية التفاعلية.'
+  ),
   'Loading experiment…': phrase('جارٍ تحميل التجربة…', 'بنحمّل التجربة…'),
   'Know Your Local Environment': phrase(
     'تعرّف على بيئتك المحلية',

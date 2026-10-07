@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Container } from '@/components/shared/container';
-import { Section } from '@/components/shared/section';
-import { GradientText } from '@/components/shared/gradient-text';
+import {
+  BrandPage,
+  BrandHero,
+  BrandSection,
+  BrandPanel,
+  BrandIcon,
+  BrandEyebrow,
+  BrandSectionHeading,
+} from '@/components/shared/brand-ui';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   Download,
   FileImage,
@@ -20,6 +24,7 @@ import {
   Video,
   ListTodo,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 import { Github } from '@/components/shared/brand-icons';
 import Link from 'next/link';
@@ -279,283 +284,176 @@ export default function ImageryDesktopPage() {
     <Localized>
       <>
         <Navbar />
-        <main>
-          {/* Hero Section */}
-          <section className="relative flex min-h-dvh items-center justify-center overflow-hidden pt-20 md:pt-24">
-            {/* Background gradient */}
-            <div className="from-primary/5 via-background to-secondary/5 dark:from-primary/10 dark:to-secondary/10 absolute inset-0 bg-gradient-to-br" />
-
-            {/* Animated gradient orbs */}
-            <motion.div
-              className="bg-primary/20 absolute top-1/4 -right-1/4 h-96 w-96 rounded-full blur-3xl"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.5, 0.3],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-            <motion.div
-              className="bg-secondary/20 absolute -bottom-1/4 -left-1/4 h-96 w-96 rounded-full blur-3xl"
-              animate={{
-                scale: [1.2, 1, 1.2],
-                opacity: [0.5, 0.3, 0.5],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-
-            <Container className="relative z-10 py-8 md:py-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="max-w-4xl"
+        <BrandPage project="imagery">
+          <BrandHero tone="imagery" className="pt-28 md:pt-36">
+            <Container>
+              <Button
+                variant="ghost"
+                asChild
+                className="mb-8 text-current hover:bg-black/5 hover:text-current"
               >
-                <Button variant="ghost" asChild className="mb-4">
-                  <Link href="/software" className="gap-2">
-                    <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-                    Back to Software
-                  </Link>
-                </Button>
-
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="mb-6 flex items-center gap-4"
-                >
-                  <Image
-                    src="/software/imagery-desktop/appicon.png"
-                    alt="Imagery Desktop Icon"
-                    width={64}
-                    height={64}
-                    className="rounded-xl shadow-lg"
+                <Link href="/software" className="gap-2">
+                  <ArrowLeft
+                    className="h-4 w-4 rtl:rotate-180"
+                    aria-hidden="true"
                   />
-                  <div className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-2">
-                    <History className="h-4 w-4" />
-                    <span className="text-sm font-medium">
+                  Back to Software
+                </Link>
+              </Button>
+              <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+                <div>
+                  <div className="mb-6 flex flex-wrap items-center gap-4">
+                    <Image
+                      src="/software/imagery-desktop/appicon.png"
+                      alt="Imagery Desktop Icon"
+                      width={64}
+                      height={64}
+                      className="rounded-2xl"
+                    />
+                    <BrandEyebrow className="mb-0">
+                      <History className="h-4 w-4" aria-hidden="true" />
                       Historical Pattern Detection
-                    </span>
+                    </BrandEyebrow>
                   </div>
-                </motion.div>
-
-                <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.1] font-light tracking-tight">
-                  <GradientText className="font-semibold">
-                    Imagery Desktop
-                  </GradientText>
-                  <br />
-                  See How Cities Change
-                </h1>
-
-                <p className="text-muted-foreground mt-6 max-w-2xl text-lg font-normal md:text-xl">
-                  Download and analyze historical satellite imagery from 1984 to
-                  2025. Detect urban growth patterns, environmental changes, and
-                  community transformations over time.
-                </p>
-
-                {/* Download Buttons - Right in the Hero */}
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  {loading ? (
-                    <Button size="lg" disabled>
-                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                      Loading Downloads...
-                    </Button>
-                  ) : release ? (
-                    <>
-                      {getSortedAssets().map((asset) => {
-                        const Icon = getPlatformIcon(asset.platform);
-                        const isUserOS = asset.platform === userOS;
-                        return (
-                          <div key={asset.name} className="flex flex-col gap-1">
-                            <Button
-                              size="lg"
-                              variant={isUserOS ? 'default' : 'outline'}
-                              asChild
+                  <h1>
+                    <span translate="no">Imagery Desktop</span>
+                  </h1>
+                  <p className="mt-6 max-w-2xl text-xl leading-relaxed">
+                    Download historical imagery. Compare places across time.
+                  </p>
+                  {/* Download Buttons - Right in the Hero */}
+                  <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    {loading ? (
+                      <Button size="lg" disabled>
+                        <Loader2 className="me-2 h-4 w-4 animate-spin motion-reduce:animate-none" />
+                        Loading Downloads...
+                      </Button>
+                    ) : release ? (
+                      <>
+                        {getSortedAssets().map((asset) => {
+                          const Icon = getPlatformIcon(asset.platform);
+                          const isUserOS = asset.platform === userOS;
+                          return (
+                            <div
+                              key={asset.name}
+                              className="flex flex-col gap-1"
                             >
-                              <a
-                                href={asset.downloadUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="gap-2"
+                              <Button
+                                size="lg"
+                                variant={isUserOS ? 'default' : 'outline'}
+                                asChild
                               >
-                                <Icon className="h-5 w-5" />
-                                {getPlatformName(asset.platform, true)}
-                              </a>
-                            </Button>
-                            {asset.platform === 'macos' && (
-                              <span className="text-muted-foreground text-center text-xs">
-                                Apple Silicon only
-                              </span>
-                            )}
-                          </div>
-                        );
+                                <a
+                                  href={asset.downloadUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="gap-2"
+                                >
+                                  <Icon className="h-5 w-5" />
+                                  {getPlatformName(asset.platform, true)}
+                                </a>
+                              </Button>
+                              {asset.platform === 'macos' && (
+                                <span className="text-muted-foreground text-center text-xs">
+                                  Apple Silicon only
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <Button size="lg" variant="outline" asChild>
+                        <Link
+                          href="https://github.com/walkthru-earth/imagery-desktop/releases"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Github className="me-2 h-4 w-4" />
+                          View on GitHub
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+
+                  {release && (
+                    <p className="text-muted-foreground mt-4 text-sm">
+                      {t('Version {version} • Released {date}', {
+                        version: release.version,
+                        date: new Intl.DateTimeFormat(locale).format(
+                          new Date(release.publishedAt)
+                        ),
                       })}
-                    </>
-                  ) : (
-                    <Button size="lg" variant="outline" asChild>
-                      <Link
-                        href="https://github.com/walkthru-earth/imagery-desktop/releases"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Github className="me-2 h-4 w-4" />
-                        View on GitHub
-                      </Link>
-                    </Button>
+                    </p>
                   )}
                 </div>
-
-                {release && (
-                  <p className="text-muted-foreground mt-4 text-sm">
-                    {t('Version {version} • Released {date}', {
-                      version: release.version,
-                      date: new Intl.DateTimeFormat(locale).format(
-                        new Date(release.publishedAt)
-                      ),
-                    })}
-                  </p>
-                )}
-
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 1 }}
-                  className="text-muted-foreground mt-12 flex items-center gap-8 text-sm"
-                >
-                  <div>
-                    <div className="text-foreground text-2xl font-semibold">
-                      40+
-                    </div>
-                    <div>Years of Imagery</div>
+                <div className="min-w-0">
+                  <BrandPanel tone="ink" className="p-3 sm:p-4 lg:rotate-2">
+                    <Image
+                      src={
+                        isDark
+                          ? featureShowcase[0].darkImage
+                          : featureShowcase[0].lightImage
+                      }
+                      alt={featureShowcase[0].title}
+                      width={1400}
+                      height={949}
+                      className="h-auto w-full rounded-2xl"
+                      priority
+                    />
+                  </BrandPanel>
+                  <div className="mt-8 grid grid-cols-3 gap-4">
+                    {[
+                      ['40+', 'Years of Imagery'],
+                      ['2', 'Data Sources'],
+                      ['Free', 'Forever'],
+                    ].map(([value, label]) => (
+                      <div key={label} className="min-w-0">
+                        <div className="text-3xl font-bold sm:text-4xl">
+                          {/\d/.test(value) ? (
+                            <bdi dir="ltr" translate="no">
+                              {value}
+                            </bdi>
+                          ) : (
+                            value
+                          )}
+                        </div>
+                        <div className="mt-2 text-sm font-semibold">
+                          {label}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="bg-border h-8 w-px" />
-                  <div>
-                    <div className="text-foreground text-2xl font-semibold">
-                      2
-                    </div>
-                    <div>Data Sources</div>
-                  </div>
-                  <div className="bg-border h-8 w-px" />
-                  <div>
-                    <div className="text-foreground text-2xl font-semibold">
-                      Free
-                    </div>
-                    <div>Forever</div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            </Container>
-          </section>
-
-          {/* Quick Features Section */}
-          <Section className="bg-muted/50">
-            <Container>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="mb-16 text-center"
-              >
-                <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
-                  Key <span className="text-primary font-medium">Features</span>
-                </h2>
-                <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
-                  Everything you need to analyze urban change through satellite
-                  imagery
-                </p>
-              </motion.div>
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {quickFeatures.map((feature, index) => {
-                  const Icon = feature.icon;
-                  return (
-                    <motion.div
-                      key={feature.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: index * 0.1 }}
-                    >
-                      <Card className="h-full transition-shadow hover:shadow-lg">
-                        <CardHeader>
-                          <div className="bg-primary/10 mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg">
-                            <Icon className="text-primary h-6 w-6" />
-                          </div>
-                          <CardTitle className="text-2xl">
-                            {feature.title}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-muted-foreground text-lg leading-relaxed">
-                            {feature.description}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
+                </div>
               </div>
             </Container>
-          </Section>
+          </BrandHero>
 
-          {/* Feature Showcase Section */}
-          <Section>
+          <BrandSection>
             <Container>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="mb-16 text-center"
-              >
-                <h2 className="text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
-                  See It{' '}
-                  <GradientText className="font-semibold">
-                    In Action
-                  </GradientText>
-                </h2>
-                <p className="text-muted-foreground mx-auto mt-6 max-w-3xl text-xl leading-relaxed md:text-2xl">
-                  Powerful tools for detecting patterns in urban change
-                </p>
-              </motion.div>
-
-              <div className="space-y-16">
-                {featureShowcase.map((feature, index) => {
+              <BrandSectionHeading title="Screenshots" />
+              <div className="space-y-4">
+                {featureShowcase.slice(1).map((feature, index) => {
                   const Icon = feature.icon;
-                  const isEven = index % 2 === 0;
                   return (
-                    <motion.div
-                      key={feature.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6 }}
-                      className={`flex flex-col gap-8 lg:flex-row lg:items-center ${isEven ? '' : 'lg:flex-row-reverse'}`}
-                    >
-                      {/* Text */}
-                      <div className="lg:w-2/5">
-                        <div className="bg-primary/10 mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg">
-                          <Icon className="text-primary h-6 w-6" />
-                        </div>
-                        <h3 className="mb-3 text-2xl font-semibold md:text-3xl">
-                          {feature.title}
-                        </h3>
-                        <p className="text-muted-foreground text-lg leading-relaxed">
+                    <BrandPanel key={feature.title} className="bg-card">
+                      <details open={index === 0} className="group">
+                        <summary className="flex cursor-pointer list-none items-center gap-4 rounded-xl outline-offset-4 [&::-webkit-details-marker]:hidden">
+                          <BrandIcon tone="imagery">
+                            <Icon aria-hidden="true" />
+                          </BrandIcon>
+                          <h3 className="min-w-0 flex-1 text-lg sm:text-2xl">
+                            {feature.title}
+                          </h3>
+                          <ChevronDown
+                            className="h-6 w-6 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                            aria-hidden="true"
+                          />
+                        </summary>
+                        <p className="text-muted-foreground mt-6 mb-5 max-w-3xl text-base leading-relaxed">
                           {feature.description}
                         </p>
-                      </div>
-
-                      {/* Screenshot */}
-                      <div className="lg:w-3/5">
-                        <div className="border-foreground/10 overflow-hidden rounded-xl border shadow-xl">
+                        <div className="border-foreground/20 overflow-hidden rounded-[1.5rem] border-2">
                           <Image
                             src={
                               isDark ? feature.darkImage : feature.lightImage
@@ -566,92 +464,96 @@ export default function ImageryDesktopPage() {
                             className="h-auto w-full"
                           />
                         </div>
-                      </div>
-                    </motion.div>
+                      </details>
+                    </BrandPanel>
                   );
                 })}
               </div>
             </Container>
-          </Section>
+          </BrandSection>
 
-          {/* Video Demo Section */}
-          <Section className="bg-muted/50">
+          <BrandSection tone="ink">
             <Container>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="mb-12 text-center"
-              >
-                <h2 className="mb-4 text-5xl font-light tracking-tight md:text-6xl lg:text-7xl">
-                  Urban{' '}
-                  <span className="text-primary font-medium">Timelapse</span>
-                </h2>
-                <p className="text-muted-foreground mx-auto max-w-2xl text-lg md:text-xl">
-                  Watch how Imagery Desktop creates stunning timelapses showing
-                  urban transformation over time
-                </p>
-              </motion.div>
+              <BrandSectionHeading
+                title={
+                  <>
+                    Urban <span>Timelapse</span>
+                  </>
+                }
+              />
+              <div className="border-foreground/20 relative mx-auto aspect-video max-w-4xl overflow-hidden rounded-[1.5rem] border-2">
+                <video
+                  controls
+                  muted
+                  preload="none"
+                  aria-label="Silent satellite imagery timelapse showing urban change"
+                  className="h-full w-full"
+                  poster="/software/imagery-desktop/feature-3-light.png"
+                >
+                  <source
+                    src="/software/imagery-desktop/timelapse-demo.mp4"
+                    type="video/mp4"
+                  />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+              <p className="mt-4 text-center text-sm">
+                Esri Wayback timelapse: September 2025 to February 2021
+              </p>
+            </Container>
+          </BrandSection>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="mx-auto max-w-4xl"
-              >
-                <div className="border-foreground/10 relative aspect-video overflow-hidden rounded-xl border shadow-2xl">
-                  <video
-                    controls
-                    muted
-                    preload="none"
-                    aria-label="Silent satellite imagery timelapse showing urban change"
-                    className="h-full w-full"
-                    poster="/software/imagery-desktop/feature-3-light.png"
-                  >
-                    <source
-                      src="/software/imagery-desktop/timelapse-demo.mp4"
-                      type="video/mp4"
+          <BrandSection>
+            <Container>
+              <BrandPanel tone="imagery">
+                <details className="group">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl outline-offset-4 [&::-webkit-details-marker]:hidden">
+                    <h2>
+                      Key <span>Features</span>
+                    </h2>
+                    <ChevronDown
+                      className="h-6 w-6 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                      aria-hidden="true"
                     />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-                <p className="text-muted-foreground mt-4 text-center text-sm">
-                  Esri Wayback timelapse: September 2025 to February 2021
+                  </summary>
+                  <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {quickFeatures.map((feature) => {
+                      const Icon = feature.icon;
+                      return (
+                        <div
+                          key={feature.title}
+                          className="flex items-start gap-4"
+                        >
+                          <BrandIcon tone="imagery">
+                            <Icon aria-hidden="true" />
+                          </BrandIcon>
+                          <div>
+                            <h3 className="text-lg">{feature.title}</h3>
+                            <p className="mt-2 text-sm leading-relaxed">
+                              {feature.description}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </details>
+              </BrandPanel>
+              <details className="px-4 pt-8">
+                <summary className="w-fit cursor-pointer text-sm font-bold">
+                  CC BY 4.0
+                </summary>
+                <p className="text-muted-foreground mt-3 max-w-3xl text-sm leading-relaxed">
+                  This software is open-source. The satellite imagery accessed
+                  through this application remains property of the respective
+                  providers (Google Earth, Esri) and their imagery partners.
+                  Users are responsible for complying with imagery provider
+                  terms of service.
                 </p>
-              </motion.div>
+              </details>
             </Container>
-          </Section>
-
-          {/* License Section */}
-          <Section>
-            <Container>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="mx-auto max-w-2xl text-center"
-              >
-                <Card className="bg-muted/50">
-                  <CardContent className="pt-6">
-                    <div className="mb-2 flex items-center justify-center gap-2">
-                      <Badge variant="outline">CC BY 4.0</Badge>
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      This software is open-source. The satellite imagery
-                      accessed through this application remains property of the
-                      respective providers (Google Earth, Esri) and their
-                      imagery partners. Users are responsible for complying with
-                      imagery provider terms of service.
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </Container>
-          </Section>
-        </main>
+          </BrandSection>
+        </BrandPage>
         <Footer />
       </>
     </Localized>

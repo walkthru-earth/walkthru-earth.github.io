@@ -1,6 +1,20 @@
 const phrase = (ar: string, arEG = ar) => ({ ar, arEG });
 
 export const softwareMessages: Record<string, { ar: string; arEG: string }> = {
+  'Live demos': phrase('أمثلة تفاعلية', 'جرّب بنفسك'),
+  Screenshots: phrase('لقطات الشاشة', 'صور من التطبيق'),
+  'Open tools for imagery and cloud data.': phrase(
+    'أدوات مفتوحة للصور والبيانات السحابية.',
+    'أدوات مفتوحة للصور والبيانات السحابية.'
+  ),
+  'Browse, query and map cloud data in your browser.': phrase(
+    'تصفّح البيانات السحابية واستعلم عنها واعرضها على الخرائط في متصفحك.',
+    'اتصفّح البيانات السحابية، واعمل عليها استعلامات، واعرضها على الخريطة من متصفحك.'
+  ),
+  'Download historical imagery. Compare places across time.': phrase(
+    'نزّل الصور التاريخية. وقارن الأماكن عبر الزمن.',
+    'نزّل الصور القديمة. وقارن الأماكن على مرّ السنين.'
+  ),
   'Urban Analysis Tools': phrase('أدوات التحليل الحضري', 'أدوات تحليل المدن'),
   'Tools for': phrase('أدوات من أجل', 'أدوات تساعدك على'),
   'Urban Discovery': phrase('اكتشاف المدن', 'اكتشاف المدينة'),
@@ -362,8 +376,7 @@ export const softwareMessages: Record<string, { ar: string; arEG: string }> = {
     'عروض تفاعلية ببيانات حقيقية من مساحات تخزين سحابية عامة',
     'تجارب تفاعلية ببيانات حقيقية من تخزين سحابي عام'
   ),
-  Supported: phrase('الصيغ'),
-  Formats: phrase('المدعومة'),
+  'Supported formats': phrase('الصيغ المدعومة'),
   'From tabular data and geospatial layers to 3D models and archives': phrase(
     'من البيانات الجدولية والطبقات الجغرافية إلى النماذج ثلاثية الأبعاد والأرشيفات',
     'من البيانات الجدولية والطبقات الجغرافية لحد النماذج 3D والأرشيفات'

@@ -1,125 +1,141 @@
 # walkthru.earth
 
-> People-first urban intelligence. Detecting hidden patterns of daily life and turning them into solutions that support wellbeing in cities globally.
+> Open tools that turn everyday experience and environmental data into evidence for better decisions about people and places.
 
-## About
+## Vision and Mission
 
-walkthru.earth builds open infrastructure and tools to understand and improve urban life. We combine IoT sensor data, open geospatial datasets, and anonymous community wellbeing data to create neighborhood-level health and livability insights. Founded March 2025.
+Vision: Every place understood through the people who experience it and shaped by the evidence they generate.
 
-Mission: To reveal the hidden patterns shaping daily life and turn them into people-first solutions that support wellbeing in cities everywhere.
+Mission: We make the invisible relationships between people and places measurable through open tools, turning everyday experience into evidence for better decisions.
+
+## Five Strategic Goals
+
+1. **Build an open ecosystem.** Use open source tools, reusable data formats, browser-based analysis, and static object storage to reduce dependence on dedicated application and database servers. WebAssembly and DuckDB-WASM are used where appropriate in the wider tool ecosystem. On-demand processing is a design choice; a measured carbon reduction is not claimed. Licenses vary by project and data source.
+2. **Make places measurable.** OpenSensor.space is an open environmental sensing ecosystem for publishing station readings. The strategy focuses on low-cost PM2.5 and PM10 sensing in Cairo and broader environmental monitoring. Expanding acoustic stress and artificial light exposure measurements is a goal; supported hardware does not establish network-wide deployment or calibrated coverage.
+3. **Make lived experience measurable.** Geobrain is a research direction connecting urban environments with wellbeing. The Hormones & Cities page includes a TRIBE v2 proof of concept using street imagery around Borough Market, London. Participatory wellbeing collection and mapping remain in development, with on-device processing and minimal personal information as design goals. The imagery experiment predicts model activity; it does not measure residents' brain activity, hormones, emotions, or health.
+4. **Turn heterogeneous data into spatial intelligence.** Earth's Living Indices brings together global terrain, buildings, population, weather, and urban context on H3 grids. Related pipelines prepare reusable datasets for public object storage. The website's globe reads selected Parquet columns in a browser worker using hyparquet and renders them with deck.gl. Its SQL panel explains equivalent operations; it does not execute DuckDB-WASM SQL. Loading and analysis depend on the dataset, viewport, network, and device.
+5. **Put evidence into real decisions.** Support health and climate policy, municipal planning, and communities advocating for cleaner air, green space, and equitable protection. Policy briefs, understandable evidence, and climate justice are strategic directions; public data alone does not establish a health improvement or completed policy outcome.
+
+## Evidence → Translation → Action
+
+- **Evidence:** Measure environmental conditions, publish spatial context, and develop responsible ways to listen to residents.
+- **Translation:** Connect heterogeneous sources, explain methods and uncertainty, and turn findings into accessible maps, analysis, and policy evidence.
+- **Action:** Help communities, researchers, and public decision-makers use that evidence in local priorities and evaluate what changes.
 
 ## Website Pages
 
 - Homepage: https://walkthru.earth
-- Globe Explorer (interactive 3D globe with 16 data layers): https://walkthru.earth/indices
-- OpenSensor.Space (weather station network): https://walkthru.earth/opensensor
-- Hormones & Cities (neighborhood health insights app): https://walkthru.earth/hormones-cities
-- Software (desktop & mobile tools): https://walkthru.earth/software
-- Objex (cloud storage explorer with geospatial visualization): https://walkthru.earth/software/objex
-- Imagery Desktop (aerial/satellite image management): https://walkthru.earth/software/imagery-desktop
-- About: https://walkthru.earth/about
-- Links: https://walkthru.earth/links
+- Globe Explorer / Earth's Living Indices: https://walkthru.earth/indices
+- OpenSensor.space: https://walkthru.earth/opensensor
+- Hormones & Cities / Geobrain research: https://walkthru.earth/hormones-cities
+- Software: https://walkthru.earth/software
+- Objex: https://walkthru.earth/software/objex
+- Imagery Desktop: https://walkthru.earth/software/imagery-desktop
+- About, strategy, and team: https://walkthru.earth/about
+- Project and social links: https://walkthru.earth/links
 - Privacy Policy: https://walkthru.earth/privacy
+
+The interface supports English, Egyptian Arabic, and Modern Standard Arabic with right-to-left layouts. Language selection is saved locally in the browser.
 
 ## Projects
 
-### Globe Explorer
-Interactive 3D globe for exploring terrain, population, buildings, weather, and 50+ livability indices worldwide. 16 data layers, ~300 GB of open data, real-time weather. Runs entirely in the browser using DuckDB-WASM — no account needed. Built on cloud-optimized geospatial formats (GeoParquet, COG, PMTiles).
-URL: https://walkthru.earth/indices
+### Earth's Living Indices / Globe Explorer
 
-### OpenSensor.Space
-DIY weather station network measuring air quality (PM2.5, PM10), noise, temperature, humidity, and light in real time. Built with Raspberry Pi and Enviro+ sensors. Data streams directly to cloud storage as Parquet files with Hive partitioning. Open hardware, open data, serverless architecture.
-URL: https://walkthru.earth/opensensor
-Dashboard: https://opensensor.space
+Interactive browser globe with 23 environmental and urban data layers. It combines terrain, building, population, weather, places, transport, and derived indicators using H3 indexing. Data is loaded on demand from public Parquet objects using range requests, selected columns, and spatial filters where the source layout supports them. The website uses hyparquet workers, JavaScript analysis, and deck.gl, rather than a DuckDB-WASM query engine. No account is required.
 
-### Hormones & Cities
-Mobile app (launching mid-2026) for sharing anonymous wellbeing and mobility data. Users share how they feel; data is processed on-device, aggregated to H3 hexagonal cells (~500m), and shared back as neighborhood health insights. Offline-first, privacy by design, no account needed, no tracking. The more people contribute, the smarter the picture gets.
-URL: https://walkthru.earth/hormones-cities
+- Explorer: https://walkthru.earth/indices
+- Public datasets: https://source.coop/walkthru-earth
+- Architecture and loading guide: https://github.com/walkthru-earth/walkthru-earth.github.io/blob/main/docs/indices.md
+
+### OpenSensor.space
+
+Open tools for collecting and sharing environmental readings, including air quality and weather measurements. Stations can buffer data locally and publish Parquet to S3-compatible object storage. The wider dashboard architecture uses browser-based DuckDB WebAssembly analysis. Measurement availability depends on each station's installed sensors, calibration, and published coverage. Noise measurement is a planned expansion, rather than an established network-wide capability.
+
+- Project overview: https://walkthru.earth/opensensor
+- Dashboard: https://opensensor.space
+- Public data: https://source.coop/walkthru-earth/opensensor-space
+
+### Hormones & Cities / Geobrain
+
+Emerging research connecting environmental conditions with people's experiences. Resident surveys and participatory mapping are in development; the displayed app screens are prototypes. The live London experiment pairs Mapillary street imagery with predictions from Meta's TRIBE v2 vision-only brain encoder and displays them on a cortical surface. It is separate from collecting resident wellbeing responses.
+
+Project and source licenses must be checked individually. TRIBE v2 has non-commercial terms, and Mapillary imagery has its own attribution and share-alike terms. The experiment is not a validated assessment of a person's feelings or health.
+
+- Research and experiment: https://walkthru.earth/hormones-cities
+- Project source: https://github.com/walkthru-earth/hnc
+- Model reference: https://github.com/facebookresearch/tribev2
 
 ### Objex
-Cloud storage explorer with geospatial visualization. Browse and manage S3, GCS, R2, and other cloud storage buckets with built-in support for geospatial file formats. Desktop app built with Tauri.
-URL: https://walkthru.earth/software/objex
-GitHub: https://github.com/walkthru-earth/objex
+
+Cloud storage explorer with client-side file browsing, DuckDB-WASM queries, and geospatial visualization. Supports tools for working with tabular and spatial formats from object storage.
+
+- Product page: https://walkthru.earth/software/objex
+- Source: https://github.com/walkthru-earth/objex
 
 ### Imagery Desktop
-Desktop application for managing aerial and satellite imagery collections.
-URL: https://walkthru.earth/software/imagery-desktop
-GitHub: https://github.com/walkthru-earth/imagery-desktop
 
-## Four Planetary Indices
+Desktop tools for exploring and exporting historical satellite imagery. Imagery remains subject to the respective providers' terms.
 
-All indices share the same H3 cell ID for easy SQL joins. Stored in open table formats, sorted by h3_index for optimized range queries.
+- Product page: https://walkthru.earth/software/imagery-desktop
+- Source: https://github.com/walkthru-earth/imagery-desktop
 
-1. **Terrain** — GEDTM 30m GeoTIFF source. Elevation, slope, aspect, ruggedness. 287 GB, H3 res 1-10.
-2. **Buildings** — 2.75 billion polygons (Global Building Atlas). Density, height, footprint, volume. 2.6 GB, H3 res 3-8.
-3. **Population** — WorldPop SSP2 projections. 2025-2100 growth, 16 timesteps. 4.5 GB, H3 res 1-8.
-4. **Weather** — NOAA AI-NWP (GraphCast). Temperature, wind, pressure, precipitation. 3.6 GB/forecast, H3 res 5.
+## Open Data and Infrastructure
 
-## Data Formats
+Common formats and tools across the projects include Parquet, GeoParquet, H3, cloud-optimized GeoTIFF, PMTiles, FlatGeobuf, STAC, DuckDB, and Polars. The formats used by a particular product or dataset should be checked in its documentation. Technology names describe tools and infrastructure, not endorsement by their maintainers.
 
-- GeoParquet (with native Parquet 2.11+ GEOMETRY)
-- Cloud-Optimized GeoTIFF (COG)
-- PMTiles
-- FlatGeobuf
-- Snappy-compressed Parquet with Hive partitioning
-- H3 hexagonal grid indexing
-
-## Open Data on Source Cooperative
-
-All datasets are published as open data:
+Data sources include GEDTM terrain, Global Building Atlas buildings, WorldPop population projections, NOAA AI-NWP weather forecasts, and Overture Maps. H3-indexed outputs enable compatible datasets to be combined at matching resolutions. Dataset size, update frequency, coverage, methodology, and license are release-specific.
 
 - Source Cooperative organization: https://source.coop/walkthru-earth
-- DEM-Terrain — Global terrain data (elevation, slope, aspect) on H3 hexagonal grids as Parquet: https://source.coop/walkthru-earth/dem-terrain
-- Walkthru-Indices — Comprehensive livability metrics for sustainable communities: https://source.coop/walkthru-earth/indices
-- OpenSensor.Space — Real-time environmental sensor data in Parquet format: https://source.coop/walkthru-earth/opensensor-space
+- Terrain data: https://source.coop/walkthru-earth/dem-terrain
+- Indices data: https://source.coop/walkthru-earth/indices
+- Environmental sensor data: https://source.coop/walkthru-earth/opensensor-space
+- GitHub organization: https://github.com/walkthru-earth
 
-## GitHub Repositories
+## Public Repository References
 
-Organization: https://github.com/walkthru-earth
+### Data Pipelines
 
-### Core Data Pipelines
-- **walkthru-weather-index** — Event-driven weather downscaling pipeline: NOAA AI-NWP to H3 hexagonal grid to partitioned Parquet on S3: https://github.com/walkthru-earth/walkthru-weather-index
-- **walkthru-pop-index** — Global population projections (WorldPop SSP 1km) to H3-indexed GeoParquet: https://github.com/walkthru-earth/walkthru-pop-index
-- **walkthru-building-index** — Global Building Atlas LOD1 (2.75B buildings) to H3-indexed GeoParquet + Pyramid GeoParquet with native Parquet 2.11+ GEOMETRY: https://github.com/walkthru-earth/walkthru-building-index
-- **dem-terrain** — Global DEM to H3-indexed native Parquet 2.11+ terrain derivatives: https://github.com/walkthru-earth/dem-terrain
-- **h3-migration** — Migrate walkthru-earth S3 Parquet files to optimized H3 int64 schema (v2): https://github.com/walkthru-earth/h3-migration
-- **walkthru-data** — walkthru-data registry and taps: https://github.com/walkthru-earth/walkthru-data
-- **walkthru-datastore** — High-performance ESRI-compatible geospatial REST API server with zero-copy vector tile generation using DuckDB + orb architecture: https://github.com/walkthru-earth/walkthru-datastore
+- Weather index: https://github.com/walkthru-earth/walkthru-weather-index
+- Population index: https://github.com/walkthru-earth/walkthru-pop-index
+- Building index: https://github.com/walkthru-earth/walkthru-building-index
+- Terrain processing: https://github.com/walkthru-earth/dem-terrain
+- H3 schema migration: https://github.com/walkthru-earth/h3-migration
+- Data registry: https://github.com/walkthru-earth/walkthru-data
 
-### OpenSensor
-- **opensensor-space** — Decentralized, serverless dashboard for OpenSensor Network. Real-time environmental data from independent stations syncing to public cloud storage (AWS, GCS, R2): https://github.com/walkthru-earth/opensensor-space
-- **opensensor-enviroplus** — Lightweight, edge-first pipeline for collecting Enviro+ sensor data on Raspberry Pi and syncing to cloud object storage. Data stored as Parquet with Hive partitioning: https://github.com/walkthru-earth/opensensor-enviroplus
-- **opensensor-space-edge** — Edge computing for OpenSensor: https://github.com/walkthru-earth/opensensor-space-edge
-- **esp32s3-parquet-test** — Proof-of-concept: Snappy-compressed Parquet files on ESP32-S3, uploaded to AWS S3: https://github.com/walkthru-earth/esp32s3-parquet-test
-- **esp32s3-webhook** — ESP32-S3 Discord webhook demo with Rust and HTTPS: https://github.com/walkthru-earth/esp32s3-webhook
+### Sensing and Research
 
-### Software & Tools
-- **objex** — Cloud storage explorer with geospatial visualization: https://github.com/walkthru-earth/objex
-- **imagery-desktop** — Aerial/satellite image management desktop app: https://github.com/walkthru-earth/imagery-desktop
-- **react-native-duckdb** — DuckDB bindings for React Native: https://github.com/walkthru-earth/react-native-duckdb
+- OpenSensor dashboard: https://github.com/walkthru-earth/opensensor-space
+- Enviro+ collection pipeline: https://github.com/walkthru-earth/opensensor-enviroplus
+- OpenSensor edge tools: https://github.com/walkthru-earth/opensensor-space-edge
+- Hormones & Cities experiment: https://github.com/walkthru-earth/hnc
+- ESP32-S3 Parquet proof of concept: https://github.com/walkthru-earth/esp32s3-parquet-test
 
-### Geospatial & Infrastructure
-- **mapserver-parquet** — MapServer with Parquet support via GDAL Arrow/Parquet driver or DuckDB: https://github.com/walkthru-earth/mapserver-parquet
-- **stac-cms-template** — Git-based CMS for authoring STAC metadata with visual map editing, automatic validation, no server required: https://github.com/walkthru-earth/stac-cms-template
-- **qgis-server** — QGIS Server Docker image, production ready with Apache/Lighttpd/spawn-fcgi: https://github.com/walkthru-earth/qgis-server
-- **walkthru-earth.github.io** — Website source code (Next.js): https://github.com/walkthru-earth/walkthru-earth.github.io
-- **walkthru-cn-auth-worker** — Cloudflare auth worker: https://github.com/walkthru-earth/walkthru-cn-auth-worker
-- **iso-trans** — ISO translation utilities: https://github.com/walkthru-earth/iso-trans
+### Software and Spatial Infrastructure
 
-### Other
-- **talks** — Presentations and slides: https://github.com/walkthru-earth/talks
+- Objex: https://github.com/walkthru-earth/objex
+- Imagery Desktop: https://github.com/walkthru-earth/imagery-desktop
+- React Native DuckDB bindings: https://github.com/walkthru-earth/react-native-duckdb
+- Geospatial datastore: https://github.com/walkthru-earth/walkthru-datastore
+- MapServer Parquet integration: https://github.com/walkthru-earth/mapserver-parquet
+- STAC CMS template: https://github.com/walkthru-earth/stac-cms-template
+- Website source: https://github.com/walkthru-earth/walkthru-earth.github.io
+- Presentations: https://github.com/walkthru-earth/talks
 
-## Social Media & Contact
+## Privacy and Participation
 
-- Website: https://walkthru.earth
+The globe can be explored without an account. Browser-side data processing is distinct from website analytics: the website uses PostHog and Google Analytics with consent controls, described in the Privacy Policy. Do not interpret on-device processing as a claim that the website has zero analytics. Participatory wellbeing research is being developed; its consent, privacy, sampling, and validation methods must be established before collecting sensitive responses.
+
+Privacy Policy: https://walkthru.earth/privacy
+
+## Social Media and Contact
+
+- Email: hi@walkthru.earth
 - GitHub: https://github.com/walkthru-earth
 - LinkedIn: https://www.linkedin.com/company/walkthru-earth/
 - YouTube: https://www.youtube.com/@walkthru-earth/
 - Instagram: https://www.instagram.com/walkthru.earth
 - Facebook: https://www.facebook.com/walkthru.earth
-- X (Twitter): https://x.com/walkthru_earth
+- X: https://x.com/walkthru_earth
 - Bluesky: https://bsky.app/profile/walkthru.earth
 - TikTok: https://www.tiktok.com/@walkthru.earth
 - Source Cooperative: https://source.coop/walkthru-earth
-- Email: hi@walkthru.earth
-- Presentations: https://walkthru.earth/talks

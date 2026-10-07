@@ -25,20 +25,15 @@ export function ScrollingPhoneMockup({
 }: ScrollingPhoneMockupProps) {
   return (
     <Localized>
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-        className="relative mx-auto flex items-center justify-center lg:mx-0"
-      >
-        <div className="relative w-[240px] sm:w-[280px] lg:w-[320px]">
+      <div className="relative mx-auto flex items-center justify-center lg:mx-0">
+        <div className="relative w-[240px] max-w-full motion-safe:!w-[min(320px,calc((100svh_-_10rem)*9/21))] sm:w-[280px] lg:w-[320px]">
           {/* Phone Frame */}
-          <div className="border-foreground/10 bg-background relative aspect-[9/21] w-full overflow-hidden rounded-[2.5rem] border-4 shadow-2xl">
+          <div className="border-foreground bg-background relative aspect-[9/21] w-full overflow-hidden rounded-[2.5rem] border-[6px] shadow-2xl">
             {/* Rotating Screenshots */}
             {screenshots.map((screenshot, index) => (
               <motion.div
                 key={screenshot.src}
-                className="absolute inset-0"
+                className={`absolute inset-0 ${index === 0 ? 'motion-reduce:!opacity-100' : 'motion-reduce:!opacity-0'}`}
                 style={{
                   opacity: screenshotOpacities[index],
                 }}
@@ -71,17 +66,12 @@ export function ScrollingPhoneMockup({
 
           {/* Scroll Indicator */}
           {showIndicator && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-              className="text-muted-foreground absolute -bottom-12 left-1/2 hidden -translate-x-1/2 text-center text-xs lg:block"
-            >
+            <div className="absolute -bottom-12 left-1/2 hidden -translate-x-1/2 text-center text-sm font-bold motion-reduce:!hidden lg:block">
               <div className="mb-2 flex justify-center gap-1.5">
                 {screenshots.map((_, index) => (
                   <motion.div
                     key={index}
-                    className="bg-secondary h-1.5 w-1.5 rounded-full"
+                    className="h-2 w-2 rounded-full bg-current"
                     style={{
                       opacity: dotOpacities[index],
                     }}
@@ -89,10 +79,10 @@ export function ScrollingPhoneMockup({
                 ))}
               </div>
               Scroll to explore
-            </motion.div>
+            </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </Localized>
   );
 }

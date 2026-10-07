@@ -13,7 +13,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'walkthru.earth - Health, Wellbeing & the Places We Live',
   description:
-    'Open environmental data, monitoring, and tools to understand how the places we live shape human health and everyday wellbeing.',
+    'We make the invisible relationships between people and places measurable through open tools, turning everyday experience into evidence for better decisions.',
   keywords:
     'urban wellbeing, livability index, city data, sustainable communities, urban analytics, IoT sensors, environmental monitoring',
   authors: [{ name: 'walkthru.earth' }],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'walkthru.earth - Health, Wellbeing & the Places We Live',
     description:
-      'Open environmental data and tools to understand the places we live, with human health and wellbeing at the center.',
+      'Open tools connecting people, places and evidence for healthier communities and better decisions.',
     url: 'https://walkthru.earth',
     siteName: 'walkthru.earth',
     locale: 'en_US',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'walkthru.earth - Health, Wellbeing & the Places We Live',
     description:
-      'Open environmental data and tools to understand the places we live, with human health and wellbeing at the center.',
+      'Open tools connecting people, places and evidence for healthier communities and better decisions.',
     creator: '@walkthru_earth',
     images: ['https://walkthru.earth/globe-preview-dark.png'],
   },
@@ -71,7 +71,7 @@ export default function RootLayout({
     url: 'https://walkthru.earth',
     logo: 'https://walkthru.earth/icon.svg',
     description:
-      'Open environmental data, monitoring, and tools to understand how the places we live shape human health and everyday wellbeing.',
+      'We make the invisible relationships between people and places measurable through open tools, turning everyday experience into evidence for better decisions.',
     sameAs: [
       'https://github.com/walkthru-earth',
       'https://www.linkedin.com/company/walkthru-earth/',

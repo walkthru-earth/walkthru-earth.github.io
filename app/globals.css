@@ -4,6 +4,14 @@
   /* Light Mode - Walkthru Earth Tones */
   --background: hsl(60 20% 99%); /* Warm white */
   --foreground: hsl(0 0% 9%); /* Soft black */
+  --solid-foreground: hsl(
+    0 0% 9%
+  ); /* Readable ink on bright solid accents in either theme */
+
+  /* Project accents follow the committed logos and product imagery. */
+  --opensensor: hsl(207 85% 55%);
+  --wellbeing: hsl(170 95% 43%);
+  --imagery: hsl(37 97% 62%);
 
   /* Logo display switching */
   --light-display: block;
@@ -15,10 +23,12 @@
   --popover: hsl(0 0% 100%);
   --popover-foreground: hsl(0 0% 9%);
 
-  --primary: hsl(158 64% 52%); /* Earth green */
-  --primary-foreground: hsl(0 0% 100%);
+  --earth-primary: hsl(158 64% 52%);
+  --earth-secondary: hsl(37 91% 55%);
+  --primary: var(--earth-primary); /* Earth green */
+  --primary-foreground: var(--solid-foreground);
 
-  --secondary: hsl(37 91% 55%); /* Warm amber */
+  --secondary: var(--earth-secondary); /* Warm amber */
   --secondary-foreground: hsl(0 0% 9%);
 
   --muted: hsl(60 5% 96%);
@@ -80,11 +90,13 @@ html[dir='rtl'] .rtl-flip {
   --popover: hsl(0 0% 10%);
   --popover-foreground: hsl(60 10% 98%);
 
-  --primary: hsl(158 64% 42%); /* Muted earth green */
+  --earth-primary: hsl(158 64% 42%);
+  --earth-secondary: hsl(37 70% 45%);
+  --primary: var(--earth-primary); /* Muted earth green */
   --primary-foreground: hsl(0 0% 9%);
 
-  --secondary: hsl(37 70% 45%); /* Muted amber */
-  --secondary-foreground: hsl(60 10% 98%);
+  --secondary: var(--earth-secondary); /* Muted amber */
+  --secondary-foreground: var(--solid-foreground);
 
   --muted: hsl(0 0% 15%);
   --muted-foreground: hsl(60 5% 65%);
@@ -111,6 +123,7 @@ html[dir='rtl'] .rtl-flip {
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-solid-foreground: var(--solid-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -198,6 +211,208 @@ html[dir='rtl'] .rtl-flip {
   }
 }
 
+/* Shared editorial surfaces. Dense scientific interfaces keep their own scale. */
+@layer components {
+  .brand-project-opensensor {
+    --primary: var(--opensensor);
+    --primary-foreground: var(--solid-foreground);
+    --ring: var(--opensensor);
+  }
+  .brand-project-wellbeing {
+    --primary: var(--wellbeing);
+    --primary-foreground: var(--solid-foreground);
+    --secondary: var(--wellbeing);
+    --secondary-foreground: var(--solid-foreground);
+    --ring: var(--wellbeing);
+  }
+  .brand-project-imagery {
+    --primary: var(--imagery);
+    --primary-foreground: var(--solid-foreground);
+    --ring: var(--imagery);
+  }
+  .brand-project-objex {
+    --primary: var(--foreground);
+    --primary-foreground: var(--background);
+    --ring: var(--foreground);
+  }
+  /* Preserve distinct scientific selection colors inside project pages. */
+  .brand-data-ui {
+    --primary: var(--earth-primary);
+    --secondary: var(--earth-secondary);
+    --primary-foreground: var(--solid-foreground);
+    --secondary-foreground: var(--solid-foreground);
+    --ring: var(--earth-primary);
+  }
+  .brand-tone-opensensor {
+    --brand-color: var(--opensensor);
+    --brand-ink: var(--solid-foreground);
+  }
+  .brand-tone-wellbeing {
+    --brand-color: var(--wellbeing);
+    --brand-ink: var(--solid-foreground);
+  }
+  .brand-tone-imagery {
+    --brand-color: var(--imagery);
+    --brand-ink: var(--solid-foreground);
+  }
+  .brand-tone-objex {
+    --brand-color: var(--foreground);
+    --brand-ink: var(--background);
+  }
+  .brand-tone-earth {
+    --brand-color: var(--primary);
+    --brand-ink: var(--solid-foreground);
+  }
+  .brand-tone-green {
+    --brand-color: var(--primary);
+    --brand-ink: var(--solid-foreground);
+  }
+  .brand-tone-amber {
+    --brand-color: var(--secondary);
+    --brand-ink: var(--solid-foreground);
+  }
+  .brand-tone-blue {
+    --brand-color: var(--info);
+    --brand-ink: var(--background);
+  }
+  .brand-tone-coral {
+    --brand-color: var(--error);
+    --brand-ink: var(--solid-foreground);
+  }
+  .brand-tone-ink {
+    --brand-color: var(--foreground);
+    --brand-ink: var(--background);
+  }
+  .brand-solid,
+  .brand-hero,
+  .brand-icon {
+    background: var(--brand-color);
+    color: var(--brand-ink);
+  }
+  .brand-page h1,
+  .brand-page h2,
+  .brand-page h3,
+  .brand-page h4 {
+    font-weight: 700;
+  }
+  .brand-page h1 {
+    font-size: clamp(2.75rem, 6vw, 6rem);
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+  .brand-page h2 {
+    font-size: clamp(2rem, 4vw, 3.75rem);
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  .brand-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(4rem, 7vw, 7rem);
+  }
+  .brand-hero-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+  .brand-hero-art {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .brand-orbit {
+    position: absolute;
+    inset-inline-end: -8rem;
+    top: 10%;
+    width: clamp(18rem, 40vw, 42rem);
+    aspect-ratio: 1;
+    border: clamp(2rem, 5vw, 6rem) solid currentColor;
+    border-radius: 50%;
+    opacity: 0.07;
+  }
+  .brand-spark {
+    position: absolute;
+    inset-inline-end: 8%;
+    bottom: -4rem;
+    width: clamp(10rem, 22vw, 20rem);
+    aspect-ratio: 1;
+    background: currentColor;
+    opacity: 0.08;
+    transform: rotate(-12deg);
+    clip-path: polygon(
+      50% 0,
+      61% 30%,
+      85% 15%,
+      70% 39%,
+      100% 50%,
+      70% 61%,
+      85% 85%,
+      61% 70%,
+      50% 100%,
+      39% 70%,
+      15% 85%,
+      30% 61%,
+      0 50%,
+      30% 39%,
+      15% 15%,
+      39% 30%
+    );
+  }
+  .brand-section {
+    padding-block: clamp(3.5rem, 6vw, 6rem);
+  }
+  .brand-panel {
+    overflow: hidden;
+    border: 2px solid var(--border);
+    border-radius: 2rem;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+  }
+  .brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1.15rem;
+    transform: rotate(-5deg);
+  }
+  .brand-icon > svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    stroke-width: 2.25;
+  }
+  .brand-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    border: 2px solid currentColor;
+    border-radius: 999px;
+    padding: 0.35rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+  .brand-section-heading {
+    max-width: 52rem;
+    margin-bottom: 2.5rem;
+  }
+}
+
+/* Solid-surface contrast takes precedence over Tailwind text utilities. */
+.brand-solid .text-muted-foreground,
+.brand-hero .text-muted-foreground {
+  color: inherit;
+}
+.brand-solid .gradient-text,
+.brand-hero .gradient-text {
+  color: inherit;
+  background: none;
+  -webkit-text-stroke: 0;
+}
+
 /* Accessibility: Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -208,16 +423,6 @@ html[dir='rtl'] .rtl-flip {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* Gradient text stroke for readability over busy backgrounds */
-.gradient-text {
-  -webkit-text-stroke: 1.5px hsl(0 0% 0% / 0.15);
-  paint-order: stroke fill;
-}
-
-.dark .gradient-text {
-  -webkit-text-stroke: 1.5px hsl(0 0% 100% / 0.2);
 }
 
 /* Focus styles for keyboard navigation */

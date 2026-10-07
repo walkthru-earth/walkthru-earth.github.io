@@ -533,7 +533,7 @@ export function GlobeExplorer({
 
             {/* Layers + Locate + Zoom & H3 resolution control */}
             <div className="absolute top-4 right-4 z-20 flex items-center gap-2 sm:top-6 sm:right-6">
-              <div className="border-border/50 bg-background/90 overflow-hidden rounded-full border shadow-lg backdrop-blur-md">
+              <div className="brand-panel bg-background overflow-hidden rounded-full p-0">
                 <LanguageSelector compact />
               </div>
               <LayerPanel
@@ -547,10 +547,10 @@ export function GlobeExplorer({
                 onClick={userLocation ? clearUserLocation : locateUser}
                 disabled={isLocating}
                 className={[
-                  'border-border/50 bg-background/90 flex h-9 w-9 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all sm:h-10 sm:w-10',
+                  'brand-panel bg-background flex h-9 w-9 items-center justify-center rounded-full p-0 transition-colors sm:h-10 sm:w-10',
                   isLocating ? 'animate-pulse' : '',
                   userLocation
-                    ? 'border-amber-400/50 text-amber-400'
+                    ? 'border-secondary bg-secondary text-solid-foreground'
                     : 'text-muted-foreground hover:bg-accent',
                 ].join(' ')}
                 aria-label={
@@ -605,7 +605,7 @@ export function GlobeExplorer({
                   </svg>
                 )}
               </button>
-              <div className="border-border/50 bg-background/90 flex items-center gap-0 rounded-full border shadow-lg backdrop-blur-md">
+              <div className="brand-panel bg-background flex items-center gap-0 rounded-full p-0">
                 <button
                   type="button"
                   onClick={() => handleH3ResChange(-1)}
@@ -674,7 +674,7 @@ export function GlobeExplorer({
             <div className="absolute top-18 left-4 z-20 hidden items-center gap-2 sm:top-6 sm:left-6 sm:flex">
               <Link
                 href="/"
-                className="border-border/50 bg-background/90 text-foreground hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-colors"
+                className="brand-panel bg-background text-foreground hover:bg-primary hover:text-solid-foreground flex h-10 w-10 items-center justify-center rounded-full p-0 transition-colors"
                 aria-label="Back to home"
               >
                 <svg
@@ -691,7 +691,7 @@ export function GlobeExplorer({
                   />
                 </svg>
               </Link>
-              <div className="border-border/50 bg-background/90 overflow-hidden rounded-full border shadow-lg backdrop-blur-md">
+              <div className="brand-panel bg-background overflow-hidden rounded-full p-0">
                 <ThemeToggle />
               </div>
               <ParquetInfoPanel info={parquetInfo} isLoading={isLoading} />

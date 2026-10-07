@@ -39,7 +39,7 @@ function PlayPauseButton({
         type="button"
         onClick={onToggle}
         aria-label={playing ? 'Pause' : 'Play'}
-        className={`flex ${sz} bg-primary text-primary-foreground hover:bg-primary/90 items-center justify-center rounded-full shadow-sm transition-colors active:scale-95`}
+        className={`flex ${sz} bg-primary text-solid-foreground hover:bg-primary/90 items-center justify-center rounded-full shadow-sm transition-colors active:scale-95`}
       >
         {playing ? (
           <svg className={ico} fill="currentColor" viewBox="0 0 24 24">
@@ -139,7 +139,7 @@ export const TimeSlider = memo(function TimeSlider({
         dir="ltr"
         className="absolute bottom-14 left-1/2 z-20 hidden -translate-x-1/2 sm:block"
       >
-        <div className="border-border/50 bg-background/90 flex items-center gap-3 rounded-xl border px-4 py-2.5 shadow-lg backdrop-blur-md">
+        <div className="brand-panel bg-background flex items-center gap-3 rounded-2xl px-4 py-2.5">
           <PlayPauseButton playing={playing} onToggle={toggle} />
 
           <div className="flex flex-col items-center gap-1">
@@ -207,7 +207,7 @@ export const MobileTimeControls = memo(function MobileTimeControls({
     <Localized>
       <div
         dir="ltr"
-        className="border-border/50 flex items-center gap-1.5 rounded-lg border px-2 py-1.5"
+        className="brand-panel bg-background flex items-center gap-1.5 rounded-xl px-2 py-1.5"
       >
         <PlayPauseButton playing={playing} onToggle={toggle} size="sm" />
         <button
