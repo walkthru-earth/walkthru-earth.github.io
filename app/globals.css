@@ -449,7 +449,7 @@ html[dir='rtl'] .rtl-flip {
   cursor: pointer;
 }
 
-/* The cover diagram has no remote assets or frame loop. Motion runs once. */
+/* Visitor-controlled cover stories; no remote assets or animation frame loop. */
 @layer components {
   .home-cover {
     padding-block: clamp(3rem, 6vw, 6rem);
@@ -465,37 +465,127 @@ html[dir='rtl'] .rtl-flip {
   }
   .evidence-graphic {
     width: 100%;
-    max-width: 33rem;
+    max-width: 35rem;
+    min-width: 0;
     margin-inline: auto;
-    padding: 1.25rem;
-    border: 1px solid var(--palette-border);
-    border-radius: 2rem;
-    background: var(--palette-surface);
     color: var(--palette-text);
-    transform: rotate(2deg);
-  }
-  .evidence-graphic svg {
-    width: 100%;
-    height: auto;
   }
   .evidence-caption {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
+    text-align: center;
     font-size: 0.8rem;
     font-weight: 700;
-    padding: 0.25rem 0.5rem;
+    letter-spacing: 0.03em;
   }
-  .evidence-legend {
+  .evidence-stage {
+    position: relative;
+    padding-block: 0.5rem;
+    background: radial-gradient(
+      ellipse at 50% 60%,
+      var(--palette-surface),
+      transparent 70%
+    );
+  }
+  .evidence-scene {
+    position: relative;
+  }
+  .evidence-scene > svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .evidence-network {
+    opacity: 0.22;
+  }
+  .evidence-graphic[data-step='1'] .evidence-network,
+  .evidence-graphic[data-step='2'] .evidence-network {
+    opacity: 0.7;
+  }
+  .evidence-node {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: clamp(2.75rem, 12%, 3.75rem);
+    aspect-ratio: 1;
+    border: 1px solid var(--brand-color);
+    border-radius: 38%;
+    background: var(--palette-paper);
+    color: var(--palette-text);
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+  }
+  .evidence-node svg {
+    width: 45%;
+    height: 45%;
+  }
+  .evidence-node-0 {
+    left: 22.083%;
+    top: 32.5%;
+  }
+  .evidence-node-1 {
+    left: 50%;
+    top: 20.833%;
+  }
+  .evidence-node-2 {
+    left: 77.917%;
+    top: 32.5%;
+  }
+  .evidence-node[aria-pressed='true'] {
+    background: var(--brand-color);
+    color: var(--brand-ink);
+    box-shadow: 0 0 0 6px
+      color-mix(in srgb, var(--brand-color) 15%, transparent);
+  }
+  .evidence-node:hover {
+    background: var(--brand-color);
+    color: var(--brand-ink);
+  }
+  .evidence-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+  .evidence-step {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 1rem;
-    background: var(--palette-paper);
-    font-size: 0.85rem;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 3rem;
+    padding: 0.5rem 0.3rem;
+    border-block-start: 2px solid var(--palette-border);
+    color: var(--palette-text);
+    font-size: clamp(0.7rem, 1.1vw, 0.875rem);
     font-weight: 700;
+    cursor: pointer;
+  }
+  .evidence-step[aria-pressed='true'] {
+    border-color: var(--brand-color);
+    background: var(--palette-surface);
+    border-radius: 0 0 0.65rem 0.65rem;
+  }
+  .evidence-step:hover {
+    background: var(--palette-surface);
+  }
+  .evidence-step-number {
+    font-size: 0.65rem;
+    opacity: 0.7;
+  }
+  .evidence-node:focus-visible,
+  .evidence-step:focus-visible {
+    outline: 2px solid var(--palette-text);
+    outline-offset: 4px;
+  }
+  .evidence-detail {
+    min-height: 3.5rem;
+    margin-block-start: 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    text-wrap: balance;
+  }
+  .evidence-hint {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--palette-muted);
   }
   .goal-palette-panel {
     background: var(--palette-paper);
@@ -539,11 +629,30 @@ html[dir='rtl'] .rtl-flip {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .evidence-graphic {
-    animation: evidence-arrive 800ms ease-out both;
+  .evidence-scene {
+    transform: translate(var(--scene-x, 0px), var(--scene-y, 0px));
+    transition: transform 180ms ease-out;
   }
-  .evidence-connection {
-    animation: evidence-connect 1.8s ease-out both;
+  .evidence-node {
+    transition:
+      background 180ms,
+      color 180ms,
+      box-shadow 180ms;
+  }
+  .evidence-reveal {
+    animation: evidence-arrive 550ms ease-out both;
+  }
+  .evidence-route {
+    stroke-dasharray: 1;
+    animation: evidence-connect 900ms ease-out both;
+  }
+  .evidence-ripple {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: evidence-pulse 1.4s ease-out 2;
+  }
+  .evidence-ripple-late {
+    animation-delay: 180ms;
   }
   .goal-palette-fan span {
     animation: palette-unfold 450ms ease-out both;
@@ -551,18 +660,33 @@ html[dir='rtl'] .rtl-flip {
 }
 @keyframes evidence-arrive {
   from {
-    transform: translateY(12px) rotate(0deg);
+    opacity: 0;
+    transform: translateY(7px);
   }
   to {
-    transform: translateY(0) rotate(2deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 @keyframes evidence-connect {
   from {
-    stroke-dashoffset: 60;
+    stroke-dashoffset: 1;
   }
   to {
     stroke-dashoffset: 0;
+  }
+}
+@keyframes evidence-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
   }
 }
 @keyframes palette-unfold {
@@ -577,4 +701,206 @@ html[dir='rtl'] .rtl-flip {
 /* Text accents stay legible independently of pastel button/background colors. */
 @utility text-palette-emphasis {
   color: var(--palette-emphasis, var(--foreground));
+}
+
+/* OpenSensor's connection modes keep durable edge storage visible in every state. */
+@layer components {
+  .sensor-flow {
+    width: 100%;
+    min-width: 0;
+    max-width: 36rem;
+    margin-inline: auto;
+    color: var(--palette-text);
+  }
+  .sensor-modes {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-block: 1rem 1.5rem;
+  }
+  .sensor-modes button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--palette-border);
+    border-radius: 2rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .sensor-modes button svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  .sensor-modes button[aria-pressed='true'] {
+    background: var(--palette-main);
+    border-color: var(--palette-main);
+    color: var(--palette-ink);
+  }
+  .sensor-modes button:hover {
+    box-shadow: 0 0 0 3px var(--palette-surface);
+  }
+  .sensor-modes button:focus-visible {
+    outline: 2px solid var(--palette-text);
+    outline-offset: 3px;
+  }
+  .sensor-network {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 3rem 14%;
+  }
+  .sensor-routes {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .sensor-routes path {
+    stroke: var(--palette-border);
+    stroke-width: 0.3;
+  }
+  .sensor-routes .sensor-route-active {
+    stroke: var(--palette-text);
+    stroke-width: 0.4;
+  }
+  .sensor-route-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    padding: 0.2rem 0.4rem;
+    background: var(--palette-paper);
+    font-size: 0.65rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .sensor-node {
+    position: relative;
+    min-width: 0;
+    min-height: 11rem;
+    padding: 0.85rem;
+    border: 1px solid var(--palette-border);
+    border-radius: 1.2rem;
+    background: var(--palette-paper);
+  }
+  .sensor-node[data-active='true'] {
+    border-color: var(--palette-emphasis);
+    background: var(--palette-surface);
+  }
+  .sensor-node-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .sensor-node-heading > svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex-shrink: 0;
+  }
+  .sensor-node-heading h3 {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+  .sensor-node > p {
+    margin-block-start: 0.5rem;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+  .sensor-node-note {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-block-start: 1rem;
+  }
+  .sensor-files {
+    display: flex;
+    gap: 0.3rem;
+    margin-block: 1rem;
+    direction: ltr;
+  }
+  .sensor-files > span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.35rem 0.25rem;
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--palette-border);
+    border-radius: 0.4rem;
+    background: var(--palette-paper);
+    font-size: 0.55rem;
+  }
+  .sensor-files svg {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+  .sensor-retained {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+  .sensor-retained svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex-shrink: 0;
+  }
+  .sensor-client > svg {
+    width: 100%;
+    margin-block-start: 1rem;
+  }
+  .sensor-explanation {
+    min-height: 6.5rem;
+    margin-block: 1.5rem 0.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+  .sensor-explanation > p {
+    font-size: inherit;
+    line-height: inherit;
+  }
+  .sensor-explanation > p + p {
+    margin-block-start: 0.5rem;
+  }
+  [dir='rtl'] .sensor-routes {
+    transform: scaleX(-1);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sensor-route-active {
+    stroke-dasharray: 1;
+    animation: evidence-connect 1s ease-out both;
+  }
+  .sensor-files > span {
+    animation: evidence-arrive 500ms ease-out both;
+  }
+  .sensor-files > span:nth-child(2) {
+    animation-delay: 100ms;
+  }
+  .sensor-files > span:nth-child(3) {
+    animation-delay: 200ms;
+  }
+}
+
+@media (max-width: 480px) {
+  .sensor-files > span > span {
+    display: none;
+  }
+  .sensor-node {
+    padding: 0.75rem;
+    min-height: 10rem;
+  }
 }

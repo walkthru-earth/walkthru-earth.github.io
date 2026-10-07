@@ -3,25 +3,122 @@ import type { MessageCatalog } from './types';
 const phrase = (ar: string, arEG = ar) => ({ ar, arEG });
 
 export const projectMessages: MessageCatalog = {
+  'Keep measuring, even when the connection drops.': phrase(
+    'واصل القياس، حتى عند انقطاع الاتصال.',
+    'كمّل القياس، حتى لو الاتصال فصل.'
+  ),
+  'Save readings as Parquet on the edge device. Sync directly to object storage or through a nearby phone or local hub. Explore the files from your browser or app.':
+    phrase(
+      'احفظ القراءات بصيغة Parquet على الجهاز الطرفي. زامنها مباشرة مع التخزين الكائني أو عبر هاتف قريب أو جهاز تجميع محلي. استكشف الملفات من متصفحك أو تطبيقك.',
+      'احفظ القراءات بصيغة Parquet على الجهاز الطرفي. زامنها مباشرة مع التخزين الكائني أو عن طريق موبايل قريب أو جهاز تجميع محلي. استكشف الملفات من متصفحك أو تطبيقك.'
+    ),
+  'Keep measuring. Sync when ready.': phrase(
+    'واصل القياس. زامن عندما تكون جاهزًا.',
+    'كمّل القياس. زامن لما تكون جاهز.'
+  ),
+  'Try a connection scenario': phrase('جرّب سيناريو اتصال', 'جرّب حالة اتصال'),
+  Offline: phrase('دون اتصال', 'من غير اتصال'),
+  'Phone / hub': phrase('هاتف / جهاز تجميع', 'موبايل / جهاز تجميع'),
+  Internet: phrase('الإنترنت'),
+  'Connection lost. Measurements kept.': phrase(
+    'انقطع الاتصال. القياسات محفوظة.',
+    'الاتصال فصل. القياسات محفوظة.'
+  ),
+  'The edge device keeps recording to local Parquet files. Transfers wait for a connection; collection carries on.':
+    phrase(
+      'يواصل الجهاز الطرفي التسجيل في ملفات Parquet محلية. ينتظر نقل البيانات توفر اتصال، بينما يستمر جمعها.',
+      'الجهاز الطرفي بيكمّل التسجيل في ملفات Parquet محلية. نقل البيانات بيستنى الاتصال يرجع، وجمعها بيكمّل.'
+    ),
+  'A nearby connection is enough.': phrase(
+    'يكفي اتصال قريب.',
+    'اتصال قريب يكفي.'
+  ),
+  'Sync over Bluetooth to a phone, or over the local network to a hub. Read and analyse files locally, without an internet connection.':
+    phrase(
+      'زامن عبر Bluetooth مع هاتف، أو عبر الشبكة المحلية مع جهاز تجميع. اقرأ الملفات وحلّلها محليًا، دون اتصال بالإنترنت.',
+      'زامن عن طريق Bluetooth مع موبايل، أو على الشبكة المحلية مع جهاز تجميع. اقرأ الملفات وحلّلها محليًا، من غير اتصال بالإنترنت.'
+    ),
+  'Stored locally. Shared when connected.': phrase(
+    'تُحفظ محليًا. وتُشارك عند الاتصال.',
+    'محفوظة محليًا. بتتشارك لما الاتصال يتوفر.'
+  ),
+  'Upload directly, or relay through a phone or hub. Partitioned Parquet in object storage is ready for public, direct reads by browsers and apps.':
+    phrase(
+      'ارفع الملفات مباشرة، أو مرّرها عبر هاتف أو جهاز تجميع. تتيح ملفات Parquet المقسّمة في التخزين الكائني القراءة العامة المباشرة من المتصفحات والتطبيقات.',
+      'ارفع الملفات مباشرة، أو ابعتها عن طريق موبايل أو جهاز تجميع. ملفات Parquet المتقسّمة في التخزين الكائني متاحة للكل يقراها مباشرة من المتصفحات والتطبيقات.'
+    ),
+  'Edge device': phrase('جهاز طرفي'),
+  'Sensor → local Parquet': phrase(
+    'من المستشعر إلى Parquet محلي',
+    'من الحساس لـ Parquet محلي'
+  ),
+  'Saved on device': phrase('محفوظ على الجهاز'),
+  'Phone or local hub': phrase(
+    'هاتف أو جهاز تجميع محلي',
+    'موبايل أو جهاز تجميع محلي'
+  ),
+  'Bluetooth · local network': phrase('Bluetooth · شبكة محلية'),
+  'Sync available': phrase('المزامنة متاحة'),
+  'Waiting to sync': phrase('بانتظار المزامنة', 'في انتظار المزامنة'),
+  'Works without internet': phrase('يعمل دون إنترنت', 'بيشتغل من غير إنترنت'),
+  'Browser / app': phrase('متصفح / تطبيق'),
+  'Read shared files directly': phrase('اقرأ الملفات المشتركة مباشرة'),
+  'Analyse local files': phrase('حلّل الملفات المحلية'),
+  'Object storage': phrase('التخزين الكائني'),
+  'Partitioned Parquet': phrase('ملفات Parquet مقسّمة'),
+  'Public · no sign-in': phrase(
+    'عام · دون تسجيل دخول',
+    'متاح للكل · من غير تسجيل دخول'
+  ),
+  'Internet optional': phrase('الإنترنت اختياري'),
+  'Optional relay': phrase('وسيط اختياري'),
+  'Direct upload': phrase('رفع مباشر'),
+  'Local sync': phrase('مزامنة محلية'),
+  'Direct reads, fewer services': phrase('قراءة مباشرة، خدمات أقل'),
+  'Choose a connection · Illustrated architecture': phrase(
+    'اختر اتصالًا · مخطط توضيحي للبنية التقنية',
+    'اختار اتصال · رسم بيوضّح البنية التقنية'
+  ),
+  'Local first. Open by design.': phrase(
+    'محلي أولًا. مفتوح بحكم التصميم.',
+    'محلي الأول. مفتوح من البداية.'
+  ),
+  'From an isolated field station to public analysis, the same files travel with the data.':
+    phrase(
+      'من محطة ميدانية معزولة إلى تحليل متاح للجميع، تنتقل البيانات في الملفات نفسها.',
+      'من محطة ميدانية معزولة لتحليل متاح للكل، البيانات بتتنقل في نفس الملفات.'
+    ),
+  'Record on the edge': phrase('سجّل على الجهاز الطرفي'),
+  'Store measurements as local Parquet files before transferring them. A Wi-Fi outage pauses sync, while the sensor keeps collecting on the device.':
+    phrase(
+      'احفظ القياسات في ملفات Parquet محلية قبل نقلها. يوقف انقطاع Wi-Fi المزامنة مؤقتًا، بينما يواصل المستشعر جمع البيانات على الجهاز.',
+      'احفظ القياسات في ملفات Parquet محلية قبل ما تنقلها. لو Wi-Fi فصل، المزامنة بتقف مؤقتًا، والحساس بيكمّل جمع البيانات على الجهاز.'
+    ),
+  'Sync with what is nearby': phrase(
+    'زامن مع الأجهزة القريبة',
+    'زامن مع الأجهزة اللي حواليك'
+  ),
+  'Use Bluetooth to a mobile phone in the field, or a local network to a hub or server. Isolated deployments can keep storage and analysis local; internet sync is optional.':
+    phrase(
+      'اتصل عبر Bluetooth بهاتف محمول في الميدان، أو عبر شبكة محلية بجهاز تجميع أو خادم. يمكن للمحطات المعزولة إبقاء التخزين والتحليل محليين؛ والمزامنة عبر الإنترنت اختيارية.',
+      'اتصل عن طريق Bluetooth بموبايل في الميدان، أو على شبكة محلية بجهاز تجميع أو خادم. المحطات المعزولة تقدر تخلي التخزين والتحليل محليين؛ والمزامنة على الإنترنت اختيارية.'
+    ),
+  'Share open files': phrase('شارك ملفات مفتوحة'),
+  'When internet is available, sync directly or through a relay to object storage. Publish partitioned Parquet for anonymous reads, with no sign-in required.':
+    phrase(
+      'عند توفر الإنترنت، زامن مع التخزين الكائني مباشرة أو عبر جهاز وسيط. انشر ملفات Parquet مقسّمة للقراءة دون تقديم هوية أو تسجيل دخول.',
+      'لما الإنترنت يكون متاح، زامن مع التخزين الكائني مباشرة أو عن طريق جهاز وسيط. انشر ملفات Parquet متقسّمة علشان أي حد يقراها من غير ما يقدّم هويته أو يسجّل دخول.'
+    ),
+  'Analyse where you are': phrase('حلّل أينما كنت', 'حلّل من مكانك'),
+  'Browsers, apps and analytical tools read the files directly. Use Apache Parquet, Apache Iceberg tables and STAC discovery with compatible clients, reducing reliance on always-on servers.':
+    phrase(
+      'تقرأ المتصفحات والتطبيقات وأدوات التحليل الملفات مباشرة. استخدم Apache Parquet وجداول Apache Iceberg واستكشاف البيانات عبر STAC مع البرامج المتوافقة، لتقليل الاعتماد على خوادم تعمل باستمرار.',
+      'المتصفحات والتطبيقات وأدوات التحليل بتقرأ الملفات مباشرة. استخدم Apache Parquet وجداول Apache Iceberg واستكشاف البيانات عن طريق STAC مع البرامج المتوافقة، علشان تقلّل الاعتماد على خوادم شغّالة طول الوقت.'
+    ),
+  Files: phrase('ملفات'),
+  Tables: phrase('جداول'),
+  Discovery: phrase('استكشاف البيانات'),
   'Supported devices': phrase('الأجهزة المدعومة'),
-  'Collect, explore, and share local air quality and weather readings.': phrase(
-    'اجمع قراءات جودة الهواء والطقس في منطقتك، واستكشفها وشاركها.',
-    'اجمع قراءات جودة الهوا والطقس في منطقتك، واستكشفها وشاركها.'
-  ),
-  'Collect readings on your device, with local buffering while offline.':
-    phrase(
-      'اجمع القراءات على جهازك، مع تخزينها مؤقتًا عند انقطاع الاتصال.',
-      'اجمع القراءات على جهازك، وخزّنها مؤقتًا لما الإنترنت يفصل.'
-    ),
-  'Save Parquet files to S3-compatible storage without a separate database.':
-    phrase(
-      'احفظ ملفات Parquet في تخزين متوافق مع S3 دون قاعدة بيانات منفصلة.',
-      'احفظ ملفات Parquet في تخزين متوافق مع S3، من غير قاعدة بيانات منفصلة.'
-    ),
-  'Explore readings in your browser with DuckDB-WASM.': phrase(
-    'استكشف القراءات في متصفحك باستخدام DuckDB-WASM.',
-    'استكشف القراءات من متصفحك باستخدام DuckDB-WASM.'
-  ),
   'Connect your station.': phrase('وصّل محطتك.'),
   'Share readings from your own environmental sensor.': phrase(
     'شارك قراءات مستشعرك البيئي.',
@@ -154,7 +251,6 @@ export const projectMessages: MessageCatalog = {
     'بنية تحتية بلا خوادم مصممة للكفاءة والتوسع',
     'بنية من غير خوادم مصممة للكفاءة والتوسع'
   ),
-  'Edge Collection': phrase('الجمع على الأجهزة الطرفية'),
   'IoT devices collect sensor data at configurable intervals. Works autonomously, even offline with local buffering.':
     phrase(
       'تجمع أجهزة إنترنت الأشياء بيانات المستشعرات على فترات قابلة للضبط، وتعمل ذاتيًا حتى دون اتصال مع تخزين مؤقت محلي.',
@@ -166,7 +262,6 @@ export const projectMessages: MessageCatalog = {
       'تتدفق البيانات مباشرة إلى تخزين كائني متوافق مع S3 بصيغة Parquet، دون الحاجة إلى قاعدة بيانات وسيطة.',
       'البيانات بتروح مباشرة لتخزين كائني متوافق مع S3 بصيغة Parquet، من غير قاعدة بيانات في النص.'
     ),
-  'Near Real-Time Analysis': phrase('تحليل شبه لحظي'),
   'Query data directly in browser using DuckDB WebAssembly. Dashboards update automatically.':
     phrase(
       'استعلم عن البيانات مباشرة في المتصفح باستخدام DuckDB WebAssembly. تتحدّث لوحات البيانات تلقائيًا.',

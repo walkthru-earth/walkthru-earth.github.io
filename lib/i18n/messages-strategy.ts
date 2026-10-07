@@ -1,6 +1,23 @@
 import type { MessageCatalog } from './types';
 
 export const strategyMessages: MessageCatalog = {
+  'Explore the story': { arEG: 'استكشف الحكاية', ar: 'استكشف الفكرة' },
+  'Choose a step to explore \u00b7 Illustrated concept': {
+    arEG: 'اختار خطوة واستكشفها · رسم توضيحي للفكرة',
+    ar: 'اختر خطوة لاستكشافها · تصوّر توضيحي',
+  },
+  'Start with what people and sensors observe.': {
+    arEG: 'بنبدأ بملاحظات الناس وقراءات الحساسات.',
+    ar: 'نبدأ بملاحظات الناس وقراءات المستشعرات.',
+  },
+  'Connect observations to understand a place.': {
+    arEG: 'بنربط الملاحظات ببعض علشان نفهم المكان.',
+    ar: 'نربط الملاحظات لفهم المكان.',
+  },
+  'Use that understanding to shape healthier places.': {
+    arEG: 'بنستخدم الفهم ده علشان نخلي الأماكن صحية أكتر.',
+    ar: 'نستخدم هذا الفهم لتشكيل أماكن أكثر صحة.',
+  },
   'People · Places · Evidence': {
     arEG: 'ناس · أماكن · أدلة',
     ar: 'الناس · الأماكن · الأدلة',
@@ -25,22 +42,6 @@ export const strategyMessages: MessageCatalog = {
   'A shared picture of a place': {
     arEG: 'صورة مشتركة عن المكان',
     ar: 'صورة مشتركة عن المكان',
-  },
-  'Local observations': {
-    arEG: 'ملاحظات محلية',
-    ar: 'ملاحظات محلية',
-  },
-  Sense: {
-    arEG: 'نرصد',
-    ar: 'نرصد',
-  },
-  Share: {
-    arEG: 'نشارك',
-    ar: 'نشارك',
-  },
-  Understand: {
-    arEG: 'نفهم',
-    ar: 'نفهم',
   },
   'Healthier places begin with understanding.': {
     arEG: 'الأماكن الصحية أكتر بتبدأ بالفهم.',

@@ -78,12 +78,22 @@ Palette tests verify readable text pairs, references, and overrides.
 The homepage introduces people, places and evidence through a small inline SVG
 in `EvidenceGraphic`; it no longer mounts the globe preview or requests its data.
 The actual globe remains at `/indices`, with its scientific color scales.
-Homepage, navigation, footer and goal links to the globe disable speculative prefetch. The diagram uses a brief CSS
-entrance and connection reveal, with no frame loop, external assets or video
-runtime. Reduced-motion visitors get the finished static graphic.
+Homepage, navigation, footer and goal links to the globe disable speculative prefetch. The frameless diagram blends into the cover and explains the page through visitor-selected stages: Evidence → Translation → Action on the homepage. Native buttons (both scene markers and labeled steps) update the illustration and a localized live description; selection never advances automatically. The scene is explicitly labeled as a concept, not live measurements. CSS reveals, route drawing and finite sensor pulses respond to stage changes; subtle mouse movement uses CSS variables without a frame loop. Reduced-motion visitors retain all controls and get immediate, static state changes. There are no external assets or video runtime.
 
-Covers use `BrandHero` and theme-aware paper/text colors. OpenSensor uses a
-sensor diagram; About leads with purpose; Software, Links and Privacy use compact
+Covers use `BrandHero` and theme-aware paper/text colors. OpenSensor owns
+`app/opensensor/components/sensor-flow.tsx`: an interactive architecture diagram
+with Offline, Phone / hub, and Internet scenarios. Local Parquet storage stays
+visible in every mode; local transfer and analysis can run without an internet
+route. The Internet scenario shows a direct edge-to-object-storage route; a phone or hub is an optional relay. These are
+illustrated scenarios, not network probes or simulated live readings. User-confirmed
+capabilities include Bluetooth relays, isolated local hubs, Iceberg and STAC;
+copy distinguishes Parquet files, Iceberg tables and STAC discovery, and public
+anonymous reads from data anonymization. The page explains fewer always-on
+services without promising limitless buffering or zero servers. Native controls,
+localized live descriptions and finite CSS path reveals preserve keyboard, RTL,
+touch and reduced-motion use.
+
+About leads with purpose; Software, Links and Privacy use compact
 editorial introductions. Hormones & Cities and Imagery Desktop use
 `ProjectGallery`: explicit screenshot buttons, one mounted image at a time,
 no autoplay and no scroll scrubbing. The Hormones & Cities experiment starts only when requested; its hero action both opens and scrolls to the experiment, and an unload control releases it. Objex demos mount an iframe only after

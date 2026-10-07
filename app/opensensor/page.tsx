@@ -12,7 +12,7 @@ import {
   BrandIcon,
   BrandEyebrow,
 } from '@/components/shared/brand-ui';
-import { EvidenceGraphic } from '@/components/shared/evidence-graphic';
+import { SensorFlow } from './components/sensor-flow';
 import { GradientText } from '@/components/shared/gradient-text';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,9 +20,10 @@ import {
   ArrowRight,
   Cloud,
   ExternalLink,
-  Wifi,
+  Bluetooth,
+  Database,
   HardDrive,
-  Server,
+  Laptop,
 } from 'lucide-react';
 import { Localized } from '@/lib/i18n/i18n-provider';
 import { OpenSensorProgramme } from '@/components/strategy/opensensor-programme';
@@ -36,9 +37,9 @@ export default function OpenSensorPage() {
         <Navbar />
         <BrandPage project="opensensor">
           {/* Hero Section */}
-          <BrandHero tone="opensensor">
+          <BrandHero tone="opensensor" decorative={false}>
             <Container className="relative z-10">
-              <div className="grid items-center gap-10 lg:grid-cols-[1.25fr_0.75fr]">
+              <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.1fr]">
                 <div className="min-w-0">
                   <BrandEyebrow>
                     <Cloud className="h-4 w-4" aria-hidden="true" />
@@ -47,18 +48,23 @@ export default function OpenSensorPage() {
                     </span>
                   </BrandEyebrow>
 
-                  <h1 className="text-[clamp(2.4rem,5vw,4.5rem)]! leading-[1.1] font-bold tracking-tight">
+                  <h1 className="text-[clamp(1.9rem,3.2vw,3.2rem)]! leading-[1.1] font-bold tracking-tight">
                     <GradientText className="font-bold">
                       OpenSensor.Space
                     </GradientText>
                   </h1>
 
                   <p className="mt-6 max-w-2xl text-xl leading-relaxed md:text-2xl">
-                    Collect, explore, and share local air quality and weather
-                    readings.
+                    Keep measuring, even when the connection drops.
                   </p>
 
-                  <div className="mt-10 flex flex-col flex-wrap gap-4 sm:flex-row">
+                  <p className="mt-4 max-w-xl text-base leading-relaxed md:text-lg">
+                    Save readings as Parquet on the edge device. Sync directly
+                    to object storage or through a nearby phone or local hub.
+                    Explore the files from your browser or app.
+                  </p>
+
+                  <div className="mt-8 flex flex-col flex-wrap gap-4 sm:flex-row">
                     <Button
                       size="lg"
                       className="bg-foreground text-background hover:bg-foreground/90"
@@ -122,7 +128,7 @@ export default function OpenSensorPage() {
                     </div>
                   </div>
                 </div>
-                <EvidenceGraphic variant="sensing" />
+                <SensorFlow />
               </div>
             </Container>
           </BrandHero>
@@ -139,27 +145,37 @@ export default function OpenSensorPage() {
           {/* Architecture Section */}
           <BrandSection>
             <Container>
-              <BrandSectionHeading align="center" title="How it works" />
+              <BrandSectionHeading
+                align="center"
+                title="Local first. Open by design."
+                description="From an isolated field station to public analysis, the same files travel with the data."
+              />
 
-              <div className="mb-12 grid gap-8 md:grid-cols-3">
+              <div className="mb-8 grid gap-6 md:grid-cols-2">
                 {[
                   {
-                    icon: Wifi,
-                    title: 'Edge Collection',
-                    description:
-                      'Collect readings on your device, with local buffering while offline.',
-                  },
-                  {
                     icon: HardDrive,
-                    title: 'Cloud Storage',
+                    title: 'Record on the edge',
                     description:
-                      'Save Parquet files to S3-compatible storage without a separate database.',
+                      'Store measurements as local Parquet files before transferring them. A Wi-Fi outage pauses sync, while the sensor keeps collecting on the device.',
                   },
                   {
-                    icon: Server,
-                    title: 'Near Real-Time Analysis',
+                    icon: Bluetooth,
+                    title: 'Sync with what is nearby',
                     description:
-                      'Explore readings in your browser with DuckDB-WASM.',
+                      'Use Bluetooth to a mobile phone in the field, or a local network to a hub or server. Isolated deployments can keep storage and analysis local; internet sync is optional.',
+                  },
+                  {
+                    icon: Database,
+                    title: 'Share open files',
+                    description:
+                      'When internet is available, sync directly or through a relay to object storage. Publish partitioned Parquet for anonymous reads, with no sign-in required.',
+                  },
+                  {
+                    icon: Laptop,
+                    title: 'Analyse where you are',
+                    description:
+                      'Browsers, apps and analytical tools read the files directly. Use Apache Parquet, Apache Iceberg tables and STAC discovery with compatible clients, reducing reliance on always-on servers.',
                   },
                 ].map((step, index) => (
                   <div key={step.title}>
@@ -184,6 +200,26 @@ export default function OpenSensorPage() {
                     </BrandPanel>
                   </div>
                 ))}
+              </div>
+              <div className="flex flex-wrap justify-center gap-3 text-sm font-semibold">
+                <a
+                  className="rounded-full border px-4 py-2 underline-offset-4 hover:underline"
+                  href="https://parquet.apache.org/"
+                >
+                  Apache Parquet · <span>Files</span>
+                </a>
+                <a
+                  className="rounded-full border px-4 py-2 underline-offset-4 hover:underline"
+                  href="https://iceberg.apache.org/"
+                >
+                  Apache Iceberg · <span>Tables</span>
+                </a>
+                <a
+                  className="rounded-full border px-4 py-2 underline-offset-4 hover:underline"
+                  href="https://stacspec.org/"
+                >
+                  STAC · <span>Discovery</span>
+                </a>
               </div>
             </Container>
           </BrandSection>
