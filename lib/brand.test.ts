@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   brandPaletteCss,
   brandPalettes,
@@ -39,6 +41,32 @@ describe('strategic palette registry', () => {
     );
     for (const project of Object.values(projectBrands)) {
       expect(brandPalettes[project.palette]).toBeDefined();
+    }
+  });
+
+  it('keeps project-linked goals consistent with the character and palette registry', () => {
+    const linkedGoals = strategicGoals.filter((goal) => 'project' in goal);
+    expect(linkedGoals.map((goal) => goal.project)).toEqual([
+      'opensensor',
+      'capybrain',
+    ]);
+    for (const goal of linkedGoals) {
+      const project = projectBrands[goal.project];
+      expect(goal.palette).toBe(project.palette);
+      expect(goal.href).toBe(project.href);
+      expect(
+        existsSync(
+          resolve(process.cwd(), 'public', project.mascot.src.slice(1))
+        )
+      ).toBe(true);
+    }
+    for (const theme of themes) {
+      const mainColors = strategicGoals.map((goal) =>
+        'project' in goal
+          ? projectPalette(goal.project, theme).main
+          : brandPalettes[goal.palette][theme].main
+      );
+      expect(new Set(mainColors).size).toBe(5);
     }
   });
 

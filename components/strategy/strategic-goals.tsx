@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   Blocks,
@@ -14,6 +15,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
 import { strategicGoals } from '@/lib/strategy';
+import { projectBrands, type MascotProjectBrand } from '@/lib/brand';
 import { OpenSensorProgramme } from './opensensor-programme';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +28,56 @@ const goalIcons = {
 } as const;
 
 const paletteSwatches = ['paper', 'surface', 'main', 'accent', 'deep'] as const;
+
+/** Selected goal links share their project's palette, name and artwork. */
+function GoalProjectIdentity({
+  project,
+  label,
+}: {
+  project: MascotProjectBrand;
+  label: string;
+}) {
+  const { t } = useI18n();
+  const { name, mascot } = projectBrands[project];
+  return (
+    <span
+      className={cn(
+        `brand-tone-${project}`,
+        'flex w-full min-w-0 items-center gap-3 rounded-2xl bg-[var(--palette-paper)] p-3 pe-5 text-[var(--palette-text)]'
+      )}
+    >
+      <Image
+        src={mascot.src}
+        alt=""
+        aria-hidden="true"
+        width={76}
+        height={76}
+        className="h-14 w-14 shrink-0 object-contain sm:h-19 sm:w-19"
+      />
+      <span className="min-w-0">
+        <span className="block text-sm font-bold sm:text-lg" translate="no">
+          {name}
+        </span>
+        <span className="mt-1 block text-sm leading-snug text-[var(--palette-muted)]">
+          {t(label)}
+        </span>
+        <span className="mt-2 flex gap-1" aria-hidden="true">
+          {paletteSwatches.map((role) => (
+            <span
+              key={role}
+              className="h-2 w-6 rounded-full border border-[var(--palette-border)]"
+              style={{ backgroundColor: `var(--palette-${role})` }}
+            />
+          ))}
+        </span>
+      </span>
+      <ArrowRight
+        className="ms-auto hidden h-5 w-5 shrink-0 sm:block rtl:rotate-180"
+        aria-hidden="true"
+      />
+    </span>
+  );
+}
 
 export function StrategicGoals({ compact = false }: { compact?: boolean }) {
   const [selected, setSelected] = useState<string>(strategicGoals[0].id);
@@ -59,7 +111,7 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
         <Tabs value={selected} onValueChange={setSelected} dir={direction}>
           <TabsList
             aria-label={t('Strategic goals')}
-            className="flex h-auto w-full items-stretch justify-start gap-4 overflow-x-auto rounded-none bg-transparent px-1 pt-4 pb-7 lg:grid lg:grid-cols-5 lg:gap-5"
+            className="flex h-auto w-full items-stretch justify-start gap-4 overflow-x-auto rounded-none bg-transparent px-1 pt-10 pb-7 lg:grid lg:grid-cols-5 lg:gap-5"
           >
             {strategicGoals.map((goal, index) => {
               const Icon = goalIcons[goal.motif];
@@ -68,7 +120,7 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                   key={goal.id}
                   value={goal.id}
                   className={cn(
-                    `brand-tone-${goal.palette}`,
+                    `brand-tone-${'project' in goal ? goal.project : goal.palette}`,
                     'group relative flex w-44 shrink-0 flex-col items-start justify-start gap-5 rounded-3xl border-0 bg-[var(--brand-color)] p-5 text-start whitespace-normal text-[var(--brand-ink)] opacity-80 shadow-none transition-[transform,opacity] hover:-translate-y-1 hover:opacity-100 data-[state=active]:-translate-y-2 data-[state=active]:bg-[var(--brand-color)] data-[state=active]:text-[var(--brand-ink)] data-[state=active]:opacity-100 data-[state=active]:shadow-lg motion-reduce:transform-none motion-reduce:transition-none sm:w-52 lg:w-auto lg:odd:-rotate-2 lg:even:rotate-2'
                   )}
                 >
@@ -79,11 +131,22 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                     >
                       {index + 1}
                     </span>
-                    <Icon
-                      className="h-9 w-9 shrink-0"
-                      strokeWidth={2.25}
-                      aria-hidden="true"
-                    />
+                    {'project' in goal ? (
+                      <Image
+                        src={projectBrands[goal.project].mascot.src}
+                        alt=""
+                        aria-hidden="true"
+                        width={88}
+                        height={88}
+                        className="pointer-events-none absolute end-2 -top-5 h-22 w-22 object-contain"
+                      />
+                    ) : (
+                      <Icon
+                        className="h-9 w-9 shrink-0"
+                        strokeWidth={2.25}
+                        aria-hidden="true"
+                      />
+                    )}
                   </span>
                   <span className="sr-only">
                     {t('Goal {number}', { number: index + 1 })}
@@ -107,7 +170,7 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                 key={goal.id}
                 value={goal.id}
                 className={cn(
-                  `brand-tone-${goal.palette}`,
+                  `brand-tone-${'project' in goal ? goal.project : goal.palette}`,
                   'brand-panel goal-palette-panel mt-2 border-[var(--palette-border)] bg-[var(--palette-paper)] p-0 text-[var(--palette-text)]'
                 )}
               >
@@ -171,17 +234,29 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                         'mt-8 border-t border-[var(--palette-border)] pt-7'
                     )}
                   >
-                    <Link
-                      href={goal.href}
-                      prefetch={goal.href !== '/indices'}
-                      className="inline-flex items-center gap-3 rounded-full bg-[var(--palette-text)] px-6 py-3 text-base font-bold text-[var(--palette-paper)] transition-transform hover:translate-x-1 motion-reduce:transform-none rtl:hover:-translate-x-1"
-                    >
-                      {goal.link}
-                      <ArrowRight
-                        className="h-5 w-5 rtl:rotate-180"
-                        aria-hidden="true"
-                      />
-                    </Link>
+                    {'project' in goal ? (
+                      <Link
+                        href={goal.href}
+                        className="w-full rounded-2xl border border-[var(--palette-border)] transition-transform hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--palette-emphasis)] motion-reduce:transform-none sm:max-w-md"
+                      >
+                        <GoalProjectIdentity
+                          project={goal.project}
+                          label={goal.link}
+                        />
+                      </Link>
+                    ) : (
+                      <Link
+                        href={goal.href}
+                        prefetch={goal.href !== '/indices'}
+                        className="inline-flex items-center gap-3 rounded-full bg-[var(--palette-text)] px-6 py-3 text-base font-bold text-[var(--palette-paper)] transition-transform hover:translate-x-1 motion-reduce:transform-none rtl:hover:-translate-x-1"
+                      >
+                        {goal.link}
+                        <ArrowRight
+                          className="h-5 w-5 rtl:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </Link>
+                    )}
                     {!compact && goal.id === 'open-ecosystem' && (
                       <Link
                         href="/privacy"

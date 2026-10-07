@@ -1,6 +1,46 @@
 import type { MessageCatalog } from './types';
 
 export const strategyMessages: MessageCatalog = {
+  'Previous frameworks': {
+    arEG: 'الأُطر اللي فاتت',
+    ar: 'الأُطر السابقة',
+  },
+  'Next frameworks': {
+    arEG: 'الأُطر اللي جاية',
+    ar: 'الأُطر التالية',
+  },
+  'Frameworks and official sources': {
+    arEG: 'الأُطر والمصادر الرسمية',
+    ar: 'الأُطر والمصادر الرسمية',
+  },
+  'References guide our work; they do not imply endorsement or partnership.': {
+    arEG: 'المراجع دي بتوجّه شغلنا؛ وذكرها مش معناه تأييد أو شراكة.',
+    ar: 'توجّه هذه المراجع عملنا؛ ولا يعني ذكرها وجود تأييد أو شراكة.',
+  },
+  'United Nations': {
+    arEG: 'الأمم المتحدة',
+    ar: 'الأمم المتحدة',
+  },
+  'World Health Organization': {
+    arEG: 'منظمة الصحة العالمية',
+    ar: 'منظمة الصحة العالمية',
+  },
+  'World Bank': {
+    arEG: 'البنك الدولي',
+    ar: 'البنك الدولي',
+  },
+  'Egyptian Environmental Affairs Agency': {
+    arEG: 'جهاز شئون البيئة المصري',
+    ar: 'جهاز شؤون البيئة المصري',
+  },
+  'United Nations Environment Programme': {
+    arEG: 'برنامج الأمم المتحدة للبيئة',
+    ar: 'برنامج الأمم المتحدة للبيئة',
+  },
+  'Intergovernmental Panel on Climate Change': {
+    arEG: 'الهيئة الحكومية الدولية المعنية بتغيّر المناخ',
+    ar: 'الهيئة الحكومية الدولية المعنية بتغيّر المناخ',
+  },
   'Explore the story': { arEG: 'استكشف الحكاية', ar: 'استكشف الفكرة' },
   'Choose a step to explore \u00b7 Illustrated concept': {
     arEG: 'اختار خطوة واستكشفها · رسم توضيحي للفكرة',
@@ -51,17 +91,9 @@ export const strategyMessages: MessageCatalog = {
     arEG: 'خمس أهداف. خمس ألوان. رسالة واحدة بتجمعنا.',
     ar: 'خمسة أهداف. خمسة ألوان. رسالة واحدة مترابطة.',
   },
-  'Choose a demo to explore its data here. One demo runs at a time.': {
-    arEG: 'اختار عرض تجريبي علشان تستكشف بياناته هنا. عرض واحد بس بيشتغل في كل مرة.',
-    ar: 'اختر عرضًا تجريبيًا لاستكشاف بياناته هنا. يعمل عرض واحد في كل مرة.',
-  },
-  'Load interactive demo': {
-    arEG: 'شغّل العرض التفاعلي',
-    ar: 'شغّل العرض التفاعلي',
-  },
-  'Unload demo': {
-    arEG: 'اقفل العرض',
-    ar: 'أغلق العرض',
+  'Loading interactive demo…': {
+    arEG: 'بنحمّل العرض التفاعلي…',
+    ar: 'جارٍ تحميل العرض التفاعلي…',
   },
   'Open tools for the relationships between people and places.': {
     arEG: 'أدوات مفتوحة لفهم العلاقة بين الناس والأماكن.',

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { Container } from '@/components/shared/container';
+import { LazyDemo } from '@/components/shared/lazy-demo';
 import {
   BrandPage,
   BrandHero,
@@ -272,7 +273,7 @@ const supportedFormats = [
 ];
 
 export default function ObjexPage() {
-  const [activeDemo, setActiveDemo] = useState<string | null>(null);
+  const [openDemo, setOpenDemo] = useState<number | null>(0);
 
   return (
     <Localized>
@@ -384,18 +385,18 @@ export default function ObjexPage() {
                   const Icon = feature.icon;
                   return (
                     <BrandPanel key={feature.title} className="bg-card">
-                      <details
-                        open={index === 0}
-                        className="group"
-                        onToggle={(event) => {
-                          if (!event.currentTarget.open) {
-                            setActiveDemo((current) =>
-                              current === feature.title ? null : current
+                      <details open={openDemo === index} className="group">
+                        <summary
+                          className="flex cursor-pointer list-none items-center gap-4 rounded-xl outline-offset-4 [&::-webkit-details-marker]:hidden"
+                          onClick={(event) => {
+                            // Control selection here: delayed native toggle events
+                            // from a closed panel must not close the newly opened one.
+                            event.preventDefault();
+                            setOpenDemo((current) =>
+                              current === index ? null : index
                             );
-                          }
-                        }}
-                      >
-                        <summary className="flex cursor-pointer list-none items-center gap-4 rounded-xl outline-offset-4 [&::-webkit-details-marker]:hidden">
+                          }}
+                        >
                           <BrandIcon tone="objex">
                             <Icon aria-hidden="true" />
                           </BrandIcon>
@@ -410,45 +411,22 @@ export default function ObjexPage() {
                         <p className="text-muted-foreground mt-6 mb-5 max-w-3xl text-base leading-relaxed">
                           {feature.description}
                         </p>
-                        <BrowserFrame
-                          url={feature.iframeUrl}
-                          title={feature.title}
-                        >
-                          <div className="bg-background text-foreground flex flex-wrap items-center justify-between gap-4 p-5">
-                            <p className="text-muted-foreground max-w-xl text-sm leading-relaxed">
-                              Choose a demo to explore its data here. One demo
-                              runs at a time.
-                            </p>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              aria-expanded={activeDemo === feature.title}
-                              aria-controls={`objex-demo-${index}`}
-                              onClick={() =>
-                                setActiveDemo((current) =>
-                                  current === feature.title
-                                    ? null
-                                    : feature.title
-                                )
-                              }
-                            >
-                              {activeDemo === feature.title
-                                ? 'Unload demo'
-                                : 'Load interactive demo'}
-                            </Button>
-                          </div>
-                          <div id={`objex-demo-${index}`}>
-                            {activeDemo === feature.title && (
+                        {openDemo === index && (
+                          <BrowserFrame
+                            url={feature.iframeUrl}
+                            title={feature.title}
+                          >
+                            <LazyDemo className="h-[400px] sm:h-[500px] md:h-[650px]">
                               <iframe
                                 src={feature.iframeUrl}
                                 title={feature.title}
-                                className="h-[400px] w-full sm:h-[500px] md:h-[650px]"
+                                className="h-full w-full"
                                 allow="clipboard-write"
                                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                               />
-                            )}
-                          </div>
-                        </BrowserFrame>
+                            </LazyDemo>
+                          </BrowserFrame>
+                        )}
                       </details>
                     </BrandPanel>
                   );

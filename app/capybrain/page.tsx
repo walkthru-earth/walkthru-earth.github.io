@@ -1,7 +1,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/sections/footer';
@@ -20,6 +19,7 @@ import { ArrowRight, Brain, Heart, Globe, Sparkles } from 'lucide-react';
 
 import { ProjectMascot } from '@/components/shared/project-mascot';
 import { ProjectGallery } from '@/components/shared/project-gallery';
+import { LazyDemo } from '@/components/shared/lazy-demo';
 import { CapyBrainFlow } from './components/CapyBrainFlow';
 import { screenshots, allMetrics } from './data/content';
 import { Localized } from '@/lib/i18n/i18n-provider';
@@ -67,8 +67,6 @@ function ContentBlock({
 /* ── Page ─────────────────────────────────────────────────────────── */
 
 export default function CapyBrainPage() {
-  const [showExperiment, setShowExperiment] = useState(false);
-
   return (
     <Localized>
       <>
@@ -117,10 +115,7 @@ export default function CapyBrainPage() {
                       className="bg-foreground text-background hover:bg-foreground/90"
                       asChild
                     >
-                      <Link
-                        href="#experiment"
-                        onClick={() => setShowExperiment(true)}
-                      >
+                      <Link href="#experiment">
                         Explore the experiment
                         <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
                       </Link>
@@ -128,7 +123,7 @@ export default function CapyBrainPage() {
                   </div>
                 </div>
 
-                <ProjectMascot kind="capybara" />
+                <ProjectMascot project="capybrain" />
               </div>
             </Container>
           </BrandHero>
@@ -213,29 +208,9 @@ export default function CapyBrainPage() {
             {/* Break out of the narrow Container so the explorer is wider on
               large screens. Inner padding still keeps it readable on mobile. */}
             <ContentBlock className="brand-data-ui mx-auto mt-2 w-full max-w-[120rem] px-3 sm:px-5 lg:px-6 2xl:px-10">
-              <div className="mb-5 flex justify-center">
-                <Button
-                  type="button"
-                  variant={showExperiment ? 'outline' : 'default'}
-                  onClick={() => setShowExperiment((visible) => !visible)}
-                  aria-expanded={showExperiment}
-                  aria-controls="capybrain-interactive-demo"
-                >
-                  {showExperiment ? 'Unload demo' : 'Load interactive demo'}
-                </Button>
-              </div>
-              <div id="capybrain-interactive-demo">
-                {showExperiment ? (
-                  <CapyBrainExplorer />
-                ) : (
-                  <div className="bg-muted/30 border-border mx-auto flex h-32 max-w-3xl items-center justify-center rounded-2xl border">
-                    <Brain
-                      className="text-muted-foreground h-10 w-10"
-                      aria-hidden="true"
-                    />
-                  </div>
-                )}
-              </div>
+              <LazyDemo className="min-h-[60svh]">
+                <CapyBrainExplorer />
+              </LazyDemo>
             </ContentBlock>
 
             <Container>

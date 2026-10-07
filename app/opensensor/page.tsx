@@ -140,7 +140,7 @@ export default function OpenSensorPage() {
                     </div>
                   </div>
                 </div>
-                <ProjectMascot kind="peacock" />
+                <ProjectMascot project="opensensor" />
               </div>
             </Container>
           </BrandHero>

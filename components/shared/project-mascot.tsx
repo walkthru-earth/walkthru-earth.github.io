@@ -13,11 +13,10 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/i18n-provider';
+import { projectBrands, type MascotProjectBrand } from '@/lib/brand';
 
 const mascotStories = {
   capybara: {
-    name: 'Meet your capybara guide',
-    alt: 'CapyBrain’s friendly tan capybara mascot',
     steps: [
       {
         label: 'Places',
@@ -37,8 +36,6 @@ const mascotStories = {
     ],
   },
   peacock: {
-    name: 'Meet our peacock guide',
-    alt: 'OpenSensor’s blue and teal peacock mascot',
     steps: [
       {
         label: 'Sense',
@@ -61,12 +58,14 @@ const mascotStories = {
 } as const;
 
 /** Shared character stage. Artwork, palette and narrative can be replaced independently. */
-export function ProjectMascot({ kind }: { kind: keyof typeof mascotStories }) {
+export function ProjectMascot({ project }: { project: MascotProjectBrand }) {
   const { t } = useI18n();
   const [step, setStep] = useState(0);
   const [replay, setReplay] = useState(0);
   const scene = useRef<HTMLDivElement>(null);
   const descriptionId = useId();
+  const { mascot } = projectBrands[project];
+  const { kind } = mascot;
   const story = mascotStories[kind];
   const ActiveIcon = story.steps[step].icon;
 
@@ -88,9 +87,13 @@ export function ProjectMascot({ kind }: { kind: keyof typeof mascotStories }) {
   }
 
   return (
-    <div className="project-mascot" data-mascot={kind} data-step={step}>
+    <div
+      className={`project-mascot brand-tone-${project}`}
+      data-mascot={kind}
+      data-step={step}
+    >
       <div className="mascot-heading">
-        <p>{t(story.name)}</p>
+        <p>{t(mascot.greeting)}</p>
         <button
           type="button"
           aria-label={t('Replay character animation')}
@@ -186,8 +189,8 @@ export function ProjectMascot({ kind }: { kind: keyof typeof mascotStories }) {
         <div className="mascot-character-position" ref={scene}>
           <div className="mascot-character" key={`${kind}-${step}-${replay}`}>
             <Image
-              src={`/mascots/${kind}.webp`}
-              alt={t(story.alt)}
+              src={mascot.src}
+              alt={t(mascot.alt)}
               width={768}
               height={768}
               sizes="(min-width: 1024px) 360px, 75vw"

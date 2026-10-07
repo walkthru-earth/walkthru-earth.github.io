@@ -24,6 +24,27 @@ pnpm start
 
 `output: 'export'` and `images.unoptimized: true` are intentional. Next.js generates HTML and client assets; there is no running Next.js server after deployment. Runtime-only server features and `next start` do not serve this architecture. See the [Next.js static export guide](https://nextjs.org/docs/app/guides/static-exports).
 
+## Legacy CapyBrain links
+
+The old `/hormones-cities` address is supported by two static documents:
+`public/hormones-cities.html` and `public/hormones-cities/index.html`. The export
+copies both into `out/`. The file covers `.html` bookmarks; the directory index
+covers the trailing-slash URL and extensionless requests that the host resolves
+or normalizes to that directory. Keep both documents identical.
+
+Both load `public/legacy-capybrain-redirect.js`, which replaces the current
+history entry with `/capybrain` while preserving the query string and fragment.
+They include a canonical link to CapyBrain, `noindex`, and English/Arabic manual
+links for visitors with scripts disabled. Without JavaScript, the manual links
+open the canonical page without carrying query or fragment state.
+
+These are browser redirects, not configurable HTTP 301/308 responses. GitHub
+Pages serves the static export; Next.js `redirects()` and request-time route
+handlers cannot implement this migration. Only `/capybrain` belongs in the
+sitemap. Check `/hormones-cities`, `/hormones-cities/`, and
+`/hormones-cities.html` with `?source=legacy#experiment` after building and after
+deployment. Local preview routing is not proof of GitHub Pages normalization.
+
 ## Analytics configuration
 
 | Variable                   | Use                                                              |

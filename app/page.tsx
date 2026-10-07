@@ -20,6 +20,7 @@ import { StrategicGoals } from '@/components/strategy/strategic-goals';
 import { ChangeFramework } from '@/components/strategy/change-framework';
 import { EvidenceGraphic } from '@/components/shared/evidence-graphic';
 import { Localized } from '@/lib/i18n/i18n-provider';
+import { projectBrands } from '@/lib/brand';
 
 export default function HomePage() {
   return (
@@ -146,8 +147,8 @@ export default function HomePage() {
                       </div>
                       <div className="hidden flex-shrink-0 sm:block">
                         <Image
-                          src="/mascots/peacock.webp"
-                          alt="OpenSensor’s blue and teal peacock mascot"
+                          src={projectBrands.opensensor.mascot.src}
+                          alt={projectBrands.opensensor.mascot.alt}
                           width={112}
                           height={112}
                           className="rounded-2xl opacity-80 transition-opacity group-hover:opacity-100"
@@ -181,8 +182,8 @@ export default function HomePage() {
                       </div>
                       <div className="relative hidden h-28 w-28 flex-shrink-0 sm:block">
                         <Image
-                          src="/mascots/capybara.webp"
-                          alt="CapyBrain capybara mascot"
+                          src={projectBrands.capybrain.mascot.src}
+                          alt={projectBrands.capybrain.mascot.alt}
                           fill
                           className="object-contain"
                           sizes="112px"

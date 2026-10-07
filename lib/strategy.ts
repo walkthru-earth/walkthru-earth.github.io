@@ -1,4 +1,8 @@
-import type { PaletteId } from './brand';
+import {
+  projectBrands,
+  type PaletteId,
+  type MascotProjectBrand,
+} from './brand';
 
 /** Organization copy shared by the homepage and About page. */
 export const vision =
@@ -42,12 +46,13 @@ export const strategicGoals = [
   },
   {
     id: 'measurable-places',
+    project: 'opensensor' satisfies MascotProjectBrand,
     palette: 'sensing' satisfies PaletteId,
     label: 'Measurable places',
     motif: 'radio',
     title: 'Make places measurable',
     summary: 'Local sensing of environmental conditions.',
-    href: '/opensensor',
+    href: projectBrands.opensensor.href,
     link: 'Meet OpenSensor.Space',
     details: [
       {
@@ -66,12 +71,13 @@ export const strategicGoals = [
   },
   {
     id: 'measurable-experience',
+    project: 'capybrain' satisfies MascotProjectBrand,
     palette: 'experience' satisfies PaletteId,
     label: 'Lived experience',
     motif: 'brain',
     title: 'Make lived experience measurable',
     summary: 'Understand how people experience their surroundings.',
-    href: '/capybrain',
+    href: projectBrands.capybrain.href,
     link: 'Explore our wellbeing research',
     details: [
       {

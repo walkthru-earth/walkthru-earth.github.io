@@ -152,16 +152,53 @@ export const brandPalettes = {
   },
 } as const satisfies Record<PaletteId, BrandPalette>;
 
-/** Projects inherit a family; an independent identity only needs an override below. */
+type ProjectIdentity = {
+  palette: PaletteId;
+  name?: string;
+  href?: string;
+  mascot?: {
+    kind: 'capybara' | 'peacock';
+    src: string;
+    alt: string;
+    greeting: string;
+  };
+};
+
+/** Project colors and characters are shared by strategy, navigation and covers. */
 export const projectBrands = {
   earth: { palette: 'spatial' },
-  opensensor: { palette: 'sensing' },
-  capybrain: { palette: 'experience' },
+  opensensor: {
+    palette: 'sensing',
+    name: 'OpenSensor.Space',
+    href: '/opensensor',
+    mascot: {
+      kind: 'peacock',
+      src: '/mascots/peacock.webp',
+      alt: 'OpenSensor’s blue and teal peacock mascot',
+      greeting: 'Meet our peacock guide',
+    },
+  },
+  capybrain: {
+    palette: 'experience',
+    name: 'CapyBrain',
+    href: '/capybrain',
+    mascot: {
+      kind: 'capybara',
+      src: '/mascots/capybara.webp',
+      alt: 'CapyBrain’s friendly tan capybara mascot',
+      greeting: 'Meet your capybara guide',
+    },
+  },
   imagery: { palette: 'ecosystem' },
   objex: { palette: 'ecosystem' },
-} as const satisfies Record<string, { palette: PaletteId }>;
+} as const satisfies Record<string, ProjectIdentity>;
 
 export type ProjectBrand = keyof typeof projectBrands;
+export type MascotProjectBrand = {
+  [Key in ProjectBrand]: (typeof projectBrands)[Key] extends { mascot: unknown }
+    ? Key
+    : never;
+}[ProjectBrand];
 export type ProjectPaletteOverrides = Partial<
   Record<ProjectBrand, Partial<Record<PaletteTheme, Partial<PaletteColors>>>>
 >;

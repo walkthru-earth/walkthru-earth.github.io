@@ -24,7 +24,7 @@ The root layout wraps all routes in theme, consent, analytics, and scrolling beh
 ## Module boundaries
 
 - `components/shared/`: layout and presentation primitives such as container, section, logo, text emphasis, and scrolling. `brand-ui.tsx` provides reusable page, hero, section, panel, icon, eyebrow, and heading components. `BrandPage` opts editorial routes into the bold type scale without enlarging scientific controls. Project identity is registered in `lib/brand.ts`: five strategic color families with project mappings and optional overrides. Registry-generated tokens and the surface rules in `app/globals.css` provide the shared theme; reuse project tones across cards, navigation, and routes instead of assigning new colors per section. `brand-data-ui` restores the original distinct selection colors inside scientific views. Prefer CSS reduced-motion variants for presentation so server and client markup remain identical.
-- `components/strategy/`: shared homepage/About interactive strategic goals, Evidence → Translation → Action, policy references, and open-tool logos. Organization copy lives in `lib/strategy.ts`; both Arabic catalogs live in `lib/i18n/messages-strategy.ts`. The homepage shows compact goal summaries; About holds the full strategy and policy sources. Goal details use the existing Radix tabs with the locale direction, keyboard navigation, and no automatic advancement. Policy links describe alignment rather than institutional endorsements; technology logos identify tools used in the ecosystem.
+- `components/strategy/`: shared homepage/About interactive strategic goals, Evidence → Translation → Action, policy references, and open-tool logos. Organization copy lives in `lib/strategy.ts`; both Arabic catalogs live in `lib/i18n/messages-strategy.ts`. The homepage shows compact goal summaries; About holds the full strategy and policy sources. Goal details use the existing Radix tabs with the locale direction, keyboard navigation, and no automatic advancement. Policy links describe alignment rather than institutional endorsements; technology logos identify tools used in the ecosystem. `PolicyAlignment` displays the frameworks in a horizontal row of equal-height cards with native touch scrolling, keyboard controls, RTL-aware previous/next buttons and reduced-motion handling. Official organization artwork is served locally from `public/logos/frameworks/`; its README records sources and `framework-logos.ts` maps artwork to the eight framework references.
 - `components/ui/`: reusable UI controls built on Radix and the shared theme.
 - `components/navigation/`, `components/sections/`, `components/theme/`: navigation, shared sections, and theme controls.
 - `components/globe/`: reusable globe explorer, dataset registry, request pipeline, and WebGL renderer. See [indices](indices.md) before changing data behavior.
@@ -65,14 +65,14 @@ Static export means no request-time middleware, server API, server-only secret, 
 `lib/brand.ts` is the color source of truth. Five families map to the goals in
 `lib/strategy.ts`: saffron/open ecosystem, blue/measurable places, coral/lived
 experience, mint/spatial intelligence, and lilac/real decisions. Each goal owns
-its palette, label and motif; its position does not determine its identity.
+its palette, label and motif; its position does not determine its identity. The sensing and lived-experience goals also reference their project identity. Their cards and panels use the effective OpenSensor blue/teal and CapyBrain tan/brown project palettes, so project overrides stay synchronized on the homepage and About. The other three goals retain their base families. Transparent project mascots peek above the associated cards without a separate badge; selected panels link to the project with its shared artwork.
 Selecting a goal unfolds its five-swatch family alongside its content. Radix
 owns keyboard navigation and the active panel; motion never advances selection.
 
 Each palette defines light/dark `main`, `ink`, `paper`, `surface`, `accent`,
 `deep`, `text`, `muted` and `border` roles. `ink` is text on saturated colors;
 `text` is body text on theme-dependent surfaces. `projectBrands` assigns projects
-to families. Change that reference to reuse another scheme, or add per-theme
+to families and owns project names, links, mascot assets, alternative text and greetings. Change that reference to reuse another scheme, or add per-theme
 values to `projectPaletteOverrides` for an independent project identity.
 CapyBrain uses the `capybrain` project identity and `/capybrain` route; its
 editorial palette remains separate from the experiment's scientific colors.
@@ -117,9 +117,7 @@ editorial introductions. CapyBrain and Imagery Desktop use
 `ProjectGallery`: explicit screenshot buttons, one mounted image at a time,
 no autoplay and no scroll scrubbing. Portrait previews share a fixed 9:19 phone frame with a transparent bottom fade
 and no nested scrollbar. A full-screenshot link opens the original image separately.
-Keep image metadata aligned with source dimensions, even when the preview is cropped. The CapyBrain experiment starts only when requested; its hero action both opens and scrolls to the experiment, and an unload control releases it. Objex demos mount an iframe only after
-“Load interactive demo”; closing the disclosure, unloading, or selecting another
-demo releases it. The indices route stays an application without an extra cover.
+Keep image metadata aligned with source dimensions, even when the preview is cropped. The shared `LazyDemo` uses an IntersectionObserver to mount expensive content once its reserved area enters the viewport, with an eager fallback only when the API is unavailable. Its observer disconnects after activation or unmount. The CapyBrain hero action scrolls to the experiment; viewing it loads the dynamically imported explorer without an extra button, and scrolling away preserves exploration state until navigation. Objex keeps one disclosure open at a time and loads its iframe when visible; closing it or selecting another demo releases the iframe. The indices route stays an application without an extra cover.
 
 HyperFrames is appropriate for a future exported film or campaign asset. These
 covers use optimized character artwork with native SVG/CSS because the colors must respond directly to the shared

@@ -7,8 +7,7 @@ They were generated with the built-in image-generation tool, then resized and
 encoded as WebP for the static site. Generated originals remain in the local
 image-generation archive; the website uses only the committed WebP files.
 
-`components/shared/project-mascot.tsx` owns each character's narrative and file
-reference. `app/globals.css` owns the shared scene and finite animation. Replace
+`lib/brand.ts` owns each project's mascot asset, alternative text and greeting; homepage project previews, strategic goals and full covers all read this registry. `components/shared/project-mascot.tsx` owns each character's narrative and accepts a project identity. `app/globals.css` owns the shared scene and finite animation. Replace
 artwork at those references without changing the controls or narrative. Preserve
 alpha, square dimensions and full-character framing. The capybara's tan/brown
 colors come from the `capybrain` project override in `lib/brand.ts`; OpenSensor
