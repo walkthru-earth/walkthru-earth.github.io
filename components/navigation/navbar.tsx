@@ -50,6 +50,7 @@ export function Navbar() {
               <div className="hidden items-center gap-6 md:flex">
                 <Link
                   href="/indices"
+                  prefetch={false}
                   className="hover:text-primary hover:bg-secondary hover:text-solid-foreground rounded-full px-3 py-2 text-base font-bold transition-colors"
                 >
                   Globe Explorer
@@ -166,6 +167,7 @@ export function Navbar() {
                   <nav className="mt-6 flex flex-col gap-1">
                     <Link
                       href="/indices"
+                      prefetch={false}
                       className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-bold transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >

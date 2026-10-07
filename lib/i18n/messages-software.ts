@@ -235,10 +235,6 @@ export const softwareMessages: Record<string, { ar: string; arEG: string }> = {
   'Background Task Queue - Dark Mode': phrase(
     'قائمة مهام الخلفية - الوضع الداكن'
   ),
-  'Scroll to explore features': phrase(
-    'مرّر لاستكشاف الميزات',
-    'مرّر عشان تستكشف المزايا'
-  ),
 
   'Copy URL': phrase('نسخ الرابط'),
   'Open in new tab': phrase('فتح في علامة تبويب جديدة', 'افتح في تبويب جديد'),

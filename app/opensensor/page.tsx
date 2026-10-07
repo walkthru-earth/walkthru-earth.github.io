@@ -12,6 +12,7 @@ import {
   BrandIcon,
   BrandEyebrow,
 } from '@/components/shared/brand-ui';
+import { EvidenceGraphic } from '@/components/shared/evidence-graphic';
 import { GradientText } from '@/components/shared/gradient-text';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,91 +36,93 @@ export default function OpenSensorPage() {
         <Navbar />
         <BrandPage project="opensensor">
           {/* Hero Section */}
-          <BrandHero
-            tone="opensensor"
-            className="flex min-h-dvh items-center pt-28 md:pt-32"
-          >
-            <Container className="relative z-10 py-8 md:py-12">
-              <div className="max-w-4xl">
-                <BrandEyebrow>
-                  <Cloud className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-sm font-bold">
-                    Open environmental monitoring
-                  </span>
-                </BrandEyebrow>
+          <BrandHero tone="opensensor">
+            <Container className="relative z-10">
+              <div className="grid items-center gap-10 lg:grid-cols-[1.25fr_0.75fr]">
+                <div className="min-w-0">
+                  <BrandEyebrow>
+                    <Cloud className="h-4 w-4" aria-hidden="true" />
+                    <span className="text-sm font-bold">
+                      Open environmental monitoring
+                    </span>
+                  </BrandEyebrow>
 
-                <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.1] font-bold tracking-tight">
-                  <GradientText className="font-bold">
-                    OpenSensor.Space
-                  </GradientText>
-                </h1>
+                  <h1 className="text-[clamp(2.4rem,5vw,4.5rem)]! leading-[1.1] font-bold tracking-tight">
+                    <GradientText className="font-bold">
+                      OpenSensor.Space
+                    </GradientText>
+                  </h1>
 
-                <p className="mt-6 max-w-2xl text-xl leading-relaxed md:text-2xl">
-                  Collect, explore, and share local air quality and weather
-                  readings.
-                </p>
+                  <p className="mt-6 max-w-2xl text-xl leading-relaxed md:text-2xl">
+                    Collect, explore, and share local air quality and weather
+                    readings.
+                  </p>
 
-                <div className="mt-10 flex flex-col flex-wrap gap-4 sm:flex-row">
-                  <Button
-                    size="lg"
-                    className="bg-foreground text-background hover:bg-foreground/90"
-                    asChild
-                  >
-                    <Link
-                      href="https://opensensor.space/"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  <div className="mt-10 flex flex-col flex-wrap gap-4 sm:flex-row">
+                    <Button
+                      size="lg"
+                      className="bg-foreground text-background hover:bg-foreground/90"
+                      asChild
                     >
-                      Explore Live Dashboard
-                      <ExternalLink className="ms-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="text-solid-foreground hover:bg-background/20 border-current bg-transparent"
-                    asChild
-                  >
-                    <Link
-                      href="https://github.com/walkthru-earth/opensensor-space"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      <Link
+                        href="https://opensensor.space/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Explore Live Dashboard
+                        <ExternalLink className="ms-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="text-foreground hover:bg-accent border-current bg-transparent"
+                      asChild
                     >
-                      <Github className="me-2 h-4 w-4" />
-                      Dashboard Code
-                    </Link>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="text-solid-foreground hover:bg-background/20 border-current bg-transparent"
-                    asChild
-                  >
-                    <Link
-                      href="https://github.com/walkthru-earth/opensensor-enviroplus"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      <Link
+                        href="https://github.com/walkthru-earth/opensensor-space"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Github className="me-2 h-4 w-4" />
+                        Dashboard Code
+                      </Link>
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="text-foreground hover:bg-accent border-current bg-transparent"
+                      asChild
                     >
-                      <Github className="me-2 h-4 w-4" />
-                      Edge Code
-                    </Link>
-                  </Button>
+                      <Link
+                        href="https://github.com/walkthru-earth/opensensor-enviroplus"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Github className="me-2 h-4 w-4" />
+                        Edge Code
+                      </Link>
+                    </Button>
+                  </div>
+
+                  <div className="mt-14 grid max-w-2xl grid-cols-3 gap-4 border-t-2 border-current pt-6 text-base md:gap-8">
+                    <div>
+                      <div className="text-3xl font-bold md:text-4xl">
+                        1.3M+
+                      </div>
+                      <div>Data Points</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold md:text-4xl">6+</div>
+                      <div>Sensor Types</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold md:text-4xl">Open</div>
+                      <div>Source & Data</div>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="mt-14 grid max-w-2xl grid-cols-3 gap-4 border-t-2 border-current pt-6 text-base md:gap-8">
-                  <div>
-                    <div className="text-3xl font-bold md:text-4xl">1.3M+</div>
-                    <div>Data Points</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold md:text-4xl">6+</div>
-                    <div>Sensor Types</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold md:text-4xl">Open</div>
-                    <div>Source & Data</div>
-                  </div>
-                </div>
+                <EvidenceGraphic variant="sensing" />
               </div>
             </Container>
           </BrandHero>
@@ -166,7 +169,7 @@ export default function OpenSensorPage() {
                     >
                       <div className="space-y-4">
                         <BrandIcon
-                          tone={index === 1 ? 'ink' : 'opensensor'}
+                          tone={index === 1 ? 'action' : 'opensensor'}
                           className="mb-2"
                         >
                           <step.icon aria-hidden="true" />

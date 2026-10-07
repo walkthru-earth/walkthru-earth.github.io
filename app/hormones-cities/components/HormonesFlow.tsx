@@ -12,7 +12,7 @@ export function HormonesFlow() {
       <div className="mx-auto max-w-4xl">
         <div className="grid gap-5 md:grid-cols-2">
           <BrandPanel tone="wellbeing">
-            <BrandIcon tone="ink" className="mb-5">
+            <BrandIcon tone="action" className="mb-5">
               <Cpu aria-hidden="true" />
             </BrandIcon>
             <h3 className="text-2xl leading-tight font-bold">
@@ -34,7 +34,7 @@ export function HormonesFlow() {
             </div>
           </BrandPanel>
           <BrandPanel tone="wellbeing">
-            <BrandIcon tone="ink" className="mb-5">
+            <BrandIcon tone="action" className="mb-5">
               <Smartphone aria-hidden="true" />
             </BrandIcon>
             <h3 className="text-2xl leading-tight font-bold">
@@ -52,10 +52,10 @@ export function HormonesFlow() {
           <ArrowDown className="h-8 w-8" strokeWidth={2.5} />
         </div>
         <BrandPanel
-          tone="ink"
+          tone="action"
           className="flex flex-col items-start gap-5 sm:flex-row sm:items-center"
         >
-          <BrandIcon tone="ink">
+          <BrandIcon tone="action">
             <Brain aria-hidden="true" />
           </BrandIcon>
           <div>

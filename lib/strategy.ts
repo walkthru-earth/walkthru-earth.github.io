@@ -1,3 +1,5 @@
+import type { PaletteId } from './brand';
+
 /** Organization copy shared by the homepage and About page. */
 export const vision =
   'Every place understood through the people who experience it and shaped by the evidence they generate.';
@@ -8,6 +10,9 @@ export const mission =
 export const strategicGoals = [
   {
     id: 'open-ecosystem',
+    palette: 'ecosystem' satisfies PaletteId,
+    label: 'Open ecosystem',
+    motif: 'blocks',
     title: 'Build an open ecosystem',
     summary: 'Open tools and portable infrastructure.',
     href: '/software',
@@ -37,6 +42,9 @@ export const strategicGoals = [
   },
   {
     id: 'measurable-places',
+    palette: 'sensing' satisfies PaletteId,
+    label: 'Measurable places',
+    motif: 'radio',
     title: 'Make places measurable',
     summary: 'Local sensing of environmental conditions.',
     href: '/opensensor',
@@ -58,6 +66,9 @@ export const strategicGoals = [
   },
   {
     id: 'measurable-experience',
+    palette: 'experience' satisfies PaletteId,
+    label: 'Lived experience',
+    motif: 'brain',
     title: 'Make lived experience measurable',
     summary: 'Understand how people experience their surroundings.',
     href: '/hormones-cities',
@@ -79,6 +90,9 @@ export const strategicGoals = [
   },
   {
     id: 'spatial-intelligence',
+    palette: 'spatial' satisfies PaletteId,
+    label: 'Spatial intelligence',
+    motif: 'globe',
     title: 'Turn diverse data into spatial intelligence',
     summary: 'Combine environmental and urban datasets.',
     href: '/indices',
@@ -100,6 +114,9 @@ export const strategicGoals = [
   },
   {
     id: 'real-decisions',
+    palette: 'action' satisfies PaletteId,
+    label: 'Real decisions',
+    motif: 'scale',
     title: 'Put evidence into real decisions',
     summary: 'Inform health, climate and community decisions.',
     href: 'mailto:hi@walkthru.earth',

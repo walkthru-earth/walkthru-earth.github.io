@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Navbar } from '@/components/navigation/navbar';
@@ -10,7 +8,8 @@ import { Container } from '@/components/shared/container';
 import {
   BrandPage,
   BrandSection,
-  BrandPanel,
+  BrandHero,
+  BrandEyebrow,
   BrandIcon,
 } from '@/components/shared/brand-ui';
 import { Button } from '@/components/ui/button';
@@ -19,113 +18,57 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Globe, Cloud, Heart, ExternalLink } from 'lucide-react';
 import { StrategicGoals } from '@/components/strategy/strategic-goals';
 import { ChangeFramework } from '@/components/strategy/change-framework';
-import { vision } from '@/lib/strategy';
+import { EvidenceGraphic } from '@/components/shared/evidence-graphic';
 import { Localized } from '@/lib/i18n/i18n-provider';
 
-const GlobePreview = dynamic(
-  () => import('@/components/globe/GlobePreview').then((m) => m.GlobePreview),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="bg-muted/50 flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="border-primary/30 border-t-primary h-6 w-6 animate-spin rounded-full border-2" />
-          <p className="text-muted-foreground text-sm">Loading globe...</p>
-        </div>
-      </div>
-    ),
-  }
-);
-
-const globeLayers = [
-  { label: 'Temperature', section: 'weather-temperature' },
-  { label: 'Elevation', section: 'terrain' },
-  { label: 'Urban Density', section: 'urban-density' },
-  { label: 'Population Growth', section: 'population-growth' },
-  { label: 'Housing Pressure', section: 'housing-pressure' },
-  { label: 'Shrinking Cities', section: 'shrinking-cities' },
-];
-
 export default function HomePage() {
-  const [activeLayer, setActiveLayer] = useState('weather-temperature');
   return (
     <Localized>
       <>
         <Navbar />
         <BrandPage>
-          {/* Full-bleed globe with a solid, readable text panel. */}
-          <section className="relative min-h-dvh overflow-hidden">
-            {/* Globe — full bleed, clickable to /indices */}
-            <Link
-              href="/indices"
-              aria-label="Explore the globe"
-              className="absolute inset-0 cursor-pointer"
-            >
-              <GlobePreview sectionId={activeLayer} nonInteractive />
-            </Link>
-
-            {/* Text panel */}
-            <div className="pointer-events-none relative z-10 flex min-h-dvh items-center pt-20 pb-6 md:pb-0">
-              <div className="w-full px-6 md:px-12 lg:px-24">
-                <BrandPanel
-                  tone="green"
-                  className="pointer-events-auto max-w-2xl p-6 shadow-xl md:p-10"
-                >
-                  <h1 className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.05] font-bold tracking-tight">
-                    walkthru.earth
+          <BrandHero tone="earth" decorative={false} className="home-cover">
+            <Container>
+              <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+                <div>
+                  <BrandEyebrow>People · Places · Evidence</BrandEyebrow>
+                  <h1>
+                    Understand places.
+                    <br />
+                    <span className="cover-highlight">Make change.</span>
                   </h1>
-
-                  <p className="text-muted-foreground mt-4 max-w-md text-lg leading-relaxed md:text-xl">
-                    {vision}
+                  <p className="mt-6 max-w-xl text-lg leading-relaxed md:text-xl">
+                    Open tools connecting environmental data and lived
+                    experience. Together, we turn everyday observations into
+                    evidence for healthier places.
                   </p>
-
-                  <div className="mt-5 flex flex-wrap items-center gap-4 md:mt-6">
-                    <Button
-                      size="lg"
-                      className="group bg-foreground text-background hover:bg-foreground/90 gap-2 text-base"
-                      asChild
-                    >
-                      <Link href="/indices">
-                        <Globe className="h-5 w-5" />
-                        Explore the globe
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
-                      </Link>
+                  <div className="mt-8 flex flex-wrap items-center gap-4">
+                    <Button size="lg" asChild>
+                      <a href="#goals">
+                        Explore our goals
+                        <ArrowRight className="h-5 w-5 rtl:rotate-180" />
+                      </a>
                     </Button>
                     <Link
-                      href="/about"
-                      className="text-solid-foreground decoration-solid-foreground/50 hover:decoration-solid-foreground text-lg font-bold underline underline-offset-4"
+                      href="/indices"
+                      prefetch={false}
+                      className="inline-flex items-center gap-2 text-base font-bold underline underline-offset-4"
                     >
-                      Our purpose
+                      <Globe className="h-5 w-5" />
+                      Explore the globe
                     </Link>
                   </div>
-
-                  {/* Explicit controls work in either reading direction. */}
-                  <div className="border-foreground/10 mt-6 border-t pt-4">
-                    <div className="flex flex-wrap gap-2">
-                      {globeLayers.map((item) => {
-                        const isActive = activeLayer === item.section;
-                        return (
-                          <button
-                            key={item.section}
-                            type="button"
-                            aria-pressed={isActive}
-                            onClick={() => setActiveLayer(item.section)}
-                            className={`flex-shrink-0 rounded-full border px-3 py-1 text-sm font-bold whitespace-nowrap transition-all duration-200 md:px-3.5 md:py-1.5 md:text-base ${
-                              isActive
-                                ? 'bg-foreground text-background'
-                                : 'bg-background text-foreground border-foreground/20 hover:bg-secondary'
-                            }`}
-                          >
-                            {item.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </BrandPanel>
+                </div>
+                <EvidenceGraphic />
               </div>
-            </div>
-          </section>
+            </Container>
+          </BrandHero>
+
+          <BrandSection id="goals" className="scroll-mt-24 border-y">
+            <Container>
+              <StrategicGoals compact />
+            </Container>
+          </BrandSection>
 
           {/* Products */}
           <BrandSection className="py-14 md:py-20">
@@ -134,7 +77,7 @@ export default function HomePage() {
                 Our tools
               </h2>
 
-              <Link href="/indices" className="group block">
+              <Link href="/indices" prefetch={false} className="group block">
                 <Card className="brand-project-earth hover:border-primary/30 mb-6 overflow-hidden transition-all duration-300 hover:shadow-lg">
                   <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:p-8">
                     <div className="flex-1">
@@ -253,15 +196,12 @@ export default function HomePage() {
 
           <BrandSection className="bg-muted/20 border-y py-14 md:py-20">
             <Container>
-              <StrategicGoals compact />
-              <div className="mt-12">
-                <ChangeFramework compact />
-              </div>
+              <ChangeFramework compact />
             </Container>
           </BrandSection>
 
           {/* Open data + Scheduler */}
-          <BrandSection id="contact" tone="green" className="scroll-mt-24">
+          <BrandSection id="contact" tone="spatial" className="scroll-mt-24">
             <Container>
               <div className="mx-auto max-w-4xl text-center">
                 <h2 className="mb-4 text-3xl font-bold">Connect</h2>

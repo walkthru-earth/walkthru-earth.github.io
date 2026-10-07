@@ -2,7 +2,7 @@
 
 ## Read and change the right layer
 
-`app/indices/page.tsx` dynamically loads `GlobeExplorer` and reads share-link parameters (`section`, `z`, `x`, `y`, `h3`). `GlobeExplorer` coordinates navigation, viewport, resolution, panels, and timeline. `GlobeMap` renders deck.gl layers. The homepage uses `GlobePreview`.
+`app/indices/page.tsx` dynamically loads `GlobeExplorer` and reads share-link parameters (`section`, `z`, `x`, `y`, `h3`). `GlobeExplorer` coordinates navigation, viewport, resolution, panels, and timeline. `GlobeMap` renders deck.gl layers. The homepage links to this explorer and uses a data-free SVG cover.
 
 Dataset configuration is split into weather, indices, and composites modules under `components/globe/data/`. `sections.ts` assembles the registry; `section-shared.ts` owns shared types, URL builders, and dataset helpers; `constants.ts` owns base URLs, view/query types, and percentile color ranges. A section's `loadData` performs JavaScript data operations, while `buildQuery` describes equivalent SQL for the query panel.
 

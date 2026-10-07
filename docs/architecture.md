@@ -8,22 +8,22 @@ The repository is a Next.js App Router application with React, TypeScript, Tailw
 
 ## Route map
 
-| Route                          | Purpose                                                  | Main implementation                                 |
-| ------------------------------ | -------------------------------------------------------- | --------------------------------------------------- |
-| `/`                            | Organization homepage and globe preview                  | `app/page.tsx`, `components/globe/GlobePreview.tsx` |
-| `/indices`                     | Interactive data globe                                   | `app/indices/`, `components/globe/`                 |
-| `/hormones-cities`             | Street imagery, location, and brain activity exploration | `app/hormones-cities/`                              |
-| `/opensensor`                  | Sensor project                                           | `app/opensensor/`                                   |
-| `/software`                    | Software overview                                        | `app/software/`                                     |
-| `/software/imagery-desktop`    | Imagery Desktop product page                             | Route-local components, hooks, and feature data     |
-| `/software/objex`              | objex product page                                       | `app/software/objex/`                               |
-| `/about`, `/links`, `/privacy` | Organization and policy pages                            | Corresponding directories under `app/`              |
+| Route                          | Purpose                                                  | Main implementation                                      |
+| ------------------------------ | -------------------------------------------------------- | -------------------------------------------------------- |
+| `/`                            | Organization homepage, goals and project previews        | `app/page.tsx`, `components/shared/evidence-graphic.tsx` |
+| `/indices`                     | Interactive data globe                                   | `app/indices/`, `components/globe/`                      |
+| `/hormones-cities`             | Street imagery, location, and brain activity exploration | `app/hormones-cities/`                                   |
+| `/opensensor`                  | Sensor project                                           | `app/opensensor/`                                        |
+| `/software`                    | Software overview                                        | `app/software/`                                          |
+| `/software/imagery-desktop`    | Imagery Desktop product page                             | Route-local components, hooks, and feature data          |
+| `/software/objex`              | objex product page                                       | `app/software/objex/`                                    |
+| `/about`, `/links`, `/privacy` | Organization and policy pages                            | Corresponding directories under `app/`                   |
 
 The root layout wraps all routes in theme, consent, analytics, and scrolling behavior. Route layouts provide page metadata; `app/sitemap.ts` and `app/robots.ts` export discovery files. The Quicksand font is committed in `app/fonts/` and loaded through `next/font/local`.
 
 ## Module boundaries
 
-- `components/shared/`: layout and presentation primitives such as container, section, logo, text emphasis, and scrolling. `brand-ui.tsx` provides reusable page, hero, section, panel, icon, eyebrow, and heading components. `BrandPage` opts editorial routes into the bold type scale without enlarging scientific controls. Project identity is registered in `lib/brand.ts`: blue OpenSensor, teal wellbeing research, orange Imagery Desktop, monochrome objex, and earth green. Palette tokens and contrast rules live in `app/globals.css`; reuse project tones across cards, navigation, and routes instead of assigning new colors per section. `brand-data-ui` restores the original distinct selection colors inside scientific views. Prefer CSS reduced-motion variants for presentation so server and client markup remain identical.
+- `components/shared/`: layout and presentation primitives such as container, section, logo, text emphasis, and scrolling. `brand-ui.tsx` provides reusable page, hero, section, panel, icon, eyebrow, and heading components. `BrandPage` opts editorial routes into the bold type scale without enlarging scientific controls. Project identity is registered in `lib/brand.ts`: five strategic color families with project mappings and optional overrides. Registry-generated tokens and the surface rules in `app/globals.css` provide the shared theme; reuse project tones across cards, navigation, and routes instead of assigning new colors per section. `brand-data-ui` restores the original distinct selection colors inside scientific views. Prefer CSS reduced-motion variants for presentation so server and client markup remain identical.
 - `components/strategy/`: shared homepage/About interactive strategic goals, Evidence → Translation → Action, policy references, and open-tool logos. Organization copy lives in `lib/strategy.ts`; both Arabic catalogs live in `lib/i18n/messages-strategy.ts`. The homepage shows compact goal summaries; About holds the full strategy and policy sources. Goal details use the existing Radix tabs with the locale direction, keyboard navigation, and no automatic advancement. Policy links describe alignment rather than institutional endorsements; technology logos identify tools used in the ecosystem.
 - `components/ui/`: reusable UI controls built on Radix and the shared theme.
 - `components/navigation/`, `components/sections/`, `components/theme/`: navigation, shared sections, and theme controls.
@@ -53,3 +53,44 @@ Static export means no request-time middleware, server API, server-only secret, 
 ## Documentation layout
 
 [AGENTS.md](../AGENTS.md) is the task reading map. Scoped guides add local invariants without copying the whole architecture. The current guides consolidate the former implementation plans, stack survey, edge-case catalog, and legacy DuckDB globe reference; git history preserves those historical documents.
+
+## Strategic palettes and page covers
+
+`lib/brand.ts` is the color source of truth. Five families map to the goals in
+`lib/strategy.ts`: saffron/open ecosystem, blue/measurable places, coral/lived
+experience, mint/spatial intelligence, and lilac/real decisions. Each goal owns
+its palette, label and motif; its position does not determine its identity.
+Selecting a goal unfolds its five-swatch family alongside its content. Radix
+owns keyboard navigation and the active panel; motion never advances selection.
+
+Each palette defines light/dark `main`, `ink`, `paper`, `surface`, `accent`,
+`deep`, `text`, `muted` and `border` roles. `ink` is text on saturated colors;
+`text` is body text on theme-dependent surfaces. `projectBrands` assigns projects
+to families. Change that reference to reuse another scheme, or add per-theme
+values to `projectPaletteOverrides` for an independent project identity.
+`brandPaletteCss()` emits the selectors into the root layout during static
+rendering, so navigation icons, cards and page surfaces use the same values
+without a hydration flash or a new stylesheet per project. `paletteVariables()`
+also exposes the roles for programmatic inline styling. Full semantic tokens
+are scoped to `brand-project-*`; `brand-tone-*` supplies a local identity.
+Palette tests verify readable text pairs, references, and overrides.
+
+The homepage introduces people, places and evidence through a small inline SVG
+in `EvidenceGraphic`; it no longer mounts the globe preview or requests its data.
+The actual globe remains at `/indices`, with its scientific color scales.
+Homepage, navigation, footer and goal links to the globe disable speculative prefetch. The diagram uses a brief CSS
+entrance and connection reveal, with no frame loop, external assets or video
+runtime. Reduced-motion visitors get the finished static graphic.
+
+Covers use `BrandHero` and theme-aware paper/text colors. OpenSensor uses a
+sensor diagram; About leads with purpose; Software, Links and Privacy use compact
+editorial introductions. Hormones & Cities and Imagery Desktop use
+`ProjectGallery`: explicit screenshot buttons, one mounted image at a time,
+no autoplay and no scroll scrubbing. The Hormones & Cities experiment starts only when requested; its hero action both opens and scrolls to the experiment, and an unload control releases it. Objex demos mount an iframe only after
+“Load interactive demo”; closing the disclosure, unloading, or selecting another
+demo releases it. The indices route stays an application without an extra cover.
+
+HyperFrames is appropriate for a future exported film or campaign asset. These
+covers use native SVG/CSS because the colors must respond directly to the shared
+palette and the content must remain usable without media playback. No page-speed
+improvement is asserted without a comparable production measurement.

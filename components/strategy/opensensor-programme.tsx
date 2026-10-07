@@ -16,7 +16,7 @@ export function OpenSensorProgramme({
     <Localized>
       <div className="brand-project-opensensor">
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <Radio className="text-primary h-5 w-5" aria-hidden="true" />
+          <Radio className="text-palette-emphasis h-5 w-5" aria-hidden="true" />
           <Heading className="text-2xl font-bold md:text-3xl" translate="no">
             OpenSensor.Space
           </Heading>
@@ -33,7 +33,7 @@ export function OpenSensorProgramme({
             <div key={title} className="border-primary/25 border-s-2 ps-4">
               <dt className="mb-3 flex items-start gap-3 text-xl font-bold md:text-2xl">
                 <Icon
-                  className="text-primary mt-1 h-5 w-5 shrink-0"
+                  className="text-palette-emphasis mt-1 h-5 w-5 shrink-0"
                   aria-hidden="true"
                 />
                 {title}

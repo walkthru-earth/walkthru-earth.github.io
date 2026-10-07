@@ -83,7 +83,7 @@ function BrowserFrame({
               title="Copy URL"
             >
               {copied ? (
-                <Check className="text-primary h-3.5 w-3.5" />
+                <Check className="text-palette-emphasis h-3.5 w-3.5" />
               ) : (
                 <Copy className="h-3.5 w-3.5" />
               )}
@@ -272,17 +272,19 @@ const supportedFormats = [
 ];
 
 export default function ObjexPage() {
+  const [activeDemo, setActiveDemo] = useState<string | null>(null);
+
   return (
     <Localized>
       <>
         <Navbar />
         <BrandPage project="objex">
-          <BrandHero tone="objex" className="pt-28 md:pt-36">
+          <BrandHero tone="objex" decorative={false}>
             <Container>
               <Button
                 variant="ghost"
                 asChild
-                className="mb-8 text-current hover:bg-white/10 hover:text-current"
+                className="hover:bg-foreground/10 mb-8 text-current hover:text-current"
               >
                 <Link href="/software" className="gap-2">
                   <ArrowLeft
@@ -316,7 +318,11 @@ export default function ObjexPage() {
                     Browse, query and map cloud data in your browser.
                   </p>
                   <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <Button size="lg" asChild>
+                    <Button
+                      size="lg"
+                      className="bg-foreground text-background hover:bg-foreground/90"
+                      asChild
+                    >
                       <a
                         href="https://walkthru.earth/objex/"
                         target="_blank"
@@ -378,7 +384,17 @@ export default function ObjexPage() {
                   const Icon = feature.icon;
                   return (
                     <BrandPanel key={feature.title} className="bg-card">
-                      <details open={index === 0} className="group">
+                      <details
+                        open={index === 0}
+                        className="group"
+                        onToggle={(event) => {
+                          if (!event.currentTarget.open) {
+                            setActiveDemo((current) =>
+                              current === feature.title ? null : current
+                            );
+                          }
+                        }}
+                      >
                         <summary className="flex cursor-pointer list-none items-center gap-4 rounded-xl outline-offset-4 [&::-webkit-details-marker]:hidden">
                           <BrandIcon tone="objex">
                             <Icon aria-hidden="true" />
@@ -398,14 +414,40 @@ export default function ObjexPage() {
                           url={feature.iframeUrl}
                           title={feature.title}
                         >
-                          <iframe
-                            src={feature.iframeUrl}
-                            title={feature.title}
-                            loading="lazy"
-                            className="h-[400px] w-full sm:h-[500px] md:h-[650px]"
-                            allow="clipboard-write"
-                            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                          />
+                          <div className="bg-background text-foreground flex flex-wrap items-center justify-between gap-4 p-5">
+                            <p className="text-muted-foreground max-w-xl text-sm leading-relaxed">
+                              Choose a demo to explore its data here. One demo
+                              runs at a time.
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              aria-expanded={activeDemo === feature.title}
+                              aria-controls={`objex-demo-${index}`}
+                              onClick={() =>
+                                setActiveDemo((current) =>
+                                  current === feature.title
+                                    ? null
+                                    : feature.title
+                                )
+                              }
+                            >
+                              {activeDemo === feature.title
+                                ? 'Unload demo'
+                                : 'Load interactive demo'}
+                            </Button>
+                          </div>
+                          <div id={`objex-demo-${index}`}>
+                            {activeDemo === feature.title && (
+                              <iframe
+                                src={feature.iframeUrl}
+                                title={feature.title}
+                                className="h-[400px] w-full sm:h-[500px] md:h-[650px]"
+                                allow="clipboard-write"
+                                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                              />
+                            )}
+                          </div>
                         </BrowserFrame>
                       </details>
                     </BrandPanel>

@@ -32,7 +32,11 @@ export default function PrivacyPage() {
     <Localized>
       <Navbar />
       <BrandPage className="pb-16 md:pb-24">
-        <BrandHero tone="blue" className="pt-28 pb-16 md:pt-36 md:pb-20">
+        <BrandHero
+          tone="ecosystem"
+          decorative={false}
+          className="py-12 md:py-16"
+        >
           <Container>
             {/* Header */}
             <div className="mx-auto max-w-4xl text-center">
@@ -57,7 +61,7 @@ export default function PrivacyPage() {
           <div className="mx-auto max-w-4xl">
             {/* Table of Contents */}
             <nav className="mb-12 md:mb-16">
-              <BrandPanel tone="amber">
+              <BrandPanel tone="ecosystem">
                 <h2 className="mb-5 text-2xl md:text-3xl">Contents</h2>
                 <ul className="grid gap-2 text-sm md:grid-cols-2 md:gap-3">
                   {[
@@ -524,7 +528,7 @@ export default function PrivacyPage() {
                   If you have any questions, concerns, or requests regarding
                   this Privacy Policy or our data practices, please contact us:
                 </p>
-                <BrandPanel tone="green" className="mt-5">
+                <BrandPanel tone="spatial" className="mt-5">
                   <p className="font-semibold">walkthru.earth</p>
                   <p className="text-muted-foreground mt-2">
                     Email:{' '}

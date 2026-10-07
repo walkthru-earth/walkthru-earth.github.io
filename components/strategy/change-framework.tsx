@@ -11,7 +11,7 @@ import { Localized } from '@/lib/i18n/i18n-provider';
 import { changeSteps } from '@/lib/strategy';
 
 const icons = [ScanLine, Languages, Sprout];
-const tones: BrandTone[] = ['blue', 'amber', 'green'];
+const tones: BrandTone[] = ['sensing', 'ecosystem', 'spatial'];
 
 export function ChangeFramework({ compact = false }: { compact?: boolean }) {
   return (
@@ -34,7 +34,7 @@ export function ChangeFramework({ compact = false }: { compact?: boolean }) {
                   className="flex h-full flex-col border-0"
                 >
                   <div className="mb-5 flex items-center justify-between">
-                    <BrandIcon tone="ink">
+                    <BrandIcon tone="action">
                       <Icon aria-hidden="true" />
                     </BrandIcon>
                     <span className="text-4xl font-bold" aria-hidden="true">

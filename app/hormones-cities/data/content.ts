@@ -26,21 +26,18 @@ export const screenshots = [
     alt: 'AI Chat Interface',
     width: 280,
     height: 600,
-    hasFade: false,
   },
   {
     src: '/hormones-cities-dashboard.png',
     alt: 'City-Wide Trends Dashboard',
     width: 280,
     height: 1500,
-    hasFade: true,
   },
   {
     src: '/hormones-cities-survey.png',
     alt: 'Survey Categories',
     width: 280,
     height: 1200,
-    hasFade: true,
   },
 ];
 

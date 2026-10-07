@@ -3,10 +3,9 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Localized } from '@/lib/i18n/i18n-provider';
-import type { ProjectBrand } from '@/lib/brand';
+import type { ProjectBrand, PaletteId } from '@/lib/brand';
 
-export type BrandTone =
-  'green' | 'amber' | 'blue' | 'coral' | 'ink' | ProjectBrand;
+export type BrandTone = ProjectBrand | PaletteId;
 
 type SurfaceProps = HTMLAttributes<HTMLElement> & {
   tone?: BrandTone;
@@ -31,9 +30,9 @@ export function BrandPage({
   );
 }
 
-/** A solid, contrast-aware hero. Existing media or interactive children stay owned by the route. */
+/** A palette-aware editorial cover; routes own meaningful illustrations or previews. */
 export function BrandHero({
-  tone = 'green',
+  tone = 'spatial',
   decorative = true,
   className,
   children,
@@ -46,8 +45,11 @@ export function BrandHero({
     >
       {decorative && (
         <div className="brand-hero-art" aria-hidden="true">
-          <span className="brand-orbit" />
-          <span className="brand-spark" />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
         </div>
       )}
       <div className="brand-hero-content">{children}</div>
@@ -97,7 +99,7 @@ export function BrandPanel({
 }
 
 export function BrandIcon({
-  tone = 'green',
+  tone = 'spatial',
   className,
   ...props
 }: HTMLAttributes<HTMLSpanElement> & { tone?: BrandTone }) {

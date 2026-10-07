@@ -17,13 +17,15 @@ import { strategicGoals } from '@/lib/strategy';
 import { OpenSensorProgramme } from './opensensor-programme';
 import { cn } from '@/lib/utils';
 
-const stops = [
-  { Icon: Blocks, label: 'Open ecosystem', tone: 'amber' },
-  { Icon: Radio, label: 'Measurable places', tone: 'opensensor' },
-  { Icon: Brain, label: 'Lived experience', tone: 'wellbeing' },
-  { Icon: Globe, label: 'Spatial intelligence', tone: 'earth' },
-  { Icon: Scale, label: 'Real decisions', tone: 'ink' },
-] as const;
+const goalIcons = {
+  blocks: Blocks,
+  radio: Radio,
+  brain: Brain,
+  globe: Globe,
+  scale: Scale,
+} as const;
+
+const paletteSwatches = ['paper', 'surface', 'main', 'accent', 'deep'] as const;
 
 export function StrategicGoals({ compact = false }: { compact?: boolean }) {
   const [selected, setSelected] = useState<string>(strategicGoals[0].id);
@@ -37,7 +39,9 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
               Strategic goals
             </h2>
-            <p className="text-muted-foreground mt-4 text-lg">Select a goal.</p>
+            <p className="text-muted-foreground mt-4 text-lg">
+              Five goals. Five colors. One connected mission.
+            </p>
           </div>
           {compact && (
             <Link
@@ -58,13 +62,13 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
             className="flex h-auto w-full items-stretch justify-start gap-4 overflow-x-auto rounded-none bg-transparent px-1 pt-4 pb-7 lg:grid lg:grid-cols-5 lg:gap-5"
           >
             {strategicGoals.map((goal, index) => {
-              const { Icon, label } = stops[index];
+              const Icon = goalIcons[goal.motif];
               return (
                 <TabsTrigger
                   key={goal.id}
                   value={goal.id}
                   className={cn(
-                    `brand-tone-${stops[index].tone}`,
+                    `brand-tone-${goal.palette}`,
                     'group relative flex w-44 shrink-0 flex-col items-start justify-start gap-5 rounded-3xl border-0 bg-[var(--brand-color)] p-5 text-start whitespace-normal text-[var(--brand-ink)] opacity-80 shadow-none transition-[transform,opacity] hover:-translate-y-1 hover:opacity-100 data-[state=active]:-translate-y-2 data-[state=active]:bg-[var(--brand-color)] data-[state=active]:text-[var(--brand-ink)] data-[state=active]:opacity-100 data-[state=active]:shadow-lg motion-reduce:transform-none motion-reduce:transition-none sm:w-52 lg:w-auto lg:odd:-rotate-2 lg:even:rotate-2'
                   )}
                 >
@@ -85,7 +89,7 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                     {t('Goal {number}', { number: index + 1 })}
                   </span>
                   <span className="text-2xl leading-tight font-bold">
-                    {label}
+                    {goal.label}
                   </span>
                   <ChevronDown
                     className="mt-auto h-6 w-6 opacity-40 group-data-[state=active]:opacity-100"
@@ -97,17 +101,17 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
             })}
           </TabsList>
           {strategicGoals.map((goal, index) => {
-            const { Icon } = stops[index];
+            const Icon = goalIcons[goal.motif];
             return (
               <TabsContent
                 key={goal.id}
                 value={goal.id}
                 className={cn(
-                  `brand-tone-${stops[index].tone}`,
-                  'brand-panel bg-card mt-2 border-[var(--brand-color)] p-0'
+                  `brand-tone-${goal.palette}`,
+                  'brand-panel goal-palette-panel mt-2 border-[var(--palette-border)] bg-[var(--palette-paper)] p-0 text-[var(--palette-text)]'
                 )}
               >
-                <div className="relative overflow-hidden bg-[var(--brand-color)] px-6 py-8 text-[var(--brand-ink)] md:px-10 md:py-10">
+                <div className="goal-palette-header relative overflow-hidden bg-[var(--brand-color)] px-6 py-8 text-[var(--brand-ink)] md:px-10 md:py-10">
                   <Icon
                     className="pointer-events-none absolute -end-6 -bottom-8 h-48 w-48 opacity-10 md:h-56 md:w-56"
                     strokeWidth={1.5}
@@ -117,6 +121,15 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                     <p className="mb-4 text-base font-bold">
                       {t('Goal {number}', { number: index + 1 })}
                     </p>
+                    <div className="goal-palette-fan" aria-hidden="true">
+                      {paletteSwatches.map((role) => (
+                        <span
+                          key={role}
+                          data-swatch={role}
+                          style={{ backgroundColor: `var(--palette-${role})` }}
+                        />
+                      ))}
+                    </div>
                     <h3
                       className={
                         compact
@@ -132,10 +145,10 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                   </div>
                 </div>
                 <div className="px-6 py-8 md:px-10 md:py-10">
-                  {compact ? null : index === 1 ? (
+                  {compact ? null : goal.id === 'measurable-places' ? (
                     <OpenSensorProgramme />
                   ) : (
-                    <dl className="divide-y">
+                    <dl className="divide-y divide-[var(--palette-border)]">
                       {goal.details.map((detail) => (
                         <div
                           key={detail.title}
@@ -144,7 +157,7 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                           <dt className="mb-3 text-xl leading-snug font-bold md:mb-0 md:text-2xl">
                             {detail.title}
                           </dt>
-                          <dd className="text-muted-foreground text-lg leading-relaxed">
+                          <dd className="text-lg leading-relaxed text-[var(--palette-muted)]">
                             {detail.body}
                           </dd>
                         </div>
@@ -154,12 +167,14 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                   <div
                     className={cn(
                       'flex flex-wrap items-center gap-5',
-                      !compact && 'mt-8 border-t pt-7'
+                      !compact &&
+                        'mt-8 border-t border-[var(--palette-border)] pt-7'
                     )}
                   >
                     <Link
                       href={goal.href}
-                      className="bg-foreground text-background inline-flex items-center gap-3 rounded-full px-6 py-3 text-base font-bold transition-transform hover:translate-x-1 motion-reduce:transform-none rtl:hover:-translate-x-1"
+                      prefetch={goal.href !== '/indices'}
+                      className="inline-flex items-center gap-3 rounded-full bg-[var(--palette-text)] px-6 py-3 text-base font-bold text-[var(--palette-paper)] transition-transform hover:translate-x-1 motion-reduce:transform-none rtl:hover:-translate-x-1"
                     >
                       {goal.link}
                       <ArrowRight
@@ -167,10 +182,10 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                         aria-hidden="true"
                       />
                     </Link>
-                    {!compact && index === 0 && (
+                    {!compact && goal.id === 'open-ecosystem' && (
                       <Link
                         href="/privacy"
-                        className="text-muted-foreground text-base underline underline-offset-4"
+                        className="text-base text-[var(--palette-muted)] underline underline-offset-4"
                       >
                         Read our privacy policy
                       </Link>

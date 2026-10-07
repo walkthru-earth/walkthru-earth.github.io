@@ -271,7 +271,6 @@ export const projectMessages: MessageCatalog = {
     'استكشف البيانات المباشرة',
     'شوف البيانات المباشرة'
   ),
-  'Scroll to explore': phrase('مرّر للاستكشاف', 'انزل علشان تستكشف'),
   'Understand the place,': phrase('افهم المكان،'),
   'listen to the people': phrase('واستمع إلى الناس', 'واسمع الناس'),
   'Environmental measurements describe conditions around us. Residents can describe experiences those measurements miss. We want to investigate how these perspectives relate, without treating a map or a model as a substitute for what people say.':

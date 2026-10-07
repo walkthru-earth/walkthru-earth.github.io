@@ -20,9 +20,7 @@ import {
   Zap,
   Loader2,
   ArrowLeft,
-  Layers,
   Video,
-  ListTodo,
   Sparkles,
   ChevronDown,
 } from 'lucide-react';
@@ -32,6 +30,8 @@ import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/sections/footer';
+import { ProjectGallery } from '@/components/shared/project-gallery';
+import { features } from './data/features';
 import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
 
 // Platform icons
@@ -63,49 +63,6 @@ interface Release {
     platform: 'windows' | 'macos' | 'linux';
   }[];
 }
-
-const featureShowcase = [
-  {
-    icon: Map,
-    title: 'Interactive Map Preview',
-    description:
-      'Browse historical imagery with an intuitive timeline. Select any date from 1984 to 2025 and preview imagery before download.',
-    lightImage: '/software/imagery-desktop/feature-1-light.png',
-    darkImage: '/software/imagery-desktop/feature-1-dark.png',
-  },
-  {
-    icon: Layers,
-    title: 'Split View Comparison',
-    description:
-      'Compare imagery side-by-side across different dates. Analyze urban change, development patterns, and environmental shifts with precision.',
-    lightImage: '/software/imagery-desktop/feature-2-light.png',
-    darkImage: '/software/imagery-desktop/feature-2-dark.png',
-  },
-  {
-    icon: Video,
-    title: 'Video Timeline Export',
-    description:
-      'Create stunning timelapses showing urban transformation. Perfect for presentations, social media content, and storytelling on Instagram, TikTok, and YouTube.',
-    lightImage: '/software/imagery-desktop/feature-3-light.png',
-    darkImage: '/software/imagery-desktop/feature-3-dark.png',
-  },
-  {
-    icon: FileImage,
-    title: 'Flexible Export Options',
-    description:
-      'Export as GeoTIFF for GIS analysis, tiles for web maps, or videos for storytelling. Choose zoom levels and configure output precisely.',
-    lightImage: '/software/imagery-desktop/feature-4-light.png',
-    darkImage: '/software/imagery-desktop/feature-4-dark.png',
-  },
-  {
-    icon: ListTodo,
-    title: 'Background Task Queue',
-    description:
-      'Queue multiple exports and let them run in the background. Track progress, manage tasks, and download when ready.',
-    lightImage: '/software/imagery-desktop/feature-5-light.png',
-    darkImage: '/software/imagery-desktop/feature-5-dark.png',
-  },
-];
 
 const quickFeatures = [
   {
@@ -180,7 +137,7 @@ export default function ImageryDesktopPage() {
   const [release, setRelease] = useState<Release | null>(null);
   const [loading, setLoading] = useState(true);
   const [userOS, setUserOS] = useState<UserOS>(null);
-  const { theme, systemTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const { locale, t } = useI18n();
   const [mounted, setMounted] = useState(false);
 
@@ -191,8 +148,8 @@ export default function ImageryDesktopPage() {
     });
   }, []);
 
-  const effectiveTheme = theme === 'system' ? systemTheme : theme;
-  const isDark = mounted && effectiveTheme === 'dark';
+  const galleryReady = mounted && resolvedTheme !== undefined;
+  const isDark = resolvedTheme === 'dark';
 
   useEffect(() => {
     const controller = new AbortController();
@@ -285,7 +242,11 @@ export default function ImageryDesktopPage() {
       <>
         <Navbar />
         <BrandPage project="imagery">
-          <BrandHero tone="imagery" className="pt-28 md:pt-36">
+          <BrandHero
+            tone="imagery"
+            decorative={false}
+            className="pt-28 md:pt-36"
+          >
             <Container>
               <Button
                 variant="ghost"
@@ -388,20 +349,54 @@ export default function ImageryDesktopPage() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <BrandPanel tone="ink" className="p-3 sm:p-4 lg:rotate-2">
-                    <Image
-                      src={
-                        isDark
-                          ? featureShowcase[0].darkImage
-                          : featureShowcase[0].lightImage
-                      }
-                      alt={featureShowcase[0].title}
-                      width={1400}
-                      height={949}
-                      className="h-auto w-full rounded-2xl"
+                  {galleryReady ? (
+                    <ProjectGallery
+                      items={features.map((feature) => ({
+                        ...(isDark
+                          ? feature.darkScreenshot
+                          : feature.lightScreenshot),
+                        alt: feature.title,
+                        description: feature.description,
+                      }))}
                       priority
                     />
-                  </BrandPanel>
+                  ) : (
+                    <div aria-busy="true" aria-label="Screenshots">
+                      <figure>
+                        <div className="border-foreground/20 bg-background overflow-hidden rounded-3xl border-2">
+                          <div
+                            className="bg-muted"
+                            style={{
+                              aspectRatio: `${features[0].lightScreenshot.width} / ${features[0].lightScreenshot.height}`,
+                            }}
+                            aria-hidden="true"
+                          />
+                        </div>
+                        <figcaption className="mt-4">
+                          <p className="text-base font-bold">
+                            {features[0].title}
+                          </p>
+                          <p className="mt-2 text-sm leading-relaxed opacity-80">
+                            {features[0].description}
+                          </p>
+                        </figcaption>
+                      </figure>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {features.map((feature, index) => (
+                          <Button
+                            key={feature.title}
+                            type="button"
+                            variant={index === 0 ? 'default' : 'outline'}
+                            size="sm"
+                            className="h-auto min-h-10 max-w-full text-start whitespace-normal"
+                            disabled
+                          >
+                            {feature.title}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="mt-8 grid grid-cols-3 gap-4">
                     {[
                       ['40+', 'Years of Imagery'],
@@ -429,50 +424,7 @@ export default function ImageryDesktopPage() {
             </Container>
           </BrandHero>
 
-          <BrandSection>
-            <Container>
-              <BrandSectionHeading title="Screenshots" />
-              <div className="space-y-4">
-                {featureShowcase.slice(1).map((feature, index) => {
-                  const Icon = feature.icon;
-                  return (
-                    <BrandPanel key={feature.title} className="bg-card">
-                      <details open={index === 0} className="group">
-                        <summary className="flex cursor-pointer list-none items-center gap-4 rounded-xl outline-offset-4 [&::-webkit-details-marker]:hidden">
-                          <BrandIcon tone="imagery">
-                            <Icon aria-hidden="true" />
-                          </BrandIcon>
-                          <h3 className="min-w-0 flex-1 text-lg sm:text-2xl">
-                            {feature.title}
-                          </h3>
-                          <ChevronDown
-                            className="h-6 w-6 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none"
-                            aria-hidden="true"
-                          />
-                        </summary>
-                        <p className="text-muted-foreground mt-6 mb-5 max-w-3xl text-base leading-relaxed">
-                          {feature.description}
-                        </p>
-                        <div className="border-foreground/20 overflow-hidden rounded-[1.5rem] border-2">
-                          <Image
-                            src={
-                              isDark ? feature.darkImage : feature.lightImage
-                            }
-                            alt={feature.title}
-                            width={1400}
-                            height={949}
-                            className="h-auto w-full"
-                          />
-                        </div>
-                      </details>
-                    </BrandPanel>
-                  );
-                })}
-              </div>
-            </Container>
-          </BrandSection>
-
-          <BrandSection tone="ink">
+          <BrandSection tone="action">
             <Container>
               <BrandSectionHeading
                 title={

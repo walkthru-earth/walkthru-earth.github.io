@@ -15,7 +15,10 @@ const GlobeExplorer = dynamic(
     loading: () => (
       <Localized>
         <div className="bg-background flex h-dvh items-center justify-center">
-          <BrandPanel tone="green" className="flex flex-col items-center gap-4">
+          <BrandPanel
+            tone="spatial"
+            className="flex flex-col items-center gap-4"
+          >
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" />
             <p className="font-mono text-sm font-bold">
               Loading Globe Explorer...
@@ -49,7 +52,7 @@ export default function IndicesPage() {
         <Localized>
           <div className="bg-background flex h-dvh items-center justify-center">
             <BrandPanel
-              tone="green"
+              tone="spatial"
               className="flex flex-col items-center gap-4"
             >
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" />

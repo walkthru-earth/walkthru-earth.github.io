@@ -8,6 +8,7 @@ import { PostHogProvider, PostHogPageView } from './providers';
 import { ConsentInit } from '@/components/consent-init';
 import { CookieConsentBanner } from '@/components/cookie-consent-banner';
 import { I18nProvider } from '@/lib/i18n/i18n-provider';
+import { brandPaletteCss } from '@/lib/brand';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -105,6 +106,7 @@ export default function RootLayout({
       className={`${quicksand.variable} ${cairo.variable}`}
     >
       <head>
+        <style id="brand-palettes">{brandPaletteCss()}</style>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

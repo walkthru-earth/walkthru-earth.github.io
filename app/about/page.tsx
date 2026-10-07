@@ -56,13 +56,16 @@ export default function AboutPage() {
       <>
         <Navbar />
         <BrandPage>
-          <BrandHero tone="amber" id="purpose" className="scroll-mt-24">
+          <BrandHero tone="action" id="purpose" className="scroll-mt-24">
             <Container className="relative">
               <div className="max-w-4xl">
                 <BrandEyebrow>Our vision</BrandEyebrow>
                 <h1 className="max-w-5xl text-3xl leading-tight font-bold tracking-tight sm:text-4xl lg:text-5xl">
-                  {vision}
+                  Healthier places begin with understanding.
                 </h1>
+                <p className="mt-6 max-w-3xl text-xl leading-relaxed">
+                  {vision}
+                </p>
                 <p className="text-muted-foreground mt-6 max-w-2xl text-lg leading-relaxed md:text-xl">
                   {mission}
                 </p>
@@ -162,7 +165,7 @@ export default function AboutPage() {
             </Container>
           </BrandSection>
 
-          <BrandSection tone="green" className="border-t">
+          <BrandSection tone="spatial" className="border-t">
             <Container>
               <div className="mx-auto max-w-2xl text-center">
                 <h2 className="mb-4 text-2xl font-bold tracking-tight md:text-3xl">

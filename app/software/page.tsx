@@ -58,7 +58,7 @@ export default function SoftwarePage() {
       <>
         <Navbar />
         <BrandPage>
-          <BrandHero tone="earth" className="pt-28 md:pt-36">
+          <BrandHero tone="ecosystem" className="py-12 md:py-16">
             <Container>
               <div className="max-w-4xl">
                 <h1>Software</h1>

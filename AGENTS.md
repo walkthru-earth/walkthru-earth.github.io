@@ -4,14 +4,15 @@ This is the Next.js static website for **walkthru.earth**, including the browser
 
 ## Find the right files
 
-| Task                                                | Read first                                                                                   | Implementation entry points                                                 |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Setup, commands, dependency upgrades                | [CONTRIBUTING.md](CONTRIBUTING.md)                                                           | `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`                     |
-| Website structure or shared UI                      | [docs/architecture.md](docs/architecture.md), [app/AGENTS.md](app/AGENTS.md)                 | `app/layout.tsx`, `app/globals.css`, `components/shared/`, `components/ui/` |
-| Indices loading, H3, rendering, datasets            | [components/globe/AGENTS.md](components/globe/AGENTS.md), [docs/indices.md](docs/indices.md) | `components/globe/`                                                         |
-| Parquet producer or hosting changes                 | [docs/parquet-producer-guidance.md](docs/parquet-producer-guidance.md)                       | Globe worker and dataset URL builders                                       |
-| Hormones & Cities map, images, brain                | [app/AGENTS.md](app/AGENTS.md)                                                               | `app/hormones-cities/components/hnc/`                                       |
-| Publishing, build failures, analytics configuration | [docs/deployment.md](docs/deployment.md)                                                     | `.github/workflows/deploy.yml`, `next.config.mjs`, `app/providers.tsx`      |
+| Task                                                | Read first                                                                                                                | Implementation entry points                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Setup, commands, dependency upgrades                | [CONTRIBUTING.md](CONTRIBUTING.md)                                                                                        | `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`                     |
+| Website structure or shared UI                      | [docs/architecture.md](docs/architecture.md), [app/AGENTS.md](app/AGENTS.md)                                              | `app/layout.tsx`, `app/globals.css`, `components/shared/`, `components/ui/` |
+| Design palettes, project identity and page covers   | [app/AGENTS.md](app/AGENTS.md), [palette and cover architecture](docs/architecture.md#strategic-palettes-and-page-covers) | `lib/brand.ts`, `lib/strategy.ts`, `components/shared/brand-ui.tsx`         |
+| Indices loading, H3, rendering, datasets            | [components/globe/AGENTS.md](components/globe/AGENTS.md), [docs/indices.md](docs/indices.md)                              | `components/globe/`                                                         |
+| Parquet producer or hosting changes                 | [docs/parquet-producer-guidance.md](docs/parquet-producer-guidance.md)                                                    | Globe worker and dataset URL builders                                       |
+| Hormones & Cities map, images, brain                | [app/AGENTS.md](app/AGENTS.md)                                                                                            | `app/hormones-cities/components/hnc/`                                       |
+| Publishing, build failures, analytics configuration | [docs/deployment.md](docs/deployment.md)                                                                                  | `.github/workflows/deploy.yml`, `next.config.mjs`, `app/providers.tsx`      |
 
 ## Working conventions
 

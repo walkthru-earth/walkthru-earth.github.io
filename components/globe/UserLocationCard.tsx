@@ -62,7 +62,7 @@ export const UserLocationCard = memo(function UserLocationCard({
       >
         {/* Card body */}
         <BrandPanel
-          tone="amber"
+          tone="ecosystem"
           className="pointer-events-auto relative mb-3 w-72 rounded-2xl px-5 py-4 sm:w-80"
         >
           {/* Header */}

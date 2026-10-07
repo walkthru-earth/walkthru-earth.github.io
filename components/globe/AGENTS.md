@@ -1,6 +1,6 @@
 # Globe explorer working guide
 
-Read [the root guide](../../AGENTS.md), then [docs/indices.md](../../docs/indices.md). This directory serves `/indices` and the homepage preview.
+Read [the root guide](../../AGENTS.md), then [docs/indices.md](../../docs/indices.md). This directory serves `/indices`; editorial pages link to the explorer instead of mounting a preview.
 
 ## Where to work
 

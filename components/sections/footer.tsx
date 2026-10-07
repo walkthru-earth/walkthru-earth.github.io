@@ -92,6 +92,7 @@ export function Footer() {
                     <li>
                       <Link
                         href="/indices"
+                        prefetch={false}
                         className="text-background/75 hover:text-background text-base transition-colors"
                       >
                         Globe Explorer

@@ -125,7 +125,7 @@ const kindStyles = {
   ours: {
     border: 'border-secondary/40',
     bg: 'bg-secondary/5',
-    icon: 'text-secondary',
+    icon: 'text-palette-emphasis',
   },
   placeholder: {
     border: 'border-dashed border-muted-foreground/20',
@@ -168,9 +168,7 @@ function FlowNode({
       </div>
       {node.stat && (
         <span
-          className={`ms-auto ${mobile ? 'text-sm' : 'text-base'} font-bold whitespace-nowrap ${
-            node.kind === 'ours' ? 'text-secondary' : 'text-primary'
-          }`}
+          className={`ms-auto ${mobile ? 'text-sm' : 'text-base'} text-palette-emphasis font-bold whitespace-nowrap`}
         >
           {node.stat}
         </span>
@@ -188,9 +186,9 @@ function FlowArrow({ delay, vertical }: { delay: number; vertical?: boolean }) {
       className={`flex items-center justify-center ${vertical ? 'py-2' : 'px-2'}`}
     >
       {vertical ? (
-        <ArrowDown className="text-primary/50 h-6 w-6 animate-bounce" />
+        <ArrowDown className="text-palette-emphasis h-6 w-6 animate-bounce" />
       ) : (
-        <ArrowRight className="text-primary/50 h-6 w-6 rtl:rotate-180" />
+        <ArrowRight className="text-palette-emphasis h-6 w-6 rtl:rotate-180" />
       )}
     </motion.div>
   );
@@ -204,8 +202,10 @@ function CenterNode({ node, delay }: { node: FlowNode; delay: number }) {
       transition={{ duration: 0.5, delay }}
       className="bg-primary/5 border-primary/20 rounded-2xl border-2 px-7 py-6 text-center shadow-sm"
     >
-      <node.Icon className="text-primary mx-auto h-9 w-9" />
-      <div className="text-primary mt-2 text-lg font-bold">{node.label}</div>
+      <node.Icon className="text-palette-emphasis mx-auto h-9 w-9" />
+      <div className="text-palette-emphasis mt-2 text-lg font-bold">
+        {node.label}
+      </div>
       <div className="text-muted-foreground mt-0.5 text-sm">
         {node.sublabel}
       </div>
@@ -228,8 +228,8 @@ function Legend({ delay, className }: { delay: number; className?: string }) {
         </span>
       </div>
       <div className="flex items-center gap-1.5">
-        <Circle className="text-secondary h-3 w-3 fill-current" />
-        <span className="text-secondary text-sm font-medium">
+        <Circle className="text-palette-emphasis h-3 w-3 fill-current" />
+        <span className="text-palette-emphasis text-sm font-medium">
           Our initiatives
         </span>
       </div>
@@ -251,8 +251,8 @@ function LoopBack({ delay, className }: { delay: number; className?: string }) {
       transition={{ duration: 0.4, delay }}
       className={`flex items-center gap-2 ${className ?? ''}`}
     >
-      <CornerDownLeft className="text-secondary/60 h-5 w-5" />
-      <span className="text-secondary/70 text-sm font-medium">
+      <CornerDownLeft className="text-palette-emphasis h-5 w-5" />
+      <span className="text-palette-emphasis text-sm font-medium">
         Planned research: relate residents&apos; experiences to environmental
         conditions. Survey methods, privacy protections, and validation are
         still being developed.

@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/sections/footer';
@@ -18,8 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Brain, Heart, Globe, Sparkles } from 'lucide-react';
 
-import { useScrollScreenshots } from './hooks/useScrollScreenshots';
-import { ScrollingPhoneMockup } from './components/ScrollingPhoneMockup';
+import { ProjectGallery } from '@/components/shared/project-gallery';
 import { HormonesFlow } from './components/HormonesFlow';
 import { screenshots, allMetrics } from './data/content';
 import { Localized } from '@/lib/i18n/i18n-provider';
@@ -39,7 +38,7 @@ const HNCExplorer = dynamic(
         >
           <div className="flex flex-col items-center gap-3">
             <div
-              className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-2"
+              className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-2 motion-reduce:animate-none"
               aria-hidden="true"
             />
             <p className="text-muted-foreground font-mono text-sm">
@@ -67,13 +66,7 @@ function ContentBlock({
 /* ── Page ─────────────────────────────────────────────────────────── */
 
 export default function HormonesCitiesPage() {
-  const {
-    heroRef,
-    screenshotOpacities,
-    dotOpacities,
-    mobileTextOpacity,
-    mobilePhoneOpacity,
-  } = useScrollScreenshots(screenshots.length);
+  const [showExperiment, setShowExperiment] = useState(false);
 
   return (
     <Localized>
@@ -81,79 +74,72 @@ export default function HormonesCitiesPage() {
         <Navbar />
         <BrandPage project="wellbeing">
           {/* ─── Hero ─────────────────────────────────────────────── */}
-          <section
-            ref={heroRef}
-            className="relative h-[200vh] motion-reduce:h-auto"
-          >
-            <BrandHero
-              tone="wellbeing"
-              className="sticky top-0 flex h-dvh items-start py-20 motion-reduce:static motion-reduce:h-auto motion-reduce:min-h-dvh md:items-center"
-            >
-              <Container className="relative z-10 py-4 md:py-8">
-                <div className="relative lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-16">
-                  <motion.div
-                    style={{ opacity: mobileTextOpacity }}
-                    className="max-w-xl motion-reduce:!opacity-100 lg:!opacity-100"
-                  >
-                    <BrandEyebrow>
-                      <Heart className="h-4 w-4" aria-hidden="true" />
-                      <span className="text-sm font-bold">In development</span>
-                    </BrandEyebrow>
+          <BrandHero tone="wellbeing" decorative={false}>
+            <Container className="relative z-10">
+              <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+                <div className="max-w-xl">
+                  <BrandEyebrow>
+                    <Heart className="h-4 w-4" aria-hidden="true" />
+                    <span className="text-sm font-bold">In development</span>
+                  </BrandEyebrow>
 
-                    <h1 className="text-[clamp(2.5rem,7vw,5rem)] leading-[1.1] font-bold tracking-tight">
-                      <GradientText className="font-bold">
-                        Hormones & Cities
-                      </GradientText>
-                    </h1>
+                  <h1 className="text-[clamp(2.5rem,7vw,5rem)] leading-[1.1] font-bold tracking-tight">
+                    <GradientText className="font-bold">
+                      Hormones & Cities
+                    </GradientText>
+                  </h1>
 
-                    <p className="text-muted-foreground mt-4 max-w-md text-xl leading-relaxed">
-                      A research prototype exploring how environmental
-                      conditions relate to residents’ experiences.
-                    </p>
+                  <p className="text-muted-foreground mt-4 max-w-md text-xl leading-relaxed">
+                    A research prototype exploring how environmental conditions
+                    relate to residents’ experiences.
+                  </p>
 
-                    <div className="mt-6 flex flex-wrap items-center gap-2 text-sm">
-                      <Badge
-                        variant="outline"
-                        className="border-current text-current"
+                  <div className="mt-6 flex flex-wrap items-center gap-2 text-sm">
+                    <Badge
+                      variant="outline"
+                      className="border-current text-current"
+                    >
+                      Urban wellbeing
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className="border-current text-current"
+                    >
+                      Research prototype
+                    </Badge>
+                  </div>
+
+                  <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <Button
+                      size="lg"
+                      className="bg-foreground text-background hover:bg-foreground/90"
+                      asChild
+                    >
+                      <Link
+                        href="#experiment"
+                        onClick={() => setShowExperiment(true)}
                       >
-                        Urban wellbeing
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-current text-current"
-                      >
-                        Research prototype
-                      </Badge>
-                    </div>
-
-                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                      <Button
-                        size="lg"
-                        className="bg-foreground text-background hover:bg-foreground/90"
-                        asChild
-                      >
-                        <Link href="#experiment">
-                          Explore the experiment
-                          <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    style={{ opacity: mobilePhoneOpacity }}
-                    className="pointer-events-none absolute inset-0 flex items-center justify-center motion-reduce:pointer-events-auto motion-reduce:relative motion-reduce:mt-10 motion-reduce:!opacity-100 lg:pointer-events-auto lg:relative lg:!opacity-100"
-                  >
-                    <ScrollingPhoneMockup
-                      screenshots={screenshots}
-                      screenshotOpacities={screenshotOpacities}
-                      dotOpacities={dotOpacities}
-                    />
-                  </motion.div>
+                        Explore the experiment
+                        <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-              </Container>
-            </BrandHero>
-          </section>
+
+                <div className="min-w-0">
+                  <p className="mb-4 text-center text-sm font-bold">
+                    Research prototype
+                  </p>
+                  <ProjectGallery
+                    items={screenshots}
+                    portrait
+                    initialIndex={1}
+                    priority
+                  />
+                </div>
+              </div>
+            </Container>
+          </BrandHero>
 
           <BrandSection>
             <Container>
@@ -220,7 +206,29 @@ export default function HormonesCitiesPage() {
             {/* Break out of the narrow Container so the explorer is wider on
               large screens. Inner padding still keeps it readable on mobile. */}
             <ContentBlock className="brand-data-ui mx-auto mt-2 w-full max-w-[120rem] px-3 sm:px-5 lg:px-6 2xl:px-10">
-              <HNCExplorer />
+              <div className="mb-5 flex justify-center">
+                <Button
+                  type="button"
+                  variant={showExperiment ? 'outline' : 'default'}
+                  onClick={() => setShowExperiment((visible) => !visible)}
+                  aria-expanded={showExperiment}
+                  aria-controls="hnc-interactive-demo"
+                >
+                  {showExperiment ? 'Unload demo' : 'Load interactive demo'}
+                </Button>
+              </div>
+              <div id="hnc-interactive-demo">
+                {showExperiment ? (
+                  <HNCExplorer />
+                ) : (
+                  <div className="bg-muted/30 border-border mx-auto flex h-32 max-w-3xl items-center justify-center rounded-2xl border">
+                    <Brain
+                      className="text-muted-foreground h-10 w-10"
+                      aria-hidden="true"
+                    />
+                  </div>
+                )}
+              </div>
             </ContentBlock>
 
             <Container>

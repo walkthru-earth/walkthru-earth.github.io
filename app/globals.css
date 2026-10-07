@@ -8,11 +8,6 @@
     0 0% 9%
   ); /* Readable ink on bright solid accents in either theme */
 
-  /* Project accents follow the committed logos and product imagery. */
-  --opensensor: hsl(207 85% 55%);
-  --wellbeing: hsl(170 95% 43%);
-  --imagery: hsl(37 97% 62%);
-
   /* Logo display switching */
   --light-display: block;
   --dark-display: none;
@@ -120,6 +115,37 @@ html[dir='rtl'] .rtl-flip {
   --error: hsl(0 74% 60%);
 }
 
+/* Resolve scientific UI defaults on the document root before a project overrides
+   semantic colors. These inherited aliases retain root values in either theme. */
+:root {
+  --data-background: var(--background);
+  --data-foreground: var(--foreground);
+  --data-solid-foreground: var(--solid-foreground);
+  --data-card: var(--card);
+  --data-card-foreground: var(--card-foreground);
+  --data-popover: var(--popover);
+  --data-popover-foreground: var(--popover-foreground);
+  --data-primary: var(--primary);
+  --data-primary-foreground: var(--primary-foreground);
+  --data-secondary: var(--secondary);
+  --data-secondary-foreground: var(--secondary-foreground);
+  --data-muted: var(--muted);
+  --data-muted-foreground: var(--muted-foreground);
+  --data-accent: var(--accent);
+  --data-accent-foreground: var(--accent-foreground);
+  --data-destructive: var(--destructive);
+  --data-destructive-foreground: var(--destructive-foreground);
+  --data-border: var(--border);
+  --data-input: var(--input);
+  --data-ring: var(--ring);
+  --data-success: var(--success);
+  --data-success-muted: var(--success-muted);
+  --data-success-border: var(--success-border);
+  --data-warning: var(--warning);
+  --data-info: var(--info);
+  --data-error: var(--error);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -213,78 +239,42 @@ html[dir='rtl'] .rtl-flip {
 
 /* Shared editorial surfaces. Dense scientific interfaces keep their own scale. */
 @layer components {
-  .brand-project-opensensor {
-    --primary: var(--opensensor);
-    --primary-foreground: var(--solid-foreground);
-    --ring: var(--opensensor);
+  .brand-page {
+    background: var(--background);
+    color: var(--foreground);
   }
-  .brand-project-wellbeing {
-    --primary: var(--wellbeing);
-    --primary-foreground: var(--solid-foreground);
-    --secondary: var(--wellbeing);
-    --secondary-foreground: var(--solid-foreground);
-    --ring: var(--wellbeing);
-  }
-  .brand-project-imagery {
-    --primary: var(--imagery);
-    --primary-foreground: var(--solid-foreground);
-    --ring: var(--imagery);
-  }
-  .brand-project-objex {
-    --primary: var(--foreground);
-    --primary-foreground: var(--background);
-    --ring: var(--foreground);
-  }
-  /* Preserve distinct scientific selection colors inside project pages. */
+  /* Data controls use the document theme, independently of editorial palettes. */
   .brand-data-ui {
-    --primary: var(--earth-primary);
-    --secondary: var(--earth-secondary);
-    --primary-foreground: var(--solid-foreground);
-    --secondary-foreground: var(--solid-foreground);
-    --ring: var(--earth-primary);
-  }
-  .brand-tone-opensensor {
-    --brand-color: var(--opensensor);
-    --brand-ink: var(--solid-foreground);
-  }
-  .brand-tone-wellbeing {
-    --brand-color: var(--wellbeing);
-    --brand-ink: var(--solid-foreground);
-  }
-  .brand-tone-imagery {
-    --brand-color: var(--imagery);
-    --brand-ink: var(--solid-foreground);
-  }
-  .brand-tone-objex {
-    --brand-color: var(--foreground);
-    --brand-ink: var(--background);
-  }
-  .brand-tone-earth {
-    --brand-color: var(--primary);
-    --brand-ink: var(--solid-foreground);
-  }
-  .brand-tone-green {
-    --brand-color: var(--primary);
-    --brand-ink: var(--solid-foreground);
-  }
-  .brand-tone-amber {
-    --brand-color: var(--secondary);
-    --brand-ink: var(--solid-foreground);
-  }
-  .brand-tone-blue {
-    --brand-color: var(--info);
-    --brand-ink: var(--background);
-  }
-  .brand-tone-coral {
-    --brand-color: var(--error);
-    --brand-ink: var(--solid-foreground);
-  }
-  .brand-tone-ink {
-    --brand-color: var(--foreground);
-    --brand-ink: var(--background);
+    --background: var(--data-background);
+    --foreground: var(--data-foreground);
+    --solid-foreground: var(--data-solid-foreground);
+    --card: var(--data-card);
+    --card-foreground: var(--data-card-foreground);
+    --popover: var(--data-popover);
+    --popover-foreground: var(--data-popover-foreground);
+    --primary: var(--data-primary);
+    --primary-foreground: var(--data-primary-foreground);
+    --secondary: var(--data-secondary);
+    --secondary-foreground: var(--data-secondary-foreground);
+    --muted: var(--data-muted);
+    --muted-foreground: var(--data-muted-foreground);
+    --accent: var(--data-accent);
+    --accent-foreground: var(--data-accent-foreground);
+    --destructive: var(--data-destructive);
+    --destructive-foreground: var(--data-destructive-foreground);
+    --border: var(--data-border);
+    --input: var(--data-input);
+    --ring: var(--data-ring);
+    --success: var(--data-success);
+    --success-muted: var(--data-success-muted);
+    --success-border: var(--data-success-border);
+    --warning: var(--data-warning);
+    --info: var(--data-info);
+    --error: var(--data-error);
+    background-color: var(--background);
+    color: var(--foreground);
   }
   .brand-solid,
-  .brand-hero,
   .brand-icon {
     background: var(--brand-color);
     color: var(--brand-ink);
@@ -306,6 +296,9 @@ html[dir='rtl'] .rtl-flip {
     text-wrap: balance;
   }
   .brand-hero {
+    background: var(--palette-paper);
+    color: var(--palette-text);
+    border-bottom: 1px solid var(--palette-border);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -317,48 +310,29 @@ html[dir='rtl'] .rtl-flip {
     width: 100%;
   }
   .brand-hero-art {
+    position: absolute;
+    inset: auto 0 0;
+    height: 0.65rem;
+    display: flex;
     pointer-events: none;
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
   }
-  .brand-orbit {
-    position: absolute;
-    inset-inline-end: -8rem;
-    top: 10%;
-    width: clamp(18rem, 40vw, 42rem);
-    aspect-ratio: 1;
-    border: clamp(2rem, 5vw, 6rem) solid currentColor;
-    border-radius: 50%;
-    opacity: 0.07;
+  .brand-hero-art span {
+    flex: 1;
   }
-  .brand-spark {
-    position: absolute;
-    inset-inline-end: 8%;
-    bottom: -4rem;
-    width: clamp(10rem, 22vw, 20rem);
-    aspect-ratio: 1;
-    background: currentColor;
-    opacity: 0.08;
-    transform: rotate(-12deg);
-    clip-path: polygon(
-      50% 0,
-      61% 30%,
-      85% 15%,
-      70% 39%,
-      100% 50%,
-      70% 61%,
-      85% 85%,
-      61% 70%,
-      50% 100%,
-      39% 70%,
-      15% 85%,
-      30% 61%,
-      0 50%,
-      30% 39%,
-      15% 15%,
-      39% 30%
-    );
+  .brand-hero-art span:nth-child(1) {
+    background: var(--palette-main);
+  }
+  .brand-hero-art span:nth-child(2) {
+    background: var(--palette-accent);
+  }
+  .brand-hero-art span:nth-child(3) {
+    background: var(--palette-deep);
+  }
+  .brand-hero-art span:nth-child(4) {
+    background: var(--palette-surface);
+  }
+  .brand-hero-art span:nth-child(5) {
+    background: var(--palette-main);
   }
   .brand-section {
     padding-block: clamp(3.5rem, 6vw, 6rem);
@@ -456,25 +430,6 @@ html[dir='rtl'] .rtl-flip {
   );
 }
 
-/* Marquee chip scroller */
-.marquee-chips-scroll {
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.marquee-chips-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.marquee-chips-track {
-  display: flex;
-  gap: 0.5rem;
-  padding-inline: 1.5rem;
-  width: max-content;
-}
-
 /* Time slider thumb */
 .time-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -492,4 +447,134 @@ html[dir='rtl'] .rtl-flip {
   background: var(--background);
   border: 2px solid var(--success);
   cursor: pointer;
+}
+
+/* The cover diagram has no remote assets or frame loop. Motion runs once. */
+@layer components {
+  .home-cover {
+    padding-block: clamp(3rem, 6vw, 6rem);
+  }
+  .home-cover h1 {
+    font-size: clamp(2.9rem, 5.5vw, 5.25rem);
+  }
+  .cover-highlight {
+    text-decoration: underline;
+    text-decoration-color: var(--palette-main);
+    text-decoration-thickness: 0.12em;
+    text-underline-offset: 0.12em;
+  }
+  .evidence-graphic {
+    width: 100%;
+    max-width: 33rem;
+    margin-inline: auto;
+    padding: 1.25rem;
+    border: 1px solid var(--palette-border);
+    border-radius: 2rem;
+    background: var(--palette-surface);
+    color: var(--palette-text);
+    transform: rotate(2deg);
+  }
+  .evidence-graphic svg {
+    width: 100%;
+    height: auto;
+  }
+  .evidence-caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+  }
+  .evidence-legend {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    background: var(--palette-paper);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  .goal-palette-panel {
+    background: var(--palette-paper);
+    color: var(--palette-text);
+  }
+  .goal-palette-fan {
+    display: flex;
+    width: 14rem;
+    height: 4.5rem;
+    align-items: center;
+    padding-inline-start: 0.5rem;
+    margin-block: 1.5rem;
+  }
+  .goal-palette-fan span {
+    display: block;
+    flex: 0 0 3.25rem;
+    height: 4rem;
+    margin-inline-start: -0.5rem;
+    border: 1px solid var(--palette-deep);
+    border-radius: 0.65rem;
+    transform: rotate(var(--swatch-turn));
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--palette-deep) 16%, transparent);
+  }
+  .goal-palette-fan span:nth-child(1) {
+    --swatch-turn: -12deg;
+  }
+  .goal-palette-fan span:nth-child(2) {
+    --swatch-turn: -6deg;
+  }
+  .goal-palette-fan span:nth-child(3) {
+    --swatch-turn: 0deg;
+  }
+  .goal-palette-fan span:nth-child(4) {
+    --swatch-turn: 6deg;
+  }
+  .goal-palette-fan span:nth-child(5) {
+    --swatch-turn: 12deg;
+  }
+  .goal-palette-panel .text-muted-foreground {
+    color: var(--palette-muted);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .evidence-graphic {
+    animation: evidence-arrive 800ms ease-out both;
+  }
+  .evidence-connection {
+    animation: evidence-connect 1.8s ease-out both;
+  }
+  .goal-palette-fan span {
+    animation: palette-unfold 450ms ease-out both;
+  }
+}
+@keyframes evidence-arrive {
+  from {
+    transform: translateY(12px) rotate(0deg);
+  }
+  to {
+    transform: translateY(0) rotate(2deg);
+  }
+}
+@keyframes evidence-connect {
+  from {
+    stroke-dashoffset: 60;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes palette-unfold {
+  from {
+    transform: translateX(-8px) rotate(0deg);
+  }
+  to {
+    transform: translateX(0) rotate(var(--swatch-turn));
+  }
+}
+
+/* Text accents stay legible independently of pastel button/background colors. */
+@utility text-palette-emphasis {
+  color: var(--palette-emphasis, var(--foreground));
 }

@@ -21,7 +21,7 @@ const mainLinks = [
     description: 'Our main website',
     url: '/',
     icon: Globe,
-    color: 'brand-tone-green',
+    color: 'brand-tone-spatial',
     internal: true,
   },
   {
@@ -44,14 +44,14 @@ const mainLinks = [
     description: 'Datasets on Source Cooperative',
     url: 'https://source.coop/walkthru-earth',
     image: '/source-coop-logo.png',
-    color: 'brand-tone-ink',
+    color: 'brand-tone-action',
   },
   {
     title: 'Presentations',
     description: 'Our talks and slides',
     url: 'https://walkthru.earth/talks',
     icon: ExternalLink,
-    color: 'brand-tone-amber',
+    color: 'brand-tone-ecosystem',
   },
 ];
 
@@ -130,9 +130,20 @@ export default function LinksPage() {
         <div className="mx-auto max-w-xl px-4 pt-24 pb-12">
           {/* Profile Header */}
           <BrandHero
-            tone="green"
+            tone="spatial"
+            decorative={false}
             className="mb-8 rounded-[2rem] px-6 py-12 text-center"
           >
+            <div className="mb-6 flex justify-center gap-2" aria-hidden="true">
+              {['ecosystem', 'sensing', 'experience', 'spatial', 'action'].map(
+                (palette) => (
+                  <span
+                    key={palette}
+                    className={`brand-tone-${palette} h-3 w-10 rounded-full bg-[var(--brand-color)]`}
+                  />
+                )
+              )}
+            </div>
             <Link href="/" className="inline-block">
               <Image
                 src="/icon.svg"
@@ -201,7 +212,7 @@ export default function LinksPage() {
           <div className="mb-8">
             <a
               href="mailto:hi@walkthru.earth"
-              className="brand-panel brand-solid brand-tone-green focus-visible:ring-ring flex items-center justify-center gap-2 p-5 text-lg font-bold transition-transform hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-offset-4 motion-reduce:transform-none"
+              className="brand-panel brand-solid brand-tone-spatial focus-visible:ring-ring flex items-center justify-center gap-2 p-5 text-lg font-bold transition-transform hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-offset-4 motion-reduce:transform-none"
             >
               <Mail className="h-5 w-5" />
               hi@walkthru.earth

@@ -1,6 +1,67 @@
 import type { MessageCatalog } from './types';
 
 export const strategyMessages: MessageCatalog = {
+  'People · Places · Evidence': {
+    arEG: 'ناس · أماكن · أدلة',
+    ar: 'الناس · الأماكن · الأدلة',
+  },
+  'Understand places.': {
+    arEG: 'نفهم الأماكن.',
+    ar: 'نفهم الأماكن.',
+  },
+  'Make change.': {
+    arEG: 'نعمل تغيير.',
+    ar: 'نُحدث تغييرًا.',
+  },
+  'Open tools connecting environmental data and lived experience. Together, we turn everyday observations into evidence for healthier places.':
+    {
+      arEG: 'أدوات مفتوحة بتربط البيانات البيئية بتجارب الناس. مع بعض، بنحوّل ملاحظاتنا اليومية لأدلة تساعدنا نخلي الأماكن صحية أكتر.',
+      ar: 'أدوات مفتوحة تربط البيانات البيئية بالتجارب المعيشة. معًا، نحوّل الملاحظات اليومية إلى أدلة تدعم أماكن أكثر صحة.',
+    },
+  'Explore our goals': {
+    arEG: 'استكشف أهدافنا',
+    ar: 'استكشف أهدافنا',
+  },
+  'A shared picture of a place': {
+    arEG: 'صورة مشتركة عن المكان',
+    ar: 'صورة مشتركة عن المكان',
+  },
+  'Local observations': {
+    arEG: 'ملاحظات محلية',
+    ar: 'ملاحظات محلية',
+  },
+  Sense: {
+    arEG: 'نرصد',
+    ar: 'نرصد',
+  },
+  Share: {
+    arEG: 'نشارك',
+    ar: 'نشارك',
+  },
+  Understand: {
+    arEG: 'نفهم',
+    ar: 'نفهم',
+  },
+  'Healthier places begin with understanding.': {
+    arEG: 'الأماكن الصحية أكتر بتبدأ بالفهم.',
+    ar: 'الأماكن الأكثر صحة تبدأ بالفهم.',
+  },
+  'Five goals. Five colors. One connected mission.': {
+    arEG: 'خمس أهداف. خمس ألوان. رسالة واحدة بتجمعنا.',
+    ar: 'خمسة أهداف. خمسة ألوان. رسالة واحدة مترابطة.',
+  },
+  'Choose a demo to explore its data here. One demo runs at a time.': {
+    arEG: 'اختار عرض تجريبي علشان تستكشف بياناته هنا. عرض واحد بس بيشتغل في كل مرة.',
+    ar: 'اختر عرضًا تجريبيًا لاستكشاف بياناته هنا. يعمل عرض واحد في كل مرة.',
+  },
+  'Load interactive demo': {
+    arEG: 'شغّل العرض التفاعلي',
+    ar: 'شغّل العرض التفاعلي',
+  },
+  'Unload demo': {
+    arEG: 'اقفل العرض',
+    ar: 'أغلق العرض',
+  },
   'Open tools for the relationships between people and places.': {
     arEG: 'أدوات مفتوحة لفهم العلاقة بين الناس والأماكن.',
     ar: 'أدوات مفتوحة لفهم العلاقات بين الناس والأماكن.',
