@@ -39,12 +39,16 @@ export function ProjectGallery({
             key={item.src}
             className={cn(
               'border-foreground/20 bg-background overflow-hidden rounded-3xl border-2',
-              portrait &&
-                'mx-auto h-[25rem] w-[17rem] max-w-full overflow-y-auto overscroll-contain'
+              portrait && 'mx-auto aspect-[9/19] w-[17rem] max-w-full'
             )}
-            role={portrait ? 'region' : undefined}
-            aria-label={portrait ? item.alt : undefined}
-            tabIndex={portrait ? 0 : undefined}
+            style={
+              portrait
+                ? {
+                    maskImage:
+                      'linear-gradient(to bottom, black 76%, transparent 100%)',
+                  }
+                : undefined
+            }
           >
             <Image
               key={item.src}
@@ -59,6 +63,17 @@ export function ProjectGallery({
           </div>
           <figcaption className="mt-4" aria-live="polite" aria-atomic="true">
             <p className="text-base font-bold">{item.alt}</p>
+            {portrait && (
+              <a
+                href={item.src}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
+                aria-label="View full screenshot (opens in a new tab)"
+              >
+                View full screenshot
+              </a>
+            )}
             {item.description && (
               <p className="mt-2 text-sm leading-relaxed opacity-80">
                 {item.description}

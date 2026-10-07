@@ -3,6 +3,14 @@ import type { MessageCatalog } from './types';
 const phrase = (ar: string, arEG = ar) => ({ ar, arEG });
 
 export const projectMessages: MessageCatalog = {
+  'View full screenshot': phrase(
+    'عرض لقطة الشاشة كاملة',
+    'شوف لقطة الشاشة كاملة'
+  ),
+  'View full screenshot (opens in a new tab)': phrase(
+    'عرض لقطة الشاشة كاملة (تفتح في علامة تبويب جديدة)',
+    'شوف لقطة الشاشة كاملة (بتفتح في تبويب جديد)'
+  ),
   'Keep measuring, even when the connection drops.': phrase(
     'واصل القياس، حتى عند انقطاع الاتصال.',
     'كمّل القياس، حتى لو الاتصال فصل.'

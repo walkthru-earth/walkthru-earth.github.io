@@ -96,7 +96,9 @@ touch and reduced-motion use.
 About leads with purpose; Software, Links and Privacy use compact
 editorial introductions. Hormones & Cities and Imagery Desktop use
 `ProjectGallery`: explicit screenshot buttons, one mounted image at a time,
-no autoplay and no scroll scrubbing. The Hormones & Cities experiment starts only when requested; its hero action both opens and scrolls to the experiment, and an unload control releases it. Objex demos mount an iframe only after
+no autoplay and no scroll scrubbing. Portrait previews share a fixed 9:19 phone frame with a transparent bottom fade
+and no nested scrollbar. A full-screenshot link opens the original image separately.
+Keep image metadata aligned with source dimensions, even when the preview is cropped. The Hormones & Cities experiment starts only when requested; its hero action both opens and scrolls to the experiment, and an unload control releases it. Objex demos mount an iframe only after
 “Load interactive demo”; closing the disclosure, unloading, or selecting another
 demo releases it. The indices route stays an application without an extra cover.
 

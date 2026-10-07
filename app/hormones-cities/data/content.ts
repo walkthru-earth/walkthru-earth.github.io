@@ -24,20 +24,20 @@ export const screenshots = [
   {
     src: '/hormones-cities-ai.png',
     alt: 'AI Chat Interface',
-    width: 280,
-    height: 600,
+    width: 780,
+    height: 1768,
   },
   {
     src: '/hormones-cities-dashboard.png',
     alt: 'City-Wide Trends Dashboard',
-    width: 280,
-    height: 1500,
+    width: 720,
+    height: 3174,
   },
   {
     src: '/hormones-cities-survey.png',
     alt: 'Survey Categories',
-    width: 280,
-    height: 1200,
+    width: 750,
+    height: 2298,
   },
 ];
 
