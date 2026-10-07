@@ -186,7 +186,10 @@ export function viewportToH3Ranges(
     ((paddedSpan / 360) *
       (Math.sin(north * radians) - Math.sin(south * radians))) /
     2;
-  let filterRes = Math.min(4, dataRes - 2);
+  // A fixed coarse cover would retain hundreds of thousands of offscreen
+  // descendants at city zooms. Use the finest cover that fits the same budget;
+  // overlapping bounding boxes still conservatively cover child geometry.
+  let filterRes = dataRes;
   while (
     filterRes > 0 &&
     getNumCells(filterRes) * globeFraction > MAX_FILTER_CELLS / 2

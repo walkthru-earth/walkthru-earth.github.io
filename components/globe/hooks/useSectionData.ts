@@ -14,6 +14,7 @@ import { timestampToMs } from '../utils/time-series';
 
 interface DataState {
   section: GlobeSection | null;
+  requestKey: string | null;
   rows: Row[];
   range: ColorRange;
   info: ParquetInfo | null;
@@ -24,6 +25,7 @@ interface DataState {
 }
 const EMPTY: DataState = {
   section: null,
+  requestKey: null,
   rows: [],
   range: { min: 0, max: 1 },
   info: null,
@@ -59,6 +61,7 @@ export function useSectionData(
 ) {
   const [state, setState] = useState<DataState>(EMPTY);
   const rangesKey = JSON.stringify(h3Ranges ?? null);
+  const requestKey = JSON.stringify([h3Res, rangesKey]);
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
@@ -67,13 +70,16 @@ export function useSectionData(
     const update = (patch: Partial<DataState>) => {
       if (!signal.aborted)
         setState((previous) => ({
-          ...(previous.section === section ? previous : EMPTY),
-          section,
+          ...(previous.section === section && previous.requestKey === requestKey
+            ? previous
+            : EMPTY),
           ...patch,
+          section,
+          requestKey,
         }));
     };
     void (async () => {
-      update({ loading: true, error: null });
+      update({ ...EMPTY, loading: true, error: null });
       try {
         const context = {
           ...(await resolveSectionContext(section, h3Res)),
@@ -102,8 +108,12 @@ export function useSectionData(
       }
     })();
     return () => controller.abort();
-  }, [section, h3Res, rangesKey, enabled]);
-  return state.section === section ? state : EMPTY;
+  }, [section, h3Res, rangesKey, requestKey, enabled]);
+  // Hide the old response during render, before effect cleanup/load begins.
+  // A section alone cannot distinguish its previous resolution or viewport.
+  return enabled && state.section === section && state.requestKey === requestKey
+    ? state
+    : EMPTY;
 }
 
 /** Build time buckets once per response; playback never scans the entire forecast. */

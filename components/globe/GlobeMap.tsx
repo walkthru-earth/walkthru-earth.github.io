@@ -12,6 +12,7 @@ import {
   LinearInterpolator,
   type PickingInfo,
   type Layer,
+  type Viewport,
 } from '@deck.gl/core';
 import {
   BitmapLayer,
@@ -29,6 +30,7 @@ import {
   BASE_BORDERS_ID,
 } from './data/constants';
 import type { UserLocation } from './hooks/useUserLocation';
+import { capExtrusionScale } from './utils/globe-rendering';
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -42,6 +44,16 @@ const LAND_GEOJSON = '/geo/ne_50m_land.geojson';
 const COUNTRY_BORDERS = '/geo/ne_50m_admin_0_boundary_lines_land.geojson';
 
 const GLOBE_VIEW = new GlobeView({ id: 'globe', resolution: 5 });
+
+// The Cartesian background mesh only represents the earth in spherical
+// coordinates. GlobeView switches to a Mercator viewport above zoom 12.
+const filterLayers = ({
+  layer,
+  viewport,
+}: {
+  layer: Layer;
+  viewport: Viewport;
+}) => layer.id !== 'earth-sphere' || 'resolution' in viewport;
 
 const TRANSITION_INTERPOLATOR = new LinearInterpolator([
   'longitude',
@@ -76,12 +88,12 @@ const H3_EDGE_LENGTH_M: Record<number, number> = {
  * Compute user pin dimensions scaled to the current H3 resolution so the
  * pin matches the size of a single H3 hexagon cell.
  *
- * H3 circumradius ≈ edge length.  The H3HexagonLayer uses coverage=0.92,
- * so the displayed hex radius = edge * 0.92.  We match that for the head.
+ * H3 circumradius ≈ edge length. The H3HexagonLayer uses full coverage,
+ * so the displayed hex radius matches the edge length.
  */
 function pinMetrics(h3Res: number, extruded: boolean) {
   const edge = H3_EDGE_LENGTH_M[h3Res] ?? 59_811 / Math.pow(2.6, h3Res - 3);
-  const hexRadius = edge * 0.92; // match H3HexagonLayer coverage
+  const hexRadius = edge;
   return {
     height: edge * (extruded ? 2 : 1),
     beamRadius: hexRadius * 0.08,
@@ -209,6 +221,19 @@ export const GlobeMap = memo(function GlobeMap({
     []
   );
   const { hexagons, lookup } = useH3Data(layerData, getHexagon);
+  const maxRawElevation = useMemo(() => {
+    if (!extruded || !getElevation) return 0;
+    let maximum = 0;
+    for (const row of layerData) {
+      const elevation = getElevation(row);
+      if (Number.isFinite(elevation)) maximum = Math.max(maximum, elevation);
+    }
+    return maximum;
+  }, [layerData, getElevation, extruded]);
+  const [cameraAltitude, setCameraAltitude] = useState(0);
+  const cappedElevationScale = extruded
+    ? capExtrusionScale(elevationScale, maxRawElevation, cameraAltitude)
+    : elevationScale;
 
   // Keep callback ref fresh without triggering re-renders
   const onUserPinScreenRef = useRef(onUserPinScreen);
@@ -247,6 +272,29 @@ export const GlobeMap = memo(function GlobeMap({
     if (!deck) return;
     const viewport = deck.getViewports?.()?.[0];
     if (!viewport) return;
+
+    // Keep extrusions below the camera in both spherical and Mercator views.
+    // Publish only changes that affect the cap, rather than every drawn frame.
+    if (extruded && maxRawElevation > 0) {
+      const altitude = viewport.unprojectPosition(viewport.cameraPosition)[2];
+      if (Number.isFinite(altitude) && altitude > 0) {
+        setCameraAltitude((previous) => {
+          const oldScale = capExtrusionScale(
+            elevationScale,
+            maxRawElevation,
+            previous
+          );
+          const nextScale = capExtrusionScale(
+            elevationScale,
+            maxRawElevation,
+            altitude
+          );
+          return nextScale < oldScale || nextScale > oldScale * 1.01
+            ? altitude
+            : previous;
+        });
+      }
+    }
 
     // ── User pin projection ──
     const loc = userLocationRef.current;
@@ -331,7 +379,7 @@ export const GlobeMap = memo(function GlobeMap({
         /* viewport may not support getBounds */
       }
     }
-  }, [h3Res]);
+  }, [h3Res, extruded, elevationScale, maxRawElevation]);
 
   // deck.gl manages internal state — animates to new position on change.
   // On first render, use URL override (no transition); afterwards fly-to
@@ -418,13 +466,19 @@ export const GlobeMap = memo(function GlobeMap({
             ...props,
             data: undefined,
             image: props.data as string,
+            // EOX tiles use Web Mercator, including while the geometry is
+            // projected onto the globe. Do not interpolate their Y in latitude.
+            _imageCoordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
             bounds: [west, south, east, north] as [
               number,
               number,
               number,
               number,
             ],
-            parameters: { depthCompare: 'less-equal' },
+            parameters: {
+              depthCompare: 'less-equal',
+              depthWriteEnabled: false,
+            },
             getPolygonOffset: () => [30, 30],
           });
         },
@@ -439,7 +493,7 @@ export const GlobeMap = memo(function GlobeMap({
         filled: true,
         opacity: baseControls?.[BASE_LAND_ID]?.opacity ?? palette.landOpacity,
         getFillColor: palette.land,
-        parameters: { depthCompare: 'less-equal' },
+        parameters: { depthCompare: 'less-equal', depthWriteEnabled: false },
         getPolygonOffset: () => [20, 20],
       }),
 
@@ -453,7 +507,7 @@ export const GlobeMap = memo(function GlobeMap({
         lineWidthMinPixels: 0.5,
         opacity: baseControls?.[BASE_BORDERS_ID]?.opacity ?? 1,
         getLineColor: palette.borders,
-        parameters: { depthCompare: 'less-equal' },
+        parameters: { depthCompare: 'less-equal', depthWriteEnabled: false },
         getPolygonOffset: () => [10, 10],
       }),
     ],
@@ -470,16 +524,19 @@ export const GlobeMap = memo(function GlobeMap({
         data: hexagons,
         pickable: true,
         filled: true,
+        // Flat cells need only the fill; PolygonLayer otherwise also creates
+        // a PathLayer for every boundary, including another picking draw.
+        stroked: false,
         highPrecision: true,
         extruded,
-        elevationScale,
+        elevationScale: cappedElevationScale,
         getHexagon: (hex) => hex,
         getFillColor: (_hex, { index }) =>
           getFillColor(layerData[index], colorRange),
         getElevation: (_hex, { index }) =>
           getElevation?.(layerData[index]) ?? 0,
         opacity: layerOpacity,
-        coverage: 0.92,
+        coverage: 1,
         material: {
           ambient: 0.64,
           diffuse: 0.6,
@@ -503,7 +560,7 @@ export const GlobeMap = memo(function GlobeMap({
     getFillColor,
     getElevation,
     extruded,
-    elevationScale,
+    cappedElevationScale,
     layerOpacity,
     layerVisible,
   ]);
@@ -606,7 +663,26 @@ export const GlobeMap = memo(function GlobeMap({
 
   const handleHover = useCallback(
     (info: PickingInfo) => {
-      onCursorOverGlobe?.(info.coordinate != null);
+      const coordinate = info.coordinate;
+      let overGlobe = Boolean(
+        coordinate &&
+        Number.isFinite(coordinate[0]) &&
+        Number.isFinite(coordinate[1])
+      );
+      if (
+        overGlobe &&
+        !info.picked &&
+        info.viewport &&
+        'resolution' in info.viewport
+      ) {
+        // Globe unproject clamps rays that miss the sphere to its horizon.
+        // A surface coordinate must project back to the original pointer.
+        const [x, y] = info.viewport.project(coordinate!);
+        overGlobe =
+          Math.abs(x + info.viewport.x - info.x) < 2 &&
+          Math.abs(y + info.viewport.y - info.y) < 2;
+      }
+      onCursorOverGlobe?.(overGlobe);
       if (info.object) {
         const h3 =
           info.layer?.id === 'h3-layer' && typeof info.object === 'string'
@@ -665,6 +741,7 @@ export const GlobeMap = memo(function GlobeMap({
         useDevicePixels={Math.min(2, window.devicePixelRatio || 1)}
         effects={effects}
         layers={layers}
+        layerFilter={filterLayers}
         onHover={handleHover}
         onAfterRender={handleAfterRender}
         onError={handleRenderError}

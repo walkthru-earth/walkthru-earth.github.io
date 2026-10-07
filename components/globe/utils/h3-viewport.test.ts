@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   cellToBoundary,
   cellToChildren,
+  cellToParent,
+  cellToChildrenSize,
   getPentagons,
   latLngToCell,
   polygonToCellsExperimental,
@@ -214,6 +216,46 @@ describe('viewportToH3Ranges', () => {
     expect(overlapping.length).toBeGreaterThan(0);
     for (const cell of overlapping) expect(contains(cell)).toBe(true);
   });
+
+  it.each([8, 10])(
+    'uses a fine bounded cover for a city viewport at resolution %s',
+    (resolution) => {
+      const bounds: Bounds = [31.22, 30.03, 31.24, 30.05];
+      const contains = coverage(bounds, resolution);
+      const ranges = viewportToH3Ranges(bounds, resolution)!;
+      // Every range spans one parent's descendants. Recover that parent's
+      // resolution from the last shared H3 digit in its endpoints.
+      const candidates = ranges.reduce((count, [lo, hi]) => {
+        let parentResolution = resolution;
+        while (
+          parentResolution > 0 &&
+          cellToParent(lo, parentResolution) !==
+            cellToParent(hi, parentResolution)
+        )
+          parentResolution--;
+        return (
+          count +
+          cellToChildrenSize(cellToParent(lo, parentResolution), resolution)
+        );
+      }, 0);
+      // The old fixed res4 cover selected 9,604 / 470,596 descendants.
+      expect(candidates).toBeLessThan(5_000);
+      const overlapping = polygonToCellsExperimental(
+        [
+          [
+            [bounds[1], bounds[0]],
+            [bounds[1], bounds[2]],
+            [bounds[3], bounds[2]],
+            [bounds[3], bounds[0]],
+          ],
+        ],
+        resolution,
+        POLYGON_TO_CELLS_FLAGS.containmentOverlapping
+      );
+      expect(overlapping.length).toBeGreaterThan(0);
+      for (const cell of overlapping) expect(contains(cell)).toBe(true);
+    }
+  );
 
   it('bounds query complexity for large viewports even at resolution 15', () => {
     const contains = coverage([-179, -75, 179, 75], 15);

@@ -147,10 +147,13 @@ export function GlobeExplorer({
   const [pendingH3Res, setPendingH3Res] = useState<number | null>(null);
   const currentSection = sections[activeSection];
 
-  // Debounced viewport bounds for H3 range computation.
-  const [debouncedBounds, setDebouncedBounds] = useState<
-    [number, number, number, number] | null
-  >(null);
+  // Commit zoom and bounds together after camera motion settles. Live zoom
+  // still drives the UI, but it must not reload H3 geometry mid-gesture.
+  const [queryViewport, setQueryViewport] = useState<{
+    zoom: number;
+    bounds: [number, number, number, number] | null;
+  }>(() => ({ zoom, bounds: null }));
+  const debouncedBounds = queryViewport.bounds;
 
   // Reset zoom + bounds when switching sections so autoH3Res is correct
   // immediately (before the fly-to animation completes).
@@ -171,41 +174,36 @@ export function GlobeExplorer({
       // First-time navigation: fly to section default and reset bounds
       setZoom(currentSection.viewState.zoom);
       setViewportBounds(null);
-      setDebouncedBounds(null);
+      setQueryViewport({ zoom: currentSection.viewState.zoom, bounds: null });
     }
     // When user has interacted: keep current zoom, longitude, latitude
     // and viewport bounds so data loads for the current visible area.
   }
 
-  // Auto H3 resolution from zoom level (clamped to section's range)
+  // Auto H3 resolution from the settled camera, clamped to the source range.
   const autoH3Res = useMemo(() => {
     const [min, max] = currentSection.h3ResRange;
-    const mapped = Math.round(zoom * 0.8);
+    const mapped = Math.round(queryViewport.zoom * 0.8);
     const clamped = Math.max(min, Math.min(max, mapped));
     if (process.env.NODE_ENV !== 'production') {
       console.log(
-        `[Globe:Explorer] autoH3Res: zoom=${zoom.toFixed(2)} → mapped=${mapped} → clamped=${clamped} (range=[${min},${max}])`
+        `[Globe:Explorer] autoH3Res: zoom=${queryViewport.zoom.toFixed(2)} → mapped=${mapped} → clamped=${clamped} (range=[${min},${max}])`
       );
     }
     return clamped;
-  }, [zoom, currentSection.h3ResRange]);
+  }, [queryViewport.zoom, currentSection.h3ResRange]);
 
   // Manual override takes priority; otherwise auto from zoom
   const h3Res = h3ResOverrides[activeSection] ?? autoH3Res;
 
-  // When h3Res changes, flush bounds immediately (render-time adjustment).
-  const [prevH3Res, setPrevH3Res] = useState(h3Res);
-  if (prevH3Res !== h3Res) {
-    setPrevH3Res(h3Res);
-    console.log(`[Globe:Explorer] h3Res changed → flush bounds immediately`);
-    setDebouncedBounds(viewportBounds);
-  }
-
-  // Debounce viewport bound changes (only fires on viewportBounds change).
+  // Resolution and spatial filtering use the same committed viewport.
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedBounds(viewportBounds), 400);
+    const timer = setTimeout(
+      () => setQueryViewport({ zoom, bounds: viewportBounds }),
+      400
+    );
     return () => clearTimeout(timer);
-  }, [viewportBounds]);
+  }, [viewportBounds, zoom]);
 
   // Compute H3 viewport ranges from debounced bounds
   const h3Ranges = useMemo(() => {
@@ -379,7 +377,10 @@ export function GlobeExplorer({
 
   // Clear manual override when user zooms away from where it was set
   // (render-time state adjustment — avoids useEffect + synchronous setState)
-  if (Math.abs(zoom - overrideZoom) > 0.5 && activeSection in h3ResOverrides) {
+  if (
+    Math.abs(queryViewport.zoom - overrideZoom) > 0.5 &&
+    activeSection in h3ResOverrides
+  ) {
     const next = { ...h3ResOverrides };
     delete next[activeSection];
     setH3ResOverrides(next);

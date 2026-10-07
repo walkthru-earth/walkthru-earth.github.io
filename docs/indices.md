@@ -12,8 +12,8 @@ The [scoped agent guide](../components/globe/AGENTS.md) maps individual changes 
 
 ## On-demand data flow
 
-1. Viewport and section state select an H3 resolution within the dataset's supported range. Manual resolution changes override the automatic zoom choice.
-2. Debounced geographic bounds become merged H3 ranges in `h3-viewport.ts`. Whole-globe views can omit spatial filtering. At resolution 3 and above, the explorer waits for initial viewport bounds before starting a request to avoid an initial unbounded scan.
+1. Viewport and section state select an H3 resolution within the dataset's supported range. Automatic resolution and bounds commit together after 400 ms without camera changes, rather than reloading geometry at each zoom threshold during a gesture. Manual resolution changes override the automatic zoom choice.
+2. Debounced geographic bounds become merged H3 ranges in `h3-viewport.ts`. The cover starts at the data resolution and coarsens until it fits a 1,024-cell predicate budget; overlapping bounding boxes conservatively include visible descendants. Whole-globe views can omit spatial filtering. At resolution 3 and above, the explorer waits for initial viewport bounds before starting a request to avoid an initial unbounded scan.
 3. `useSectionData` resolves only live partitions referenced by the active section, then passes the viewport and an AbortSignal through its source loads. It does not prefetch unrelated sections.
 4. `parquet-loader.ts` sends the selected columns and filters to the module worker. Its completed-result cache includes URL, columns, H3 ranges, and numeric filter in the key.
 5. `parquet-worker.ts` opens an HTTP range-backed `AsyncBuffer`, reads/caches metadata, and calls `scanParquet`.
@@ -43,7 +43,7 @@ Requested columns are projected; filter columns are included for evaluation even
 
 ## Cancellation and caches
 
-A section/viewport effect owns an AbortController. Replacing or unmounting it aborts the loader request; the worker aborts fetches and checks the signal between decoding batches. Cancellation rejects rather than returning an incomplete successful result. Completed results alone enter the cache; stale callbacks cannot update the current section.
+A section/viewport effect owns an AbortController. Replacing or unmounting it aborts the loader request; the worker aborts fetches and checks the signal between decoding batches. Cancellation rejects rather than returning an incomplete successful result. Completed results alone enter the cache; stale callbacks cannot update the current section. Rendered rows, metadata, and context belong to the current section, resolution, and H3 ranges. Changing that identity immediately hides the previous response, before effect cleanup, so coarse cells cannot remain behind a new progressive load.
 
 | Cache                         | Current budget                        | Scope              |
 | ----------------------------- | ------------------------------------- | ------------------ |
@@ -57,6 +57,10 @@ The shared implementation is `lib/lru-cache.ts`. The result budget is a row coun
 ## Rendering
 
 `GlobeMap` uses standalone `_GlobeView`, a sphere background, satellite `TileLayer`/`BitmapLayer`, local land and border GeoJSON, and `H3HexagonLayer`. MapLibre is used separately by CapyBrain.
+
+Layers draw in sphere, satellite, land, borders, H3, and location-pin order. Sphere and H3 depth writes remain enabled for backside hiding and column occlusion. The translucent satellite, land, and borders retain depth testing but do not write depth, so differently tessellated basemap surfaces cannot hide H3 fills. Satellite images explicitly use Web Mercator texture coordinates, including on the globe. The Cartesian sphere is excluded from both drawing and picking in the Mercator viewport above zoom 12.
+
+H3 cells use full coverage with no separate flat-cell stroke layer. Extrusion preserves relative column heights but limits the tallest column to 20% of the actual camera altitude, preventing fixed exaggeration from putting the camera inside tall cells at close zoom. Tooltip values remain the source values. Hovering reuses the memoized H3 sequence comparison instead of traversing every cell for each pointer movement.
 
 Keep `highPrecision: true` for the H3 layer on the globe: the alternative instanced approximation is not a safe substitute for curved geometry. The [GlobeView API](https://deck.gl/docs/api-reference/core/globe-view) still describes this view as experimental; check its supported behavior when upgrading.
 
@@ -91,3 +95,31 @@ Hardware-GPU and Safari performance remain unmeasured. Software WebGL can emit d
 ### Zoom regression follow-up
 
 The unpatched production export reproduced `getZoomAnchorStrength is not a function` during wheel zoom past zoom 12. With the version-specific patch, all 85 tests and the production build pass. Isolated Chromium software WebGL checks against both Next.js development and the production export zoomed from 11.9 to 17.1, back across 12, and panned without page errors. This checks the reported interaction failure; it does not establish high-resolution data-loading throughput or hardware-GPU performance.
+
+## Rendering and request follow-up, 2026-10-07
+
+The request-isolation, adaptive-cover, and extrusion changes pass 163 tests,
+Oxlint, TypeScript, formatting, and the production static build. New regressions
+exercise resolution/viewport replacement, late cancelled responses, conservative
+fine-resolution coverage, and extrusion limits using real deck.gl viewports at
+desktop/mobile sizes, poles, pitch, and the globe/Mercator boundary.
+
+Firefox 157 desktop checks against the production export covered terrain at
+zoom 4/H3 resolution 3, wheel zoom through resolutions 4 and 5, cell tooltips,
+and satellite/land/border visibility controls. The resolution-5 replacement
+showed the satellite basemap without previous-resolution cells during loading.
+Uniform artificial coverage gaps were absent. Further close-zoom and mobile
+interaction checks were interrupted by concurrent browser use. These are
+correctness observations, not an FPS or loading-speed benchmark; large physical
+Parquet ranges and cumulative polygon rebuilding remain performance limits.
+
+A same-machine curl comparison of terrain resolution 5 used six concurrent,
+disjoint 1 MiB ranges against direct S3 and `data.source.coop`, with two trials
+in reversed endpoint order and no client response cache. S3 negotiated HTTP/1.1
+and completed in 4.99/9.08 seconds; the proxy negotiated HTTP/2 and completed in
+6.16/4.87 seconds. A separate 4 MiB range completed in 4.55/3.93 seconds
+respectively. All responses were complete HTTP 206 responses with matching
+SHA-256 hashes between endpoints. The proxy advertised HTTP/3, which this curl
+build could not test, and its HEAD response reported `cf-cache-status: DYNAMIC`.
+This small, variable network sample does not establish Firefox page-loading
+performance or justify switching the dataset URLs yet.
