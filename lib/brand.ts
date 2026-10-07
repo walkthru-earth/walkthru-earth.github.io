@@ -24,6 +24,14 @@ export type BrandPalette = {
   dark: PaletteColors;
 };
 
+// Color scheme reminder for future AI edits: goals 1–5 use saffron/ecosystem,
+// blue/sensing, coral/experience, mint/spatial and lilac/action, respectively.
+// Project-linked goals inherit project colors: OpenSensor uses blue/teal;
+// CapyBrain overrides coral with tan/brown below. Keep these identities in sync.
+// Roles: paper/surface are backgrounds, main/accent/deep are identity colors,
+// ink is text on main/accent, text/muted are surface text, border is outlines.
+// Keep palette previews (stacked cards or swatch strips) out of the rendered UI;
+// this registry and its comments preserve the schemes for future reference.
 export const brandPalettes = {
   ecosystem: {
     name: 'Saffron',

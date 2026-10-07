@@ -591,39 +591,6 @@ html[dir='rtl'] .rtl-flip {
     background: var(--palette-paper);
     color: var(--palette-text);
   }
-  .goal-palette-fan {
-    display: flex;
-    width: 14rem;
-    height: 4.5rem;
-    align-items: center;
-    padding-inline-start: 0.5rem;
-    margin-block: 1.5rem;
-  }
-  .goal-palette-fan span {
-    display: block;
-    flex: 0 0 3.25rem;
-    height: 4rem;
-    margin-inline-start: -0.5rem;
-    border: 1px solid var(--palette-deep);
-    border-radius: 0.65rem;
-    transform: rotate(var(--swatch-turn));
-    box-shadow: 0 3px 0 color-mix(in srgb, var(--palette-deep) 16%, transparent);
-  }
-  .goal-palette-fan span:nth-child(1) {
-    --swatch-turn: -12deg;
-  }
-  .goal-palette-fan span:nth-child(2) {
-    --swatch-turn: -6deg;
-  }
-  .goal-palette-fan span:nth-child(3) {
-    --swatch-turn: 0deg;
-  }
-  .goal-palette-fan span:nth-child(4) {
-    --swatch-turn: 6deg;
-  }
-  .goal-palette-fan span:nth-child(5) {
-    --swatch-turn: 12deg;
-  }
   .goal-palette-panel .text-muted-foreground {
     color: var(--palette-muted);
   }
@@ -653,9 +620,6 @@ html[dir='rtl'] .rtl-flip {
   }
   .evidence-ripple-late {
     animation-delay: 180ms;
-  }
-  .goal-palette-fan span {
-    animation: palette-unfold 450ms ease-out both;
   }
 }
 @keyframes evidence-arrive {
@@ -689,15 +653,6 @@ html[dir='rtl'] .rtl-flip {
     opacity: 0;
   }
 }
-@keyframes palette-unfold {
-  from {
-    transform: translateX(-8px) rotate(0deg);
-  }
-  to {
-    transform: translateX(0) rotate(var(--swatch-turn));
-  }
-}
-
 /* Text accents stay legible independently of pastel button/background colors. */
 @utility text-palette-emphasis {
   color: var(--palette-emphasis, var(--foreground));

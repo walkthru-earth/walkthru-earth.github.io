@@ -135,16 +135,6 @@ export default function LinksPage() {
             decorative={false}
             className="mb-8 rounded-[2rem] px-6 py-12 text-center"
           >
-            <div className="mb-6 flex justify-center gap-2" aria-hidden="true">
-              {['ecosystem', 'sensing', 'experience', 'spatial', 'action'].map(
-                (palette) => (
-                  <span
-                    key={palette}
-                    className={`brand-tone-${palette} h-3 w-10 rounded-full bg-[var(--brand-color)]`}
-                  />
-                )
-              )}
-            </div>
             <Link href="/" className="inline-block">
               <Image
                 src="/icon.svg"

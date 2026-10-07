@@ -75,8 +75,10 @@ Static export means no request-time middleware, server API, server-only secret, 
 `lib/strategy.ts`: saffron/open ecosystem, blue/measurable places, coral/lived
 experience, mint/spatial intelligence, and lilac/real decisions. Each goal owns
 its palette, label and motif; its position does not determine its identity. The sensing and lived-experience goals also reference their project identity. Their cards and panels use the effective OpenSensor blue/teal and CapyBrain tan/brown project palettes, so project overrides stay synchronized on the homepage and About. The other three goals retain their base families. Transparent project mascots peek above the associated cards without a separate badge; selected panels link to the project with its shared artwork.
-Selecting a goal unfolds its five-swatch family alongside its content. Radix
-owns keyboard navigation and the active panel; motion never advances selection.
+Goal panels, project links and the Links cover use their palette without decorative
+swatch cards or strips. Inline comments in `lib/brand.ts` preserve the color-family
+and semantic-role reminders for future edits. Radix owns keyboard navigation and
+the active panel; motion never advances selection.
 
 Each palette defines light/dark `main`, `ink`, `paper`, `surface`, `accent`,
 `deep`, `text`, `muted` and `border` roles. `ink` is text on saturated colors;

@@ -27,8 +27,6 @@ const goalIcons = {
   scale: Scale,
 } as const;
 
-const paletteSwatches = ['paper', 'surface', 'main', 'accent', 'deep'] as const;
-
 /** Selected goal links share their project's palette, name and artwork. */
 function GoalProjectIdentity({
   project,
@@ -60,15 +58,6 @@ function GoalProjectIdentity({
         </span>
         <span className="mt-1 block text-sm leading-snug text-[var(--palette-muted)]">
           {t(label)}
-        </span>
-        <span className="mt-2 flex gap-1" aria-hidden="true">
-          {paletteSwatches.map((role) => (
-            <span
-              key={role}
-              className="h-2 w-6 rounded-full border border-[var(--palette-border)]"
-              style={{ backgroundColor: `var(--palette-${role})` }}
-            />
-          ))}
         </span>
       </span>
       <ArrowRight
@@ -184,15 +173,6 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                     <p className="mb-4 text-base font-bold">
                       {t('Goal {number}', { number: index + 1 })}
                     </p>
-                    <div className="goal-palette-fan" aria-hidden="true">
-                      {paletteSwatches.map((role) => (
-                        <span
-                          key={role}
-                          data-swatch={role}
-                          style={{ backgroundColor: `var(--palette-${role})` }}
-                        />
-                      ))}
-                    </div>
                     <h3
                       className={
                         compact
