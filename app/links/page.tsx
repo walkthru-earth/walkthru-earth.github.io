@@ -32,11 +32,11 @@ const mainLinks = [
     color: 'brand-tone-opensensor',
   },
   {
-    title: 'Hormones & Cities',
+    title: 'CapyBrain',
     description: 'Urban environments and wellbeing research',
-    url: '/hormones-cities',
+    url: '/capybrain',
     icon: Heart,
-    color: 'brand-tone-wellbeing',
+    color: 'brand-tone-capybrain',
     internal: true,
   },
   {

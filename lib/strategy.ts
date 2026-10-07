@@ -71,7 +71,7 @@ export const strategicGoals = [
     motif: 'brain',
     title: 'Make lived experience measurable',
     summary: 'Understand how people experience their surroundings.',
-    href: '/hormones-cities',
+    href: '/capybrain',
     link: 'Explore our wellbeing research',
     details: [
       {

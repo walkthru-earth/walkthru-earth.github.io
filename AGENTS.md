@@ -11,7 +11,7 @@ This is the Next.js static website for **walkthru.earth**, including the browser
 | Design palettes, project identity and page covers   | [app/AGENTS.md](app/AGENTS.md), [palette and cover architecture](docs/architecture.md#strategic-palettes-and-page-covers) | `lib/brand.ts`, `lib/strategy.ts`, `components/shared/brand-ui.tsx`         |
 | Indices loading, H3, rendering, datasets            | [components/globe/AGENTS.md](components/globe/AGENTS.md), [docs/indices.md](docs/indices.md)                              | `components/globe/`                                                         |
 | Parquet producer or hosting changes                 | [docs/parquet-producer-guidance.md](docs/parquet-producer-guidance.md)                                                    | Globe worker and dataset URL builders                                       |
-| Hormones & Cities map, images, brain                | [app/AGENTS.md](app/AGENTS.md)                                                                                            | `app/hormones-cities/components/hnc/`                                       |
+| CapyBrain map, images, brain                        | [app/AGENTS.md](app/AGENTS.md)                                                                                            | `app/capybrain/components/explorer/`                                        |
 | Publishing, build failures, analytics configuration | [docs/deployment.md](docs/deployment.md)                                                                                  | `.github/workflows/deploy.yml`, `next.config.mjs`, `app/providers.tsx`      |
 
 ## Working conventions

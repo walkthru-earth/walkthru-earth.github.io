@@ -12,7 +12,7 @@ The repository is a Next.js App Router application with React, TypeScript, Tailw
 | ------------------------------ | -------------------------------------------------------- | -------------------------------------------------------- |
 | `/`                            | Organization homepage, goals and project previews        | `app/page.tsx`, `components/shared/evidence-graphic.tsx` |
 | `/indices`                     | Interactive data globe                                   | `app/indices/`, `components/globe/`                      |
-| `/hormones-cities`             | Street imagery, location, and brain activity exploration | `app/hormones-cities/`                                   |
+| `/capybrain`                   | Street imagery, location, and brain activity exploration | `app/capybrain/`                                         |
 | `/opensensor`                  | Sensor project                                           | `app/opensensor/`                                        |
 | `/software`                    | Software overview                                        | `app/software/`                                          |
 | `/software/imagery-desktop`    | Imagery Desktop product page                             | Route-local components, hooks, and feature data          |
@@ -36,7 +36,7 @@ The root layout wraps all routes in theme, consent, analytics, and scrolling beh
 
 The indices explorer uses standalone deck.gl GlobeView, H3HexagonLayer, satellite tiles, and local land/border outlines. Its Parquet worker handles network, decoding, filtering, and row assembly. The route imports the explorer dynamically with server rendering disabled.
 
-Hormones & Cities has its own MapLibre map and Three.js brain view. Its Parquet loader first reads lightweight metadata columns, then image and activity columns from an in-memory file. This is a separate transport requirement: its host can apply HTTP compression, so a HEAD response's length may not represent the decompressed Parquet byte offsets. Keep that constraint distinct from Source Cooperative range requests.
+CapyBrain has its own MapLibre map and Three.js brain view. Its Parquet loader first reads lightweight metadata columns, then image and activity columns from an in-memory file. This is a separate transport requirement: its host can apply HTTP compression, so a HEAD response's length may not represent the decompressed Parquet byte offsets. Keep that constraint distinct from Source Cooperative range requests.
 
 ## Shared behavior
 
@@ -68,6 +68,8 @@ Each palette defines light/dark `main`, `ink`, `paper`, `surface`, `accent`,
 `text` is body text on theme-dependent surfaces. `projectBrands` assigns projects
 to families. Change that reference to reuse another scheme, or add per-theme
 values to `projectPaletteOverrides` for an independent project identity.
+CapyBrain uses the `capybrain` project identity and `/capybrain` route; its
+editorial palette remains separate from the experiment's scientific colors.
 `brandPaletteCss()` emits the selectors into the root layout during static
 rendering, so navigation icons, cards and page surfaces use the same values
 without a hydration flash or a new stylesheet per project. `paletteVariables()`
@@ -80,7 +82,18 @@ in `EvidenceGraphic`; it no longer mounts the globe preview or requests its data
 The actual globe remains at `/indices`, with its scientific color scales.
 Homepage, navigation, footer and goal links to the globe disable speculative prefetch. The frameless diagram blends into the cover and explains the page through visitor-selected stages: Evidence → Translation → Action on the homepage. Native buttons (both scene markers and labeled steps) update the illustration and a localized live description; selection never advances automatically. The scene is explicitly labeled as a concept, not live measurements. CSS reveals, route drawing and finite sensor pulses respond to stage changes; subtle mouse movement uses CSS variables without a frame loop. Reduced-motion visitors retain all controls and get immediate, static state changes. There are no external assets or video runtime.
 
-Covers use `BrandHero` and theme-aware paper/text colors. OpenSensor owns
+Covers use `BrandHero` and theme-aware paper/text colors. CapyBrain and OpenSensor
+use `ProjectMascot` for their character-led covers: a tan capybara and a blue/teal peacock, respectively. The shared component keeps artwork, palette and
+three-step narrative separate. Character greetings, thought bubbles and SVG
+path reveals run briefly on load, selection or explicit replay; subtle mouse
+response is disabled with reduced motion. Keyboard/touch controls and localized
+live descriptions remain available. The optimized transparent WebP assets live in
+`public/mascots/`; [mascot assets](mascot-assets.md) records generation prompts and
+replacement guidance. CapyBrain's tan/brown identity overrides its coral strategic
+family, without changing that goal's colors. Prototype screenshots remain below
+the hero with the shared faded phone gallery.
+
+OpenSensor owns
 `app/opensensor/components/sensor-flow.tsx`: an interactive architecture diagram
 with Offline, Phone / hub, and Internet scenarios. Local Parquet storage stays
 visible in every mode; local transfer and analysis can run without an internet
@@ -94,15 +107,20 @@ localized live descriptions and finite CSS path reveals preserve keyboard, RTL,
 touch and reduced-motion use.
 
 About leads with purpose; Software, Links and Privacy use compact
-editorial introductions. Hormones & Cities and Imagery Desktop use
+editorial introductions. CapyBrain and Imagery Desktop use
 `ProjectGallery`: explicit screenshot buttons, one mounted image at a time,
 no autoplay and no scroll scrubbing. Portrait previews share a fixed 9:19 phone frame with a transparent bottom fade
 and no nested scrollbar. A full-screenshot link opens the original image separately.
-Keep image metadata aligned with source dimensions, even when the preview is cropped. The Hormones & Cities experiment starts only when requested; its hero action both opens and scrolls to the experiment, and an unload control releases it. Objex demos mount an iframe only after
+Keep image metadata aligned with source dimensions, even when the preview is cropped. The CapyBrain experiment starts only when requested; its hero action both opens and scrolls to the experiment, and an unload control releases it. Objex demos mount an iframe only after
 “Load interactive demo”; closing the disclosure, unloading, or selecting another
 demo releases it. The indices route stays an application without an extra cover.
 
 HyperFrames is appropriate for a future exported film or campaign asset. These
-covers use native SVG/CSS because the colors must respond directly to the shared
+covers use optimized character artwork with native SVG/CSS because the colors must respond directly to the shared
 palette and the content must remain usable without media playback. No page-speed
 improvement is asserted without a comparable production measurement.
+
+CapyBrain's explorer assets live under `/capybrain-assets/`, separate from the
+`/capybrain` page, so an asset directory cannot shadow the static HTML route.
+The upstream research repository and license still use their actual `hnc` URLs;
+local routes, code identifiers and assets use the CapyBrain name.

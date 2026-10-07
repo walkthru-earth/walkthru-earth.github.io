@@ -81,10 +81,6 @@ export const coreMessages: MessageCatalog = {
     arEG: 'معاينة مستكشف الكوكب',
     ar: 'معاينة مستكشف الكرة الأرضية',
   },
-  'Hormones & Cities app prototype': {
-    arEG: 'نموذج أولي لتطبيق Hormones & Cities',
-    ar: 'نموذج أولي لتطبيق Hormones & Cities',
-  },
   'How it works': { arEG: 'بيشتغل إزاي', ar: 'كيف يعمل' },
   'Published environmental data, explored in your browser': {
     arEG: 'بيانات بيئية منشورة، تستكشفها من متصفحك',
@@ -164,10 +160,10 @@ export const coreMessages: MessageCatalog = {
       arEG: 'المدن بتتدرس فعلًا من خلال الصحة العامة والتخطيط والبحث البيئي. دورنا إننا نسهّل الوصول للأدلة البيئية ودمجها واستكشافها، مع الاهتمام بالاختلافات بين الأحياء.',
       ar: 'تُدرس المدن بالفعل من خلال الصحة العامة والتخطيط والبحث البيئي. وإسهامنا هو تسهيل الوصول إلى الأدلة البيئية ودمجها واستكشافها، مع مراعاة الفروق بين الأحياء.',
     },
-  'OpenSensor.Space collects environmental readings. Our globe brings together terrain, buildings, population, and weather. Hormones & Cities is an emerging research initiative, with planned resident surveys and a separate street imagery experiment. These are different kinds of evidence, each with limits.':
+  'OpenSensor.Space collects environmental readings. Our globe brings together terrain, buildings, population, and weather. CapyBrain is an emerging research initiative, with planned resident surveys and a separate street imagery experiment. These are different kinds of evidence, each with limits.':
     {
-      arEG: 'OpenSensor.Space بيجمع قراءات بيئية. والكوكب التفاعلي بيجمع التضاريس والمباني والسكان والطقس. وHormones & Cities مبادرة بحثية ناشئة فيها استبيانات مخطط لها للسكان وتجربة منفصلة لصور الشوارع. دي أنواع مختلفة من الأدلة، ولكل نوع حدود.',
-      ar: 'يجمع OpenSensor.Space قراءات بيئية. وتجمع الكرة التفاعلية التضاريس والمباني والسكان والطقس. وHormones & Cities مبادرة بحثية ناشئة تتضمن استبيانات مخططة للسكان وتجربة منفصلة لصور الشوارع. وهذه أنواع مختلفة من الأدلة ولكل منها حدود.',
+      arEG: 'OpenSensor.Space بيجمع قراءات بيئية. والكوكب التفاعلي بيجمع التضاريس والمباني والسكان والطقس. وCapyBrain مبادرة بحثية ناشئة فيها استبيانات مخطط لها للسكان وتجربة منفصلة لصور الشوارع. دي أنواع مختلفة من الأدلة، ولكل نوع حدود.',
+      ar: 'يجمع OpenSensor.Space قراءات بيئية. وتجمع الكرة التفاعلية التضاريس والمباني والسكان والطقس. وCapyBrain مبادرة بحثية ناشئة تتضمن استبيانات مخططة للسكان وتجربة منفصلة لصور الشوارع. وهذه أنواع مختلفة من الأدلة ولكل منها حدود.',
     },
   'Four planetary indices': {
     arEG: 'أربع مؤشرات للكوكب',

@@ -1,4 +1,4 @@
-import { HNC_CMAP_RANGE } from './config';
+import { CAPYBRAIN_CMAP_RANGE } from './config';
 
 const STOPS: ReadonlyArray<
   readonly [number, readonly [number, number, number]]
@@ -24,18 +24,18 @@ const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 export function dynamicRange(
   activity: Float32Array
 ): readonly [number, number] {
-  if (!activity.length) return HNC_CMAP_RANGE;
+  if (!activity.length) return CAPYBRAIN_CMAP_RANGE;
   const abs = new Float32Array(activity.length);
   for (let i = 0; i < activity.length; i++) abs[i] = Math.abs(activity[i]);
   abs.sort();
   const p99 = abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.99))];
-  if (!Number.isFinite(p99) || p99 === 0) return HNC_CMAP_RANGE;
+  if (!Number.isFinite(p99) || p99 === 0) return CAPYBRAIN_CMAP_RANGE;
   return [-p99, p99];
 }
 
 export function colormap(
   v: number,
-  range: readonly [number, number] = HNC_CMAP_RANGE
+  range: readonly [number, number] = CAPYBRAIN_CMAP_RANGE
 ): [number, number, number] {
   const [lo, hi] = range;
   const t = clamp01((v - lo) / (hi - lo));
@@ -75,7 +75,7 @@ export const signTone = (value: number) =>
   value < 0 ? SIGN_TONE.negative : SIGN_TONE.positive;
 
 /** CSS gradient string for the legend bar. Mirrors `colormap()` so the bar is honest. */
-export const HNC_LEGEND_GRADIENT =
+export const CAPYBRAIN_LEGEND_GRADIENT =
   'linear-gradient(90deg, ' +
   STOPS.map(([t, c]) => {
     const r = Math.round(c[0] * 255);

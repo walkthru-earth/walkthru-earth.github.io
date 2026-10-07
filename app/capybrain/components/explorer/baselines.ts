@@ -1,6 +1,8 @@
+import { CAPYBRAIN_BASELINES_URL } from './config';
+
 /**
  * Per-AOI per-region baseline statistics. Pre-computed by DuckDB at build /
- * publish time from hnc_borough.parquet, see scripts in /hnc and the
+ * publish time from capybrain_borough.parquet, see the upstream production scripts and the
  * `COPY ... TO 'region_baselines.json'` query.
  *
  * Lets us σ-normalize a frame's region score against the AOI baseline:
@@ -22,7 +24,7 @@ let baselinePromise: Promise<Record<string, RegionBaseline> | null> | null =
   null;
 
 export function loadRegionBaselines(
-  url = '/hnc/region_baselines.json'
+  url = CAPYBRAIN_BASELINES_URL
 ): Promise<Record<string, RegionBaseline> | null> {
   if (baselinePromise) return baselinePromise;
   baselinePromise = fetch(url, { cache: 'force-cache' })

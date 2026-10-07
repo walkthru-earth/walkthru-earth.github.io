@@ -22,19 +22,19 @@ import {
 
 export const screenshots = [
   {
-    src: '/hormones-cities-ai.png',
+    src: '/capybrain-ai.png',
     alt: 'AI Chat Interface',
     width: 780,
     height: 1768,
   },
   {
-    src: '/hormones-cities-dashboard.png',
+    src: '/capybrain-dashboard.png',
     alt: 'City-Wide Trends Dashboard',
     width: 720,
     height: 3174,
   },
   {
-    src: '/hormones-cities-survey.png',
+    src: '/capybrain-survey.png',
     alt: 'Survey Categories',
     width: 750,
     height: 2298,
@@ -67,7 +67,7 @@ export const pillars: Pillar[] = [
   },
   {
     icon: Heart,
-    title: 'Hormones & Cities',
+    title: 'CapyBrain',
     description:
       'Share wellbeing + mobility data anonymously, get back health insights for your neighborhood.',
     status: 'App ready',

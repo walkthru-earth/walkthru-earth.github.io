@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
-import type { HNCRow, HNCHeavy } from './types';
+import type { CapyBrainRow, CapyBrainHeavy } from './types';
 import { regionInfo } from './regions';
 import { aoiSigma, type RegionBaseline } from './baselines';
 import { signTone } from './colormap';
@@ -10,8 +10,8 @@ import type { ScoreScale } from './config';
 import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
 
 interface Props {
-  row: HNCRow | null;
-  heavy: HNCHeavy | undefined;
+  row: CapyBrainRow | null;
+  heavy: CapyBrainHeavy | undefined;
   index: number;
   total: number;
   isPlaying: boolean;
@@ -21,8 +21,8 @@ interface Props {
 }
 
 interface FrameImageProps {
-  row: HNCRow | null;
-  heavy: HNCHeavy | undefined;
+  row: CapyBrainRow | null;
+  heavy: CapyBrainHeavy | undefined;
   index: number;
   total: number;
   /** When true, fill the parent height instead of locking to a 4:3 ratio. */
@@ -30,11 +30,11 @@ interface FrameImageProps {
 }
 
 interface FrameMetaProps {
-  row: HNCRow | null;
+  row: CapyBrainRow | null;
 }
 
 interface RegionsProps {
-  row: HNCRow | null;
+  row: CapyBrainRow | null;
   selectedAlias?: string | null;
   onSelectAlias?: (alias: string | null) => void;
   atlasAvailable?: boolean;
@@ -60,7 +60,7 @@ interface ScrubProps {
   onSeek: (i: number) => void;
 }
 
-function formatTimestamp(ts: HNCRow['captured_at']): string {
+function formatTimestamp(ts: CapyBrainRow['captured_at']): string {
   if (ts == null) return '—';
   const ms = ts instanceof Date ? ts.getTime() : Number(ts);
   if (!Number.isFinite(ms) || ms === 0) return String(ts);
@@ -220,7 +220,7 @@ export function FrameScrub({ index, total, onSeek }: ScrubProps) {
       </span>
       <div
         ref={trackRef}
-        className="hnc-scrub flex-1"
+        className="capybrain-scrub flex-1"
         role="slider"
         aria-label={t('Frame scrubber')}
         aria-valuemin={1}
@@ -245,22 +245,22 @@ export function FrameScrub({ index, total, onSeek }: ScrubProps) {
           }
         }}
       >
-        <span className="hnc-scrub-rail" aria-hidden="true" />
+        <span className="capybrain-scrub-rail" aria-hidden="true" />
         <span
-          className="hnc-scrub-fill"
+          className="capybrain-scrub-fill"
           style={{ width: `${pct}%` }}
           aria-hidden="true"
         />
         {ticks.map((t, i) => (
           <span
             key={i}
-            className="hnc-scrub-tick"
+            className="capybrain-scrub-tick"
             style={{ left: `${(t / Math.max(1, total - 1)) * 100}%` }}
             aria-hidden="true"
           />
         ))}
         <span
-          className="hnc-scrub-thumb"
+          className="capybrain-scrub-thumb"
           style={{ left: `${pct}%` }}
           aria-hidden="true"
         />
@@ -321,7 +321,7 @@ export function CorticalRegions({
       <div className="flex min-h-0 flex-1 flex-col py-3 sm:py-4">
         <div className="mb-2 flex items-start justify-between gap-3 sm:mb-3">
           <div className="min-w-0">
-            <p className="hnc-eyebrow">Model response to this image</p>
+            <p className="capybrain-eyebrow">Model response to this image</p>
             {!compact && (
               <p className="text-muted-foreground mt-1 max-w-prose text-[11px] leading-relaxed sm:text-xs">
                 {effectiveScale === 'aoi'
@@ -332,13 +332,13 @@ export function CorticalRegions({
           </div>
           {baselines && onScaleChange && (
             <div
-              className="hnc-seg shrink-0"
+              className="capybrain-seg shrink-0"
               role="group"
               aria-label="Score scale"
             >
               <button
                 type="button"
-                className="hnc-seg-opt"
+                className="capybrain-seg-opt"
                 data-active={effectiveScale === 'aoi'}
                 onClick={() => onScaleChange('aoi')}
               >
@@ -346,7 +346,7 @@ export function CorticalRegions({
               </button>
               <button
                 type="button"
-                className="hnc-seg-opt"
+                className="capybrain-seg-opt"
                 data-active={effectiveScale === 'raw'}
                 onClick={() => onScaleChange('raw')}
               >
@@ -444,7 +444,7 @@ export function CorticalRegions({
           <p className="text-muted-foreground/80 mt-3 text-[10px] leading-snug sm:text-[11px]">
             Region highlighting on the 3D cortex needs the HCP MMP1 parcel atlas
             (see{' '}
-            <code className="font-mono">hnc/scripts/gen_parcel_aliases.py</code>
+            <code className="font-mono">scripts/gen_parcel_aliases.py</code>
             ). Without it, this list is read-only.
           </p>
         )}
@@ -457,7 +457,7 @@ export function CorticalRegions({
  * Legacy single-panel layout, kept so consumers that want the old all-in-one
  * detail card still work. The current explorer composes the pieces directly.
  */
-export function HNCFramePanel({
+export function CapyBrainFramePanel({
   row,
   heavy,
   index,

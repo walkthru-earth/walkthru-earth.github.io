@@ -42,7 +42,20 @@ describe('strategic palette registry', () => {
     }
   });
 
-  for (const [id, palette] of Object.entries(brandPalettes)) {
+  const palettes = [
+    ...Object.entries(brandPalettes),
+    ...Object.keys(projectBrands).map(
+      (project) =>
+        [
+          `project:${project}`,
+          {
+            light: projectPalette(project as ProjectBrand, 'light'),
+            dark: projectPalette(project as ProjectBrand, 'dark'),
+          },
+        ] as const
+    ),
+  ];
+  for (const [id, palette] of palettes) {
     for (const theme of themes) {
       it(`${id}/${theme} maintains WCAG AA normal-text contrast`, () => {
         const colors = palette[theme];

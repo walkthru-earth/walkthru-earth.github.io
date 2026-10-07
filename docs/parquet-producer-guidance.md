@@ -21,7 +21,7 @@ The data host must allow browser cross-origin reads and honor byte-range request
 
 Transparent HTTP gzip/Brotli compression can make HEAD `Content-Length` refer to compressed transport bytes while browser fetch returns a decompressed body. Byte offsets must describe the representation that the range reader actually receives. Do not confuse this with Parquet's internal ZSTD/Snappy compression, which the reader decodes normally.
 
-Hormones & Cities currently uses an in-memory full-file read to handle its hosted file's compression behavior. The Source Cooperative indices worker uses remote ranges; verify the actual endpoint before reusing either strategy.
+CapyBrain currently uses an in-memory full-file read to handle its hosted file's compression behavior. The Source Cooperative indices worker uses remote ranges; verify the actual endpoint before reusing either strategy.
 
 ## Producer validation
 

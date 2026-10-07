@@ -4,11 +4,11 @@ import { useMemo } from 'react';
 import { regionInfo } from './regions';
 import type { RegionBaseline } from './baselines';
 import { aoiSigma } from './baselines';
-import type { HNCRow } from './types';
+import type { CapyBrainRow } from './types';
 import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
 
 interface Props {
-  row: HNCRow | null;
+  row: CapyBrainRow | null;
   baselines: Record<string, RegionBaseline> | null;
   selectedAlias?: string | null;
   onSelectAlias?: (alias: string | null) => void;
@@ -69,7 +69,7 @@ export function RegionRadar({
     <Localized>
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between">
-          <p className="hnc-eyebrow">Predicted response profile</p>
+          <p className="capybrain-eyebrow">Predicted response profile</p>
           <p className="text-muted-foreground font-mono text-[10px]">
             {hasBaselines ? 'AOI σ' : 'raw z'}
           </p>

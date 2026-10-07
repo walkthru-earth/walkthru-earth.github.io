@@ -12,7 +12,7 @@ Mission: We make the invisible relationships between people and places measurabl
 
 1. **Build an open ecosystem.** Use open source tools, reusable data formats, browser-based analysis, and static object storage to reduce dependence on dedicated application and database servers. WebAssembly and DuckDB-WASM are used where appropriate in the wider tool ecosystem. On-demand processing is a design choice; a measured carbon reduction is not claimed. Licenses vary by project and data source.
 2. **Make places measurable.** OpenSensor.space is an open environmental sensing ecosystem for publishing station readings. The strategy focuses on low-cost PM2.5 and PM10 sensing in Cairo and broader environmental monitoring. Expanding acoustic stress and artificial light exposure measurements is a goal; supported hardware does not establish network-wide deployment or calibrated coverage.
-3. **Make lived experience measurable.** Geobrain is a research direction connecting urban environments with wellbeing. The Hormones & Cities page includes a TRIBE v2 proof of concept using street imagery around Borough Market, London. Participatory wellbeing collection and mapping remain in development, with on-device processing and minimal personal information as design goals. The imagery experiment predicts model activity; it does not measure residents' brain activity, hormones, emotions, or health.
+3. **Make lived experience measurable.** CapyBrain is a research direction connecting urban environments with wellbeing. The CapyBrain page includes a TRIBE v2 proof of concept using street imagery around Borough Market, London. Participatory wellbeing collection and mapping remain in development, with on-device processing and minimal personal information as design goals. The imagery experiment predicts model activity; it does not measure residents' brain activity, hormones, emotions, or health.
 4. **Turn heterogeneous data into spatial intelligence.** Earth's Living Indices brings together global terrain, buildings, population, weather, and urban context on H3 grids. Related pipelines prepare reusable datasets for public object storage. The website's globe reads selected Parquet columns in a browser worker using hyparquet and renders them with deck.gl. Its SQL panel explains equivalent operations; it does not execute DuckDB-WASM SQL. Loading and analysis depend on the dataset, viewport, network, and device.
 5. **Put evidence into real decisions.** Support health and climate policy, municipal planning, and communities advocating for cleaner air, green space, and equitable protection. Policy briefs, understandable evidence, and climate justice are strategic directions; public data alone does not establish a health improvement or completed policy outcome.
 
@@ -27,7 +27,7 @@ Mission: We make the invisible relationships between people and places measurabl
 - Homepage: https://walkthru.earth
 - Globe Explorer / Earth's Living Indices: https://walkthru.earth/indices
 - OpenSensor.space: https://walkthru.earth/opensensor
-- Hormones & Cities / Geobrain research: https://walkthru.earth/hormones-cities
+- CapyBrain research: https://walkthru.earth/capybrain
 - Software: https://walkthru.earth/software
 - Objex: https://walkthru.earth/software/objex
 - Imagery Desktop: https://walkthru.earth/software/imagery-desktop
@@ -55,13 +55,13 @@ Open tools for collecting and sharing environmental readings, including air qual
 - Dashboard: https://opensensor.space
 - Public data: https://source.coop/walkthru-earth/opensensor-space
 
-### Hormones & Cities / Geobrain
+### CapyBrain
 
 Emerging research connecting environmental conditions with people's experiences. Resident surveys and participatory mapping are in development; the displayed app screens are prototypes. The live London experiment pairs Mapillary street imagery with predictions from Meta's TRIBE v2 vision-only brain encoder and displays them on a cortical surface. It is separate from collecting resident wellbeing responses.
 
 Project and source licenses must be checked individually. TRIBE v2 has non-commercial terms, and Mapillary imagery has its own attribution and share-alike terms. The experiment is not a validated assessment of a person's feelings or health.
 
-- Research and experiment: https://walkthru.earth/hormones-cities
+- Research and experiment: https://walkthru.earth/capybrain
 - Project source: https://github.com/walkthru-earth/hnc
 - Model reference: https://github.com/facebookresearch/tribev2
 
@@ -107,7 +107,7 @@ Data sources include GEDTM terrain, Global Building Atlas buildings, WorldPop po
 - OpenSensor dashboard: https://github.com/walkthru-earth/opensensor-space
 - Enviro+ collection pipeline: https://github.com/walkthru-earth/opensensor-enviroplus
 - OpenSensor edge tools: https://github.com/walkthru-earth/opensensor-space-edge
-- Hormones & Cities experiment: https://github.com/walkthru-earth/hnc
+- CapyBrain experiment: https://github.com/walkthru-earth/hnc
 - ESP32-S3 Parquet proof of concept: https://github.com/walkthru-earth/esp32s3-parquet-test
 
 ### Software and Spatial Infrastructure

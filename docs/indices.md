@@ -56,7 +56,7 @@ The shared implementation is `lib/lru-cache.ts`. The result budget is a row coun
 
 ## Rendering
 
-`GlobeMap` uses standalone `_GlobeView`, a sphere background, satellite `TileLayer`/`BitmapLayer`, local land and border GeoJSON, and `H3HexagonLayer`. MapLibre is used separately by Hormones & Cities.
+`GlobeMap` uses standalone `_GlobeView`, a sphere background, satellite `TileLayer`/`BitmapLayer`, local land and border GeoJSON, and `H3HexagonLayer`. MapLibre is used separately by CapyBrain.
 
 Keep `highPrecision: true` for the H3 layer on the globe: the alternative instanced approximation is not a safe substitute for curved geometry. The [GlobeView API](https://deck.gl/docs/api-reference/core/globe-view) still describes this view as experimental; check its supported behavior when upgrading.
 

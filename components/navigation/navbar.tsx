@@ -82,17 +82,17 @@ export function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link
-                        href="/hormones-cities"
+                        href="/capybrain"
                         className="flex cursor-pointer items-center gap-2"
                       >
                         <BrandIcon
-                          tone="wellbeing"
+                          tone="capybrain"
                           className="h-8 w-8 rounded-xl"
                         >
                           <Heart aria-hidden="true" />
                         </BrandIcon>
                         <div>
-                          <div className="font-bold">Hormones & Cities</div>
+                          <div className="font-bold">CapyBrain</div>
                           <div className="text-muted-foreground text-sm">
                             Urban environments and wellbeing
                           </div>
@@ -190,17 +190,17 @@ export function Navbar() {
                       OpenSensor
                     </Link>
                     <Link
-                      href="/hormones-cities"
+                      href="/capybrain"
                       className="hover:bg-accent flex items-center gap-3 rounded-lg px-4 py-3 font-bold transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <BrandIcon
-                        tone="wellbeing"
+                        tone="capybrain"
                         className="h-8 w-8 rounded-xl"
                       >
                         <Heart aria-hidden="true" />
                       </BrandIcon>
-                      Hormones & Cities
+                      CapyBrain
                     </Link>
                     <Link
                       href="/software"

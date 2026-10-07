@@ -3,7 +3,7 @@ export interface RegionScore {
   score: number;
 }
 
-export interface HNCRow {
+export interface CapyBrainRow {
   image_id: string;
   captured_at: Date | number | bigint | null;
   compass_angle: number | null;
@@ -14,7 +14,7 @@ export interface HNCRow {
   top_regions: RegionScore[];
 }
 
-export interface HNCHeavy {
+export interface CapyBrainHeavy {
   blobUrl: string | null;
   brainActivity: Float32Array | null;
 }

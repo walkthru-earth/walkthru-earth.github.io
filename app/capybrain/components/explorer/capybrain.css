@@ -1,5 +1,5 @@
 /*
- * HNC explorer styles. All values flow from the global theme tokens
+ * CapyBrain explorer styles. All values flow from the global theme tokens
  * defined in app/globals.css. Tokens like --primary, --card, --border are
  * already hsl(...) values, so we use them directly. Alpha variants use
  * color-mix() so dark/light parity is automatic.
@@ -7,27 +7,27 @@
 
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
-.hnc-shell {
-  --hnc-radius: 14px;
-  --hnc-panel-bg: color-mix(in srgb, var(--card) 78%, transparent);
-  --hnc-shadow:
+.capybrain-shell {
+  --capybrain-radius: 14px;
+  --capybrain-panel-bg: color-mix(in srgb, var(--card) 78%, transparent);
+  --capybrain-shadow:
     0 1px 0 color-mix(in srgb, white 4%, transparent) inset,
     0 18px 40px color-mix(in srgb, black 18%, transparent);
 }
 
-.dark .hnc-shell {
-  --hnc-panel-bg: color-mix(in srgb, var(--card) 70%, transparent);
-  --hnc-shadow:
+.dark .capybrain-shell {
+  --capybrain-panel-bg: color-mix(in srgb, var(--card) 70%, transparent);
+  --capybrain-shadow:
     0 1px 0 color-mix(in srgb, white 4%, transparent) inset,
     0 18px 60px color-mix(in srgb, black 55%, transparent);
 }
 
-.hnc-panel {
+.capybrain-panel {
   position: relative;
-  background: var(--hnc-panel-bg);
+  background: var(--capybrain-panel-bg);
   border: 1px solid var(--border);
-  border-radius: var(--hnc-radius);
-  box-shadow: var(--hnc-shadow);
+  border-radius: var(--capybrain-radius);
+  box-shadow: var(--capybrain-shadow);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   overflow: hidden;
@@ -37,7 +37,7 @@
   min-height: 0;
 }
 
-.hnc-panel::after {
+.capybrain-panel::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -50,7 +50,7 @@
   );
 }
 
-.dark .hnc-panel::after {
+.dark .capybrain-panel::after {
   background: linear-gradient(
     180deg,
     color-mix(in srgb, white 4%, transparent),
@@ -58,31 +58,31 @@
   );
 }
 
-.hnc-map-canvas,
-.hnc-brain-canvas {
+.capybrain-map-canvas,
+.capybrain-brain-canvas {
   flex: 1 1 auto;
   min-height: 0;
   position: relative;
 }
 
 /* Maplibre control restyle to match the site theme */
-.hnc-shell .maplibregl-ctrl-attrib {
+.capybrain-shell .maplibregl-ctrl-attrib {
   font-size: 10px;
   opacity: 0.7;
 }
 
-.hnc-shell .maplibregl-ctrl,
-.hnc-shell .maplibregl-popup-content {
+.capybrain-shell .maplibregl-ctrl,
+.capybrain-shell .maplibregl-popup-content {
   background: var(--card) !important;
   color: var(--foreground) !important;
   border: 1px solid var(--border) !important;
 }
 
-.hnc-shell .maplibregl-popup-tip {
+.capybrain-shell .maplibregl-popup-tip {
   border-top-color: var(--card) !important;
 }
 
-.hnc-shell .maplibregl-popup-content {
+.capybrain-shell .maplibregl-popup-content {
   border-radius: 10px !important;
   font-size: 12px;
   padding: 10px 12px !important;
@@ -91,7 +91,7 @@
 /* Cinematic backdrop, inspired by TRIBE v2 — near-black with a warm vignette
  * that lets the cortex render feel like it's sitting in a research lighting rig.
  */
-.hnc-brain-canvas {
+.capybrain-brain-canvas {
   background:
     radial-gradient(
       ellipse 60% 55% at 50% 38%,
@@ -105,7 +105,7 @@
     );
 }
 
-.dark .hnc-brain-canvas {
+.dark .capybrain-brain-canvas {
   background:
     radial-gradient(
       ellipse 60% 55% at 50% 38%,
@@ -119,18 +119,18 @@
     );
 }
 
-.hnc-brain-canvas canvas {
+.capybrain-brain-canvas canvas {
   display: block;
   width: 100%;
   height: 100%;
 }
 
 /* Marker arrows (set inline via JS using theme tokens) */
-.hnc-marker {
+.capybrain-marker {
   cursor: pointer;
 }
 
-.hnc-marker-arrow {
+.capybrain-marker-arrow {
   width: 32px;
   height: 32px;
   display: flex;
@@ -141,25 +141,25 @@
   transition: transform 0.15s ease;
 }
 
-.hnc-marker-arrow:hover {
+.capybrain-marker-arrow:hover {
   transform: scale(1.2);
 }
 
-.hnc-marker-arrow.is-selected {
+.capybrain-marker-arrow.is-selected {
   width: 44px;
   height: 44px;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55))
     drop-shadow(0 0 16px var(--secondary)) drop-shadow(0 0 5px var(--secondary));
   z-index: 10;
-  animation: hnc-pulse 1.6s ease-in-out infinite;
+  animation: capybrain-pulse 1.6s ease-in-out infinite;
 }
 
-.hnc-marker-arrow svg {
+.capybrain-marker-arrow svg {
   width: 100%;
   height: 100%;
 }
 
-@keyframes hnc-pulse {
+@keyframes capybrain-pulse {
   0%,
   100% {
     transform: scale(1);
@@ -170,11 +170,11 @@
 }
 
 /* Status pill */
-.hnc-status-pill {
+.capybrain-status-pill {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 11px;
   color: var(--muted-foreground);
-  background: var(--hnc-panel-bg);
+  background: var(--capybrain-panel-bg);
   border: 1px solid var(--border);
   padding: 6px 12px;
   border-radius: 999px;
@@ -184,13 +184,13 @@
   pointer-events: auto;
 }
 
-.hnc-status-pill.is-error {
+.capybrain-status-pill.is-error {
   color: var(--destructive);
   border-color: color-mix(in srgb, var(--destructive) 60%, transparent);
 }
 
 /* Scrub track — borrowed from TRIBE v2's video scrubber. Each tick is a frame. */
-.hnc-scrub {
+.capybrain-scrub {
   position: relative;
   height: 22px;
   display: flex;
@@ -199,7 +199,7 @@
   touch-action: none;
 }
 
-.hnc-scrub-rail {
+.capybrain-scrub-rail {
   position: absolute;
   inset: 50% 0 auto 0;
   height: 2px;
@@ -208,7 +208,7 @@
   border-radius: 999px;
 }
 
-.hnc-scrub-fill {
+.capybrain-scrub-fill {
   position: absolute;
   inset: 50% auto auto 0;
   height: 2px;
@@ -217,7 +217,7 @@
   border-radius: 999px;
 }
 
-.hnc-scrub-tick {
+.capybrain-scrub-tick {
   position: absolute;
   top: 50%;
   width: 1px;
@@ -226,7 +226,7 @@
   background: color-mix(in srgb, var(--foreground) 22%, transparent);
 }
 
-.hnc-scrub-thumb {
+.capybrain-scrub-thumb {
   position: absolute;
   top: 50%;
   width: 12px;
@@ -239,7 +239,7 @@
 }
 
 /* Tiny tracking-wide sub-label, used above panels like TRIBE v2's labels */
-.hnc-eyebrow {
+.capybrain-eyebrow {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -248,7 +248,7 @@
 }
 
 /* Segmented toggle */
-.hnc-seg {
+.capybrain-seg {
   display: inline-flex;
   background: color-mix(in srgb, var(--muted) 60%, transparent);
   border: 1px solid var(--border);
@@ -258,7 +258,7 @@
   cursor: pointer;
 }
 
-.hnc-seg-opt {
+.capybrain-seg-opt {
   padding: 5px 9px;
   border-radius: 999px;
   font-size: 11px;
@@ -273,13 +273,13 @@
 }
 
 @media (min-width: 640px) {
-  .hnc-seg-opt {
+  .capybrain-seg-opt {
     padding: 6px 12px;
     font-size: 12px;
   }
 }
 
-.hnc-seg-opt[data-active='true'] {
+.capybrain-seg-opt[data-active='true'] {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: var(--primary-foreground);
   font-weight: 600;

@@ -6,12 +6,12 @@ import { BrandIcon, BrandPanel } from '@/components/shared/brand-ui';
 import { Localized } from '@/lib/i18n/i18n-provider';
 
 /** The proposed research combines environmental context with residents' input. */
-export function HormonesFlow() {
+export function CapyBrainFlow() {
   return (
     <Localized>
       <div className="mx-auto max-w-4xl">
         <div className="grid gap-5 md:grid-cols-2">
-          <BrandPanel tone="wellbeing">
+          <BrandPanel tone="capybrain">
             <BrandIcon tone="action" className="mb-5">
               <Cpu aria-hidden="true" />
             </BrandIcon>
@@ -33,7 +33,7 @@ export function HormonesFlow() {
               </Badge>
             </div>
           </BrandPanel>
-          <BrandPanel tone="wellbeing">
+          <BrandPanel tone="capybrain">
             <BrandIcon tone="action" className="mb-5">
               <Smartphone aria-hidden="true" />
             </BrandIcon>

@@ -40,7 +40,7 @@ function disposeAssembly(assembly: BrainAssembly) {
   });
 }
 
-export function HNCBrainPanel({
+export function CapyBrainBrainPanel({
   surface,
   brainActivity,
   spotlightAlias,
@@ -189,7 +189,7 @@ export function HNCBrainPanel({
       })
       .catch((err) => {
         if (cancelled) return;
-        console.error('[hnc] hemisphere load failed', err);
+        console.error('[capybrain] hemisphere load failed', err);
         onStatusRef.current?.(`Cortex load error: ${(err as Error).message}`);
       });
     return () => {
@@ -208,7 +208,7 @@ export function HNCBrainPanel({
   return (
     <div
       ref={containerRef}
-      className="hnc-brain relative h-full w-full"
+      className="capybrain-brain relative h-full w-full"
       role="region"
       aria-label={t('Predicted cortical activity, fsaverage5 surface')}
       // Lenis smooth-scroll otherwise eats the wheel event before OrbitControls.

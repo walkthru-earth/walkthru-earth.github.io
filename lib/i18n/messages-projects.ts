@@ -3,6 +3,87 @@ import type { MessageCatalog } from './types';
 const phrase = (ar: string, arEG = ar) => ({ ar, arEG });
 
 export const projectMessages: MessageCatalog = {
+  'CapyBrain research repository': phrase(
+    'مستودع أبحاث CapyBrain',
+    'مستودع أبحاث CapyBrain'
+  ),
+  'Meet your capybara guide': phrase(
+    'تعرّف على دليلك من الكابيبارا',
+    'اتعرّف على دليلك الكابيبارا'
+  ),
+  'CapyBrain’s friendly tan capybara mascot': phrase(
+    'شخصية كابيبارا ودودة بلون بني فاتح، تميمة CapyBrain',
+    'كابيبارا ودود بلون بني فاتح، شخصية CapyBrain'
+  ),
+  'CapyBrain capybara mascot': phrase(
+    'شخصية الكابيبارا، تميمة CapyBrain',
+    'شخصية الكابيبارا بتاعة CapyBrain'
+  ),
+  Places: phrase('الأماكن'),
+  Patterns: phrase('الأنماط'),
+  'Notice the places we move through every day.': phrase(
+    'لاحظ الأماكن التي نمرّ بها كل يوم.',
+    'لاحظ الأماكن اللي بنعدّي عليها كل يوم.'
+  ),
+  'Make room for people’s experiences, not just measurements.': phrase(
+    'أفسح المجال لتجارب الناس، ولا تكتفِ بالقياسات.',
+    'خلّي فيه مساحة لتجارب الناس، مش بس للقياسات.'
+  ),
+  'Explore evidence with curiosity, and keep its limits in view.': phrase(
+    'استكشف الأدلة بفضول، مع إدراك حدودها.',
+    'استكشف الأدلة بفضول، وخليك واعي بحدودها.'
+  ),
+  'Meet our peacock guide': phrase(
+    'تعرّف على الطاووس، دليلنا',
+    'اتعرّف على الطاووس، دليلنا'
+  ),
+  'OpenSensor’s blue and teal peacock mascot': phrase(
+    'طاووس باللونين الأزرق والأخضر المزرق، تميمة OpenSensor',
+    'طاووس أزرق وأخضر مزرق، شخصية OpenSensor'
+  ),
+  Sense: phrase('ارصد'),
+  Save: phrase('احفظ'),
+  Sync: phrase('زامن'),
+  'Observe the air and weather, wherever you are.': phrase(
+    'ارصد الهواء والطقس، أينما كنت.',
+    'ارصد الهوا والطقس، في أي مكان تكون فيه.'
+  ),
+  'Keep measurements on the device when connections disappear.': phrase(
+    'احتفظ بالقياسات على الجهاز عند انقطاع الاتصال.',
+    'احتفظ بالقياسات على الجهاز لما الاتصال يفصل.'
+  ),
+  'Share directly with object storage, or through a nearby phone or hub.':
+    phrase(
+      'شارك البيانات مباشرة مع التخزين الكائني، أو عبر هاتف قريب أو جهاز تجميع.',
+      'شارك البيانات مباشرة مع التخزين الكائني، أو عن طريق موبايل قريب أو جهاز تجميع.'
+    ),
+  'Replay character animation': phrase(
+    'إعادة تشغيل حركة الشخصية',
+    'شغّل حركة الشخصية تاني'
+  ),
+  'Explore with our guide': phrase('استكشف مع دليلنا', 'استكشف مع دليلنا'),
+  'Built for places beyond the network.': phrase(
+    'مصمّم للأماكن خارج نطاق الشبكة.',
+    'مصمّم للأماكن اللي برّه تغطية الشبكة.'
+  ),
+  'Our peacock guide connects local observations with a shared picture of the environment. Keep collecting locally, then sync directly or through a nearby device when a connection is available.':
+    phrase(
+      'يربط دليلنا الطاووس بين الرصد المحلي وصورة مشتركة للبيئة. واصل جمع البيانات محليًا، ثم زامنها مباشرة أو عبر جهاز قريب عندما يتوفر اتصال.',
+      'الطاووس دليلنا بيربط الرصد المحلي بصورة مشتركة للبيئة. كمّل جمع البيانات محليًا، وبعدين زامنها مباشرة أو عن طريق جهاز قريب لما الاتصال يتوفر.'
+    ),
+  'See how sync works': phrase(
+    'تعرّف على آلية المزامنة',
+    'شوف المزامنة بتشتغل إزاي'
+  ),
+  'A curious guide to people and places.': phrase(
+    'دليل فضولي لفهم الناس والأماكن.',
+    'دليل فضولي علشان نفهم الناس والأماكن.'
+  ),
+  'Inside the prototype': phrase('داخل النموذج الأولي', 'جوّه النموذج الأولي'),
+  'Interface concepts for exploring places and sharing experiences.': phrase(
+    'تصورات لواجهات تتيح استكشاف الأماكن ومشاركة التجارب.',
+    'أفكار لواجهات تساعدنا نستكشف الأماكن ونشارك تجاربنا.'
+  ),
   'View full screenshot': phrase(
     'عرض لقطة الشاشة كاملة',
     'شوف لقطة الشاشة كاملة'
@@ -397,10 +478,10 @@ export const projectMessages: MessageCatalog = {
     'إلى نشاط دماغي متوقّع',
     'لتوقّعات نشاط الدماغ'
   ),
-  "A small proof-of-concept from our Hormones & Cities work, Mapillary street imagery around Borough Market, run through Meta's":
+  "A small proof-of-concept from our CapyBrain work, Mapillary street imagery around Borough Market, run through Meta's":
     phrase(
-      'إثبات مفهوم صغير من عملنا في Hormones & Cities: صور شوارع من Mapillary حول Borough Market، مرّت عبر',
-      'تجربة مبدئية صغيرة من شغلنا في Hormones & Cities: صور شوارع من Mapillary حوالين Borough Market، عدّت على'
+      'إثبات مفهوم صغير من عملنا في CapyBrain: صور شوارع من Mapillary حول Borough Market، مرّت عبر',
+      'تجربة مبدئية صغيرة من شغلنا في CapyBrain: صور شوارع من Mapillary حوالين Borough Market، عدّت على'
     ),
   "vision-only brain encoder, mapped onto the fsaverage5 cortical surface. Tap a marker to explore the model's prediction for that image. This experiment does not measure residents' brain activity, hormones, emotions, or health.":
     phrase(

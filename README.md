@@ -5,7 +5,7 @@ People-first urban intelligence: exploring patterns in cities and building tools
 **[Visit walkthru.earth](https://walkthru.earth)**
 
 - **[Earth's Living Indices](https://walkthru.earth/indices)**: interactive globe for terrain, population, buildings, weather, and combined urban indicators.
-- **[Hormones & Cities](https://walkthru.earth/hormones-cities)**: linked street imagery, map, and brain visualization.
+- **[CapyBrain](https://walkthru.earth/capybrain)**: linked street imagery, map, and brain visualization.
 - **[OpenSensor](https://walkthru.earth/opensensor)**: environmental sensing project.
 - **[Software](https://walkthru.earth/software)**: Imagery Desktop and objex.
 

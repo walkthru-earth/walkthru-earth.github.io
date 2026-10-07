@@ -146,10 +146,10 @@ export default function HomePage() {
                       </div>
                       <div className="hidden flex-shrink-0 sm:block">
                         <Image
-                          src="/opensensor-icon-512.png"
-                          alt="OpenSensor.Space"
-                          width={80}
-                          height={80}
+                          src="/mascots/peacock.webp"
+                          alt="OpenSensor’s blue and teal peacock mascot"
+                          width={112}
+                          height={112}
                           className="rounded-2xl opacity-80 transition-opacity group-hover:opacity-100"
                         />
                       </div>
@@ -157,18 +157,18 @@ export default function HomePage() {
                   </Card>
                 </Link>
 
-                <Link href="/hormones-cities" className="group block">
-                  <Card className="brand-project-wellbeing hover:border-secondary/30 h-full cursor-pointer transition-all duration-300 hover:shadow-md">
+                <Link href="/capybrain" className="group block">
+                  <Card className="brand-project-capybrain hover:border-secondary/30 h-full cursor-pointer transition-all duration-300 hover:shadow-md">
                     <div className="flex items-center gap-4 p-6">
                       <div className="flex-1">
                         <div className="mb-2 flex items-center gap-3">
-                          <BrandIcon tone="wellbeing">
+                          <BrandIcon tone="capybrain">
                             <Heart />
                           </BrandIcon>
                           <Badge variant="secondary">In development</Badge>
                         </div>
                         <CardTitle className="mb-1 text-2xl md:text-3xl">
-                          Hormones & Cities
+                          CapyBrain
                         </CardTitle>
                         <p className="text-muted-foreground mt-3 mb-3 text-base leading-relaxed">
                           Research into urban wellbeing, with an experimental
@@ -179,12 +179,13 @@ export default function HomePage() {
                           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
                         </span>
                       </div>
-                      <div className="relative hidden h-40 w-20 flex-shrink-0 overflow-hidden rounded-xl border shadow-md sm:block">
+                      <div className="relative hidden h-28 w-28 flex-shrink-0 sm:block">
                         <Image
-                          src="/hormones-cities-dashboard.png"
-                          alt="Hormones & Cities app prototype"
+                          src="/mascots/capybara.webp"
+                          alt="CapyBrain capybara mascot"
                           fill
-                          className="object-cover object-top"
+                          className="object-contain"
+                          sizes="112px"
                         />
                       </div>
                     </div>

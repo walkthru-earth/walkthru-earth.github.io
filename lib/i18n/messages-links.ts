@@ -5,7 +5,7 @@ const phrase = (ar: string, arEG = ar) => ({ ar, arEG });
 export const linkMessages: MessageCatalog = {
   Website: phrase('الموقع'),
   'Our main website': phrase('موقعنا الرئيسي'),
-  'Hormones & Cities': phrase('Hormones & Cities'),
+  CapyBrain: phrase('CapyBrain'),
   'Urban environments and wellbeing research': phrase(
     'بحث في البيئات الحضرية وجودة الحياة',
     'بحث عن البيئة الحضرية وجودة الحياة'

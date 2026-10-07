@@ -1,8 +1,8 @@
 import { parquetReadObjects } from 'hyparquet';
 import { compressors } from 'hyparquet-compressors';
 import type { AsyncBuffer } from 'hyparquet';
-import { HNC_PARQUET_URL } from './config';
-import type { HNCHeavy, HNCRow, RegionScore } from './types';
+import { CAPYBRAIN_PARQUET_URL } from './config';
+import type { CapyBrainHeavy, CapyBrainRow, RegionScore } from './types';
 
 // GitHub Pages serves .parquet with Content-Encoding: gzip, so hyparquet's
 // asyncBufferFromUrl reads the compressed Content-Length from HEAD and then
@@ -45,7 +45,7 @@ function decodeMaybe(v: unknown): string | null {
   return b ? td.decode(b) : null;
 }
 
-function rowTimestamp(captured: HNCRow['captured_at']): number {
+function rowTimestamp(captured: CapyBrainRow['captured_at']): number {
   if (captured == null) return 0;
   if (captured instanceof Date) return captured.getTime();
   if (typeof captured === 'bigint') return Number(captured);
@@ -53,14 +53,14 @@ function rowTimestamp(captured: HNCRow['captured_at']): number {
 }
 
 export interface ParquetLoadResult {
-  rows: HNCRow[];
+  rows: CapyBrainRow[];
   file: AsyncBuffer;
 }
 
 export async function loadParquetLight(
   signal?: AbortSignal
 ): Promise<ParquetLoadResult> {
-  const file = await fetchAsyncBuffer(HNC_PARQUET_URL, signal);
+  const file = await fetchAsyncBuffer(CAPYBRAIN_PARQUET_URL, signal);
   const out = await parquetReadObjects({
     file,
     columns: [
@@ -74,13 +74,13 @@ export async function loadParquetLight(
     ],
     compressors,
   });
-  const rows: HNCRow[] = (out as Record<string, unknown>[])
+  const rows: CapyBrainRow[] = (out as Record<string, unknown>[])
     .map((r) => {
       const geom = r.geom as { coordinates?: [number, number] } | undefined;
       const coords = geom?.coordinates;
       return {
         image_id: String(r.image_id),
-        captured_at: r.captured_at as HNCRow['captured_at'],
+        captured_at: r.captured_at as CapyBrainRow['captured_at'],
         compass_angle: r.compass_angle == null ? null : Number(r.compass_angle),
         camera_type: (r.camera_type as string | null) ?? null,
         image_mime: (r.image_mime as string | null) ?? null,
@@ -100,7 +100,7 @@ export async function loadParquetLight(
 
 export async function loadParquetHeavy(
   file: AsyncBuffer
-): Promise<Map<string, HNCHeavy>> {
+): Promise<Map<string, CapyBrainHeavy>> {
   // utf8: false stops hyparquet from eagerly stringifying BYTE_ARRAY image_blob,
   // which would destroy JPEG bytes. We re-decode image_id and image_mime ourselves.
   const out = await parquetReadObjects({
@@ -109,7 +109,7 @@ export async function loadParquetHeavy(
     compressors,
     utf8: false,
   });
-  const cache = new Map<string, HNCHeavy>();
+  const cache = new Map<string, CapyBrainHeavy>();
   for (const raw of out as Record<string, unknown>[]) {
     const id = decodeMaybe(raw.image_id);
     if (!id) continue;

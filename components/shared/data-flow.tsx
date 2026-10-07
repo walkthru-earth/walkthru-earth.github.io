@@ -71,7 +71,7 @@ const sources: FlowNode[] = [
     kind: 'ours',
   },
   {
-    label: 'Hormones & Cities',
+    label: 'CapyBrain',
     sublabel: 'Resident surveys, planned',
     Icon: Heart,
     kind: 'ours',
@@ -112,7 +112,7 @@ const outputs: FlowNode[] = [
     kind: 'open',
   },
   {
-    label: 'Hormones & Cities',
+    label: 'CapyBrain',
     sublabel: 'Urban wellbeing research, in development',
     Icon: RefreshCw,
     kind: 'ours',

@@ -4,16 +4,16 @@ import { useEffect, useRef } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import type { Map as MlMap, Marker } from 'maplibre-gl';
 import {
-  HNC_FLY,
-  HNC_INITIAL_VIEW,
-  HNC_MAP_STYLE,
+  CAPYBRAIN_FLY,
+  CAPYBRAIN_INITIAL_VIEW,
+  CAPYBRAIN_MAP_STYLE,
   type ThemeMode,
 } from './config';
-import type { HNCRow } from './types';
+import type { CapyBrainRow } from './types';
 import { useI18n } from '@/lib/i18n/i18n-provider';
 
 interface Props {
-  rows: HNCRow[];
+  rows: CapyBrainRow[];
   selectedId: string | null;
   themeMode: ThemeMode;
   onSelect: (id: string) => void;
@@ -87,7 +87,7 @@ function readToken(el: Element | null, name: string, fallback: string): string {
   return value || fallback;
 }
 
-function fitToData(map: MlMap, rows: HNCRow[]) {
+function fitToData(map: MlMap, rows: CapyBrainRow[]) {
   if (!rows.length) return;
   let minLon = Infinity,
     maxLon = -Infinity,
@@ -108,7 +108,12 @@ function fitToData(map: MlMap, rows: HNCRow[]) {
   );
 }
 
-export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
+export function CapyBrainMapPanel({
+  rows,
+  selectedId,
+  themeMode,
+  onSelect,
+}: Props) {
   const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MlMap | null>(null);
@@ -124,11 +129,11 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
     const markers = markersRef.current;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: HNC_MAP_STYLE[themeMode],
-      center: HNC_INITIAL_VIEW.center,
-      zoom: HNC_INITIAL_VIEW.zoom,
-      pitch: HNC_INITIAL_VIEW.pitch,
-      bearing: HNC_INITIAL_VIEW.bearing,
+      style: CAPYBRAIN_MAP_STYLE[themeMode],
+      center: CAPYBRAIN_INITIAL_VIEW.center,
+      zoom: CAPYBRAIN_INITIAL_VIEW.zoom,
+      pitch: CAPYBRAIN_INITIAL_VIEW.pitch,
+      bearing: CAPYBRAIN_INITIAL_VIEW.bearing,
       attributionControl: { compact: true },
       // Page scroll passes through; users opt in with Ctrl/Cmd+wheel or two-finger touch.
       cooperativeGestures: true,
@@ -150,7 +155,7 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    map.setStyle(HNC_MAP_STYLE[themeMode]);
+    map.setStyle(CAPYBRAIN_MAP_STYLE[themeMode]);
   }, [themeMode]);
 
   // Sync markers whenever rows change.
@@ -167,9 +172,9 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
 
       for (const r of rows) {
         const el = document.createElement('div');
-        el.className = 'hnc-marker';
+        el.className = 'capybrain-marker';
         const arrow = document.createElement('div');
-        arrow.className = 'hnc-marker-arrow';
+        arrow.className = 'capybrain-marker-arrow';
         arrow.style.color = 'var(--background)';
         arrow.appendChild(buildArrowSvg(accent));
         el.appendChild(arrow);
@@ -217,15 +222,15 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
         // Cinematic walk: bearing aligns with the photo's compass heading so
         // the map turns to face the direction the camera looked, pitch tilts
         // forward for first-person feel, and the parabolic flyTo eases between
-        // captures. Pacing is governed by HNC_FLY.durationMs in config.ts.
+        // captures. Pacing is governed by CAPYBRAIN_FLY.durationMs in config.ts.
         const bearing = row.compass_angle ?? map.getBearing();
         map.flyTo({
           center: [row.lon, row.lat],
-          zoom: Math.max(map.getZoom(), HNC_FLY.zoom),
+          zoom: Math.max(map.getZoom(), CAPYBRAIN_FLY.zoom),
           bearing,
-          pitch: HNC_FLY.pitch,
-          duration: HNC_FLY.durationMs,
-          curve: HNC_FLY.curve,
+          pitch: CAPYBRAIN_FLY.pitch,
+          duration: CAPYBRAIN_FLY.durationMs,
+          curve: CAPYBRAIN_FLY.curve,
           essential: true,
         });
       }
@@ -235,7 +240,7 @@ export function HNCMapPanel({ rows, selectedId, themeMode, onSelect }: Props) {
   return (
     <div
       ref={containerRef}
-      className="hnc-map relative h-full w-full"
+      className="capybrain-map relative h-full w-full"
       role="region"
       aria-label={t('London Borough Market street-level capture map')}
       // Stop Lenis (page-level smooth scroll) from intercepting wheel/touch

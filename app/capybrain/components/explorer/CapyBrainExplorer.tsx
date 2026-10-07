@@ -3,18 +3,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
 import type { AsyncBuffer } from 'hyparquet';
-import { HNCMapPanel } from './HNCMapPanel';
-import { HNCBrainPanel } from './HNCBrainPanel';
+import { CapyBrainMapPanel } from './CapyBrainMapPanel';
+import { CapyBrainBrainPanel } from './CapyBrainBrainPanel';
 import {
   CorticalRegions,
   FrameImage,
   FrameMeta,
   FrameScrub,
   FrameWalker,
-} from './HNCFramePanel';
-import { HNC_LEGEND_GRADIENT } from './colormap';
+} from './CapyBrainFramePanel';
+import { CAPYBRAIN_LEGEND_GRADIENT } from './colormap';
 import {
-  HNC_WALK_INTERVAL_MS,
+  CAPYBRAIN_WALK_INTERVAL_MS,
   type ScoreScale,
   type SurfaceMode,
   type ThemeMode,
@@ -23,9 +23,9 @@ import { loadParquetHeavy, loadParquetLight } from './parquet';
 import { loadRegionBaselines, type RegionBaseline } from './baselines';
 import { RegionRadar } from './RegionRadar';
 import { regionInfo } from './regions';
-import type { HNCHeavy, HNCRow } from './types';
+import type { CapyBrainHeavy, CapyBrainRow } from './types';
 import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
-import './hnc.css';
+import './capybrain.css';
 
 interface SegOption<T extends string> {
   label: string;
@@ -45,12 +45,12 @@ function Segmented<T extends string>({
 }) {
   const { t } = useI18n();
   return (
-    <div className="hnc-seg" role="group" aria-label={t(ariaLabel)}>
+    <div className="capybrain-seg" role="group" aria-label={t(ariaLabel)}>
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
-          className="hnc-seg-opt"
+          className="capybrain-seg-opt"
           data-active={opt.value === value}
           onClick={() => onChange(opt.value)}
         >
@@ -78,14 +78,14 @@ function StatTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function HNCExplorer() {
+export function CapyBrainExplorer() {
   const { t } = useI18n();
   const { resolvedTheme } = useTheme();
   const themeMode: ThemeMode = resolvedTheme === 'dark' ? 'dark' : 'light';
 
-  const [rows, setRows] = useState<HNCRow[]>([]);
+  const [rows, setRows] = useState<CapyBrainRow[]>([]);
   const [parquetFile, setParquetFile] = useState<AsyncBuffer | null>(null);
-  const [heavyCache, setHeavyCache] = useState<Map<string, HNCHeavy>>(
+  const [heavyCache, setHeavyCache] = useState<Map<string, CapyBrainHeavy>>(
     new Map()
   );
   const [heavyLoading, setHeavyLoading] = useState(false);
@@ -138,7 +138,7 @@ export function HNCExplorer() {
       })
       .catch((err: Error) => {
         if (cancelled) return;
-        console.error('[hnc] parquet load failed', err);
+        console.error('[capybrain] parquet load failed', err);
         setStatusMsg(`Parquet error: ${err.message}`, true);
       });
     return () => {
@@ -169,7 +169,7 @@ export function HNCExplorer() {
       })
       .catch((err: Error) => {
         if (cancelled) return;
-        console.error('[hnc] heavy load failed', err);
+        console.error('[capybrain] heavy load failed', err);
         setStatusMsg(`Heavy decode error: ${err.message}`, true);
       })
       .finally(() => {
@@ -238,7 +238,7 @@ export function HNCExplorer() {
   // Pauses while the tab is hidden so 30× doesn't burn CPU/GPU in background.
   useEffect(() => {
     if (!isPlaying || !tabVisible || rows.length <= 1) return;
-    const interval = Math.max(40, HNC_WALK_INTERVAL_MS / playSpeed);
+    const interval = Math.max(40, CAPYBRAIN_WALK_INTERVAL_MS / playSpeed);
     const id = window.setInterval(() => stepRef.current(1), interval);
     return () => window.clearInterval(id);
   }, [isPlaying, playSpeed, rows.length, tabVisible]);
@@ -292,8 +292,8 @@ export function HNCExplorer() {
 
   return (
     <Localized>
-      <div className="hnc-shell text-foreground relative flex w-full flex-col gap-3">
-        <div className="hnc-panel flex flex-col gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4">
+      <div className="capybrain-shell text-foreground relative flex w-full flex-col gap-3">
+        <div className="capybrain-panel flex flex-col gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4">
           <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:gap-5">
             <StatTile
               label="Frames"
@@ -352,10 +352,10 @@ export function HNCExplorer() {
         </div>
 
         <div className="relative grid w-full gap-3 md:gap-3 lg:h-[calc(100svh-9rem)] lg:min-h-[640px] lg:grid-cols-[minmax(260px,1fr)_minmax(440px,1.6fr)_minmax(300px,1.1fr)]">
-          <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
+          <section className="capybrain-panel flex min-h-0 flex-col overflow-hidden">
             <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2.5 pb-1.5 sm:px-4">
               <div className="min-w-0">
-                <span className="hnc-eyebrow">Source · Mapillary</span>
+                <span className="capybrain-eyebrow">Source · Mapillary</span>
                 <FrameMeta row={selectedRow} />
               </div>
             </header>
@@ -387,7 +387,7 @@ export function HNCExplorer() {
 
             <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2 pb-1 sm:px-4">
               <div className="min-w-0">
-                <span className="hnc-eyebrow">Sample area</span>
+                <span className="capybrain-eyebrow">Sample area</span>
                 <h3 className="text-foreground truncate text-xs font-semibold sm:text-sm">
                   London · Borough Market AOI
                 </h3>
@@ -397,8 +397,8 @@ export function HNCExplorer() {
               </span>
             </header>
             <div className="flex min-h-[28svh] flex-[2] flex-col lg:min-h-0">
-              <div className="hnc-map-canvas">
-                <HNCMapPanel
+              <div className="capybrain-map-canvas">
+                <CapyBrainMapPanel
                   rows={rows}
                   selectedId={selectedId}
                   themeMode={themeMode}
@@ -411,10 +411,10 @@ export function HNCExplorer() {
             </div>
           </section>
 
-          <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
+          <section className="capybrain-panel flex min-h-0 flex-col overflow-hidden">
             <header className="flex shrink-0 items-baseline justify-between gap-3 px-3 pt-2.5 pb-1.5 sm:px-4">
               <div className="min-w-0 flex-1">
-                <span className="hnc-eyebrow">Model · TRIBE v2</span>
+                <span className="capybrain-eyebrow">Model · TRIBE v2</span>
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-foreground truncate text-xs font-semibold sm:text-sm">
                     Predicted cortex · fsaverage5
@@ -451,8 +451,8 @@ export function HNCExplorer() {
               </span>
             </header>
             <div className="flex min-h-[40svh] flex-1 flex-col lg:min-h-0">
-              <div className="hnc-brain-canvas">
-                <HNCBrainPanel
+              <div className="capybrain-brain-canvas">
+                <CapyBrainBrainPanel
                   surface={surface}
                   brainActivity={selectedHeavy?.brainActivity ?? null}
                   spotlightAlias={selectedAlias}
@@ -470,7 +470,7 @@ export function HNCExplorer() {
                 <span className="whitespace-nowrap">Below</span>
                 <span
                   className="border-border relative h-1.5 flex-1 rounded-full border"
-                  style={{ background: HNC_LEGEND_GRADIENT }}
+                  style={{ background: CAPYBRAIN_LEGEND_GRADIENT }}
                   aria-hidden="true"
                 >
                   <span className="bg-foreground/40 absolute top-1/2 left-1/2 h-2.5 w-px -translate-x-1/2 -translate-y-1/2" />
@@ -483,7 +483,7 @@ export function HNCExplorer() {
             </div>
           </section>
 
-          <section className="hnc-panel flex min-h-0 flex-col overflow-hidden">
+          <section className="capybrain-panel flex min-h-0 flex-col overflow-hidden">
             <div className="shrink-0 px-3 pt-2.5 sm:px-4">
               {selectedRow && (
                 <RegionRadar
@@ -516,7 +516,7 @@ export function HNCExplorer() {
         {/* ── Status pill ─────────────────────────────────────────────── */}
         <div className="pointer-events-none flex justify-center">
           <span
-            className={`hnc-status-pill ${status.isError ? 'is-error' : ''}`}
+            className={`capybrain-status-pill ${status.isError ? 'is-error' : ''}`}
             role="status"
             aria-live="polite"
           >
@@ -530,4 +530,4 @@ export function HNCExplorer() {
   );
 }
 
-export default HNCExplorer;
+export default CapyBrainExplorer;

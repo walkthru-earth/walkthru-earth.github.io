@@ -1,18 +1,23 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { FSAVERAGE5_HEMI_VERTS, HNC_GLB, type SurfaceMode } from './config';
+import {
+  FSAVERAGE5_HEMI_VERTS,
+  CAPYBRAIN_GLB,
+  CAPYBRAIN_ATLAS_URL,
+  type SurfaceMode,
+} from './config';
 import { colormap, dynamicRange } from './colormap';
 
 /**
  * Parcel atlas: alias → fsaverage5 vertex indices in [0..20483].
- * Generated offline via hnc/scripts/gen_parcel_aliases.py (see comments
+ * Generated offline via the upstream scripts/gen_parcel_aliases.py (see comments
  * in that file). When this asset is missing, region-spotlight is a no-op.
  */
 export type ParcelAtlas = Record<string, number[]>;
 
 let atlasPromise: Promise<ParcelAtlas | null> | null = null;
 export function loadParcelAtlas(
-  url = '/hnc/parcel_aliases.json'
+  url = CAPYBRAIN_ATLAS_URL
 ): Promise<ParcelAtlas | null> {
   if (atlasPromise) return atlasPromise;
   atlasPromise = fetch(url, { cache: 'force-cache' })
@@ -109,8 +114,8 @@ function buildHashGridNN(positions: ArrayLike<number>, cellSize: number) {
 export async function loadHemispheres(
   surface: SurfaceMode
 ): Promise<BrainAssembly> {
-  const high = HNC_GLB.high[surface];
-  const low = HNC_GLB.low[surface];
+  const high = CAPYBRAIN_GLB.high[surface];
+  const low = CAPYBRAIN_GLB.low[surface];
   const [meshL, meshR, lowL, lowR] = await Promise.all([
     extractMesh(high.left),
     extractMesh(high.right),
@@ -155,7 +160,7 @@ export async function loadHemispheres(
       .array as ArrayLike<number>;
     const lowCount = lowMesh.geometry.attributes.position.count;
     if (lowCount !== FSAVERAGE5_HEMI_VERTS) {
-      console.warn('[hnc] low mesh vertex count mismatch', lowCount);
+      console.warn('[capybrain] low mesh vertex count mismatch', lowCount);
     }
     const grid = buildHashGridNN(lowPos, 6);
     const highPos = mesh.geometry.attributes.position

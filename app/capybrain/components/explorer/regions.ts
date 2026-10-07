@@ -1,6 +1,6 @@
 /**
  * Plain-language glossary for the HCP MMP1 functional aliases TRIBE v2 surfaces
- * for each Mapillary frame. Sourced from hnc/PLAN.md (functional ROI summary)
+ * for each Mapillary frame. Sourced from the upstream PLAN.md (functional ROI summary)
  * and Glasser et al., 2016 (HCP MMP1 atlas).
  *
  * `feeling` is what the panel shows as the primary line. It is intentionally
@@ -21,7 +21,7 @@ export interface RegionInfo {
   blurb: string;
 }
 
-export const HNC_REGION_GLOSSARY: Record<string, RegionInfo> = {
+export const CAPYBRAIN_REGION_GLOSSARY: Record<string, RegionInfo> = {
   FFA: {
     feeling: 'Noticing faces',
     tech: 'FFA',
@@ -118,7 +118,11 @@ const FALLBACK: RegionInfo = {
 
 export function regionInfo(alias: string): RegionInfo {
   return (
-    HNC_REGION_GLOSSARY[alias] ?? { ...FALLBACK, tech: alias, full: alias }
+    CAPYBRAIN_REGION_GLOSSARY[alias] ?? {
+      ...FALLBACK,
+      tech: alias,
+      full: alias,
+    }
   );
 }
 

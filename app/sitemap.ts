@@ -25,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/hormones-cities`,
+      url: `${baseUrl}/capybrain`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,

@@ -111,10 +111,10 @@ export default function PrivacyPage() {
                   </Link>{' '}
                   and{' '}
                   <Link
-                    href="/hormones-cities"
+                    href="/capybrain"
                     className="text-foreground underline underline-offset-4"
                   >
-                    Hormones & Cities
+                    CapyBrain
                   </Link>
                   . We are committed to transparency and prioritize your privacy
                   in everything we do.
@@ -187,9 +187,7 @@ export default function PrivacyPage() {
                   their data to our open network.
                 </p>
 
-                <h3 className="mt-6 text-lg font-semibold">
-                  Hormones & Cities Survey
-                </h3>
+                <h3 className="mt-6 text-lg font-semibold">CapyBrain Survey</h3>
                 <p className="text-muted-foreground">
                   Our urban wellbeing survey is designed with privacy at its
                   core:

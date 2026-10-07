@@ -18,15 +18,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Brain, Heart, Globe, Sparkles } from 'lucide-react';
 
+import { ProjectMascot } from '@/components/shared/project-mascot';
 import { ProjectGallery } from '@/components/shared/project-gallery';
-import { HormonesFlow } from './components/HormonesFlow';
+import { CapyBrainFlow } from './components/CapyBrainFlow';
 import { screenshots, allMetrics } from './data/content';
 import { Localized } from '@/lib/i18n/i18n-provider';
 
-const HNCExplorer = dynamic(
+const CapyBrainExplorer = dynamic(
   () =>
-    import('./components/hnc/HNCExplorer').then((m) => ({
-      default: m.HNCExplorer,
+    import('./components/explorer/CapyBrainExplorer').then((m) => ({
+      default: m.CapyBrainExplorer,
     })),
   {
     ssr: false,
@@ -65,16 +66,16 @@ function ContentBlock({
 
 /* ── Page ─────────────────────────────────────────────────────────── */
 
-export default function HormonesCitiesPage() {
+export default function CapyBrainPage() {
   const [showExperiment, setShowExperiment] = useState(false);
 
   return (
     <Localized>
       <>
         <Navbar />
-        <BrandPage project="wellbeing">
+        <BrandPage project="capybrain">
           {/* ─── Hero ─────────────────────────────────────────────── */}
-          <BrandHero tone="wellbeing" decorative={false}>
+          <BrandHero tone="capybrain" decorative={false}>
             <Container className="relative z-10">
               <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
                 <div className="max-w-xl">
@@ -84,11 +85,12 @@ export default function HormonesCitiesPage() {
                   </BrandEyebrow>
 
                   <h1 className="text-[clamp(2.5rem,7vw,5rem)] leading-[1.1] font-bold tracking-tight">
-                    <GradientText className="font-bold">
-                      Hormones & Cities
-                    </GradientText>
+                    <GradientText className="font-bold">CapyBrain</GradientText>
                   </h1>
 
+                  <p className="mt-5 text-xl font-bold">
+                    A curious guide to people and places.
+                  </p>
                   <p className="text-muted-foreground mt-4 max-w-md text-xl leading-relaxed">
                     A research prototype exploring how environmental conditions
                     relate to residents’ experiences.
@@ -126,17 +128,7 @@ export default function HormonesCitiesPage() {
                   </div>
                 </div>
 
-                <div className="min-w-0">
-                  <p className="mb-4 text-center text-sm font-bold">
-                    Research prototype
-                  </p>
-                  <ProjectGallery
-                    items={screenshots}
-                    portrait
-                    initialIndex={1}
-                    priority
-                  />
-                </div>
+                <ProjectMascot kind="capybara" />
               </div>
             </Container>
           </BrandHero>
@@ -147,7 +139,7 @@ export default function HormonesCitiesPage() {
                 title="Research approach"
                 description="We aim to connect environmental readings with residents’ feedback. Survey consent, privacy, sampling, and validation are still being developed."
               />
-              <HormonesFlow />
+              <CapyBrainFlow />
               <details className="mt-8 rounded-3xl border-2 p-6">
                 <summary className="cursor-pointer text-lg font-bold">
                   Topics under consideration
@@ -166,11 +158,26 @@ export default function HormonesCitiesPage() {
             </Container>
           </BrandSection>
 
-          {/* ─── Experimental: HNC explorer (Mapillary → cortex) ──── */}
+          <BrandSection className="border-t">
+            <Container>
+              <div className="grid items-center gap-10 lg:grid-cols-2">
+                <div>
+                  <BrandSectionHeading
+                    title="Inside the prototype"
+                    description="Interface concepts for exploring places and sharing experiences."
+                  />
+                  <Badge variant="outline">Research prototype</Badge>
+                </div>
+                <ProjectGallery items={screenshots} portrait initialIndex={1} />
+              </div>
+            </Container>
+          </BrandSection>
+
+          {/* ─── Experimental: CapyBrain explorer (Mapillary → cortex) ──── */}
           <BrandSection
             id="experiment"
             className="scroll-mt-24 border-t"
-            aria-labelledby="hnc-experiment-title"
+            aria-labelledby="capybrain-experiment-title"
           >
             <Container>
               <ContentBlock className="mx-auto mb-6 max-w-3xl text-center md:mb-10">
@@ -179,7 +186,7 @@ export default function HormonesCitiesPage() {
                   <span className="text-sm font-bold">Live experiment</span>
                 </BrandEyebrow>
                 <h2
-                  id="hnc-experiment-title"
+                  id="capybrain-experiment-title"
                   className="mb-3 text-2xl font-bold tracking-tight md:text-3xl"
                 >
                   From a London street{' '}
@@ -212,14 +219,14 @@ export default function HormonesCitiesPage() {
                   variant={showExperiment ? 'outline' : 'default'}
                   onClick={() => setShowExperiment((visible) => !visible)}
                   aria-expanded={showExperiment}
-                  aria-controls="hnc-interactive-demo"
+                  aria-controls="capybrain-interactive-demo"
                 >
                   {showExperiment ? 'Unload demo' : 'Load interactive demo'}
                 </Button>
               </div>
-              <div id="hnc-interactive-demo">
+              <div id="capybrain-interactive-demo">
                 {showExperiment ? (
-                  <HNCExplorer />
+                  <CapyBrainExplorer />
                 ) : (
                   <div className="bg-muted/30 border-border mx-auto flex h-32 max-w-3xl items-center justify-center rounded-2xl border">
                     <Brain
@@ -246,7 +253,7 @@ export default function HormonesCitiesPage() {
                     rel="noreferrer"
                     className="text-foreground underline-offset-4 hover:underline"
                   >
-                    walkthru-earth/hnc
+                    CapyBrain research repository
                   </Link>
                   .
                 </p>
@@ -336,7 +343,7 @@ export default function HormonesCitiesPage() {
             </Container>
           </BrandSection>
 
-          <BrandSection tone="wellbeing">
+          <BrandSection tone="capybrain">
             <Container>
               <div className="mx-auto max-w-2xl text-center">
                 <BrandSectionHeading

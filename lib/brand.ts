@@ -156,7 +156,7 @@ export const brandPalettes = {
 export const projectBrands = {
   earth: { palette: 'spatial' },
   opensensor: { palette: 'sensing' },
-  wellbeing: { palette: 'experience' },
+  capybrain: { palette: 'experience' },
   imagery: { palette: 'ecosystem' },
   objex: { palette: 'ecosystem' },
 } as const satisfies Record<string, { palette: PaletteId }>;
@@ -166,8 +166,33 @@ export type ProjectPaletteOverrides = Partial<
   Record<ProjectBrand, Partial<Record<PaletteTheme, Partial<PaletteColors>>>>
 >;
 
-/** Example: { objex: { light: { main: '#...' }, dark: { main: '#...' } } }. */
-export const projectPaletteOverrides: ProjectPaletteOverrides = {};
+/** Project identities can replace any role while retaining their strategic family. */
+export const projectPaletteOverrides: ProjectPaletteOverrides = {
+  capybrain: {
+    light: {
+      main: '#C69A70',
+      ink: '#30221B',
+      paper: '#FBF6EF',
+      surface: '#F1E4D4',
+      accent: '#D8B784',
+      deep: '#745139',
+      text: '#35261E',
+      muted: '#735D4B',
+      border: '#CBB49A',
+    },
+    dark: {
+      main: '#C69A70',
+      ink: '#30221B',
+      paper: '#241D18',
+      surface: '#352A22',
+      accent: '#D8B784',
+      deep: '#745139',
+      text: '#FBF3E8',
+      muted: '#CBB7A1',
+      border: '#76604D',
+    },
+  },
+};
 
 export function projectPalette(
   project: ProjectBrand,
