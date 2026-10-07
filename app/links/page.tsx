@@ -14,6 +14,7 @@ import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { LanguageSelector } from '@/components/navigation/language-selector';
 import { Localized } from '@/lib/i18n/i18n-provider';
 import { BrandHero, BrandPage, BrandPanel } from '@/components/shared/brand-ui';
+import { copyrightYear } from '@/lib/copyright';
 
 const mainLinks = [
   {
@@ -244,9 +245,7 @@ export default function LinksPage() {
 
           {/* Footer */}
           <div className="text-muted-foreground text-center text-base">
-            <p className="mt-1 opacity-60">
-              © {new Date().getFullYear()} walkthru.earth
-            </p>
+            <p className="mt-1 opacity-60">© {copyrightYear} walkthru.earth</p>
           </div>
         </div>
       </BrandPage>

@@ -38,6 +38,15 @@ The indices explorer uses standalone deck.gl GlobeView, H3HexagonLayer, satellit
 
 CapyBrain has its own MapLibre map and Three.js brain view. Its Parquet loader first reads lightweight metadata columns, then image and activity columns from an in-memory file. This is a separate transport requirement: its host can apply HTTP compression, so a HEAD response's length may not represent the decompressed Parquet byte offsets. Keep that constraint distinct from Source Cooperative range requests.
 
+The map sets MapLibre's worker URL before creating its first map, using a literal
+`new URL('maplibre-gl/dist/maplibre-gl-worker.mjs', import.meta.url)`. This lets
+Turbopack export the installed package's self-contained worker as a hashed local
+asset. MapLibre's default dynamic sibling lookup resolves incorrectly in the
+production bundle; do not rely on it or replace it with a separately versioned
+CDN worker. After library or bundler upgrades, verify that the exported browser
+loads the worker asset and renders street tiles; unit tests alone cannot check
+worker bundling.
+
 If CapyBrain's street basemap fails or takes longer than 15 seconds to load,
 the map uses a theme-aware background that needs no network requests. DOM
 markers for capture locations remain selectable, and a retry button lets the

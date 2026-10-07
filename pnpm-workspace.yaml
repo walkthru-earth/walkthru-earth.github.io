@@ -6,9 +6,14 @@ allowBuilds:
 # pnpm/setup in CI still installs the version pinned by packageManager.
 pmOnFail: ignore
 overrides:
+  # serve pins the vulnerable release; retain its API-compatible patch.
+  'serve@14.2.6>compression': 1.8.2
   # Patch ZIP64 parsing until loaders.gl updates its exact fflate dependency.
-  '@loaders.gl/compression@4.4.5>fflate': 0.7.5
+  '@loaders.gl/compression@4.5.2>fflate': 0.7.5
   # Unused Node-only encoder CLI; removes its unpatched image-size dependency.
   '@loaders.gl/textures@4.4.5>texture-compressor': '-'
 patchedDependencies:
   '@deck.gl/core@9.4.0': patches/@deck.gl__core@9.4.0.patch
+# Explicit latest stable release requested; other packages keep release-age checks.
+minimumReleaseAgeExclude:
+  - maplibre-gl@6.13.0

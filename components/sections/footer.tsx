@@ -9,6 +9,7 @@ import {
   Facebook,
 } from '@/components/shared/brand-icons';
 import { Localized } from '@/lib/i18n/i18n-provider';
+import { copyrightYear } from '@/lib/copyright';
 
 function XIcon({ className }: { className?: string }) {
   return (
@@ -175,7 +176,7 @@ export function Footer() {
             </div>
 
             <div className="text-background/75 border-background/20 mt-10 border-t pt-6 text-center text-sm">
-              © {new Date().getFullYear()} walkthru.earth · CC BY 4.0
+              © {copyrightYear} walkthru.earth · CC BY 4.0
             </div>
           </div>
         </Container>

@@ -129,6 +129,11 @@ export function CapyBrainMapPanel({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     const markers = markersRef.current;
+    // A literal asset URL lets Turbopack emit the self-contained worker. The
+    // package's dynamic sibling lookup can resolve to its main bundle instead.
+    maplibregl.setWorkerUrl(
+      new URL('maplibre-gl/dist/maplibre-gl-worker.mjs', import.meta.url).href
+    );
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: fallbackBasemap(themeMode),
