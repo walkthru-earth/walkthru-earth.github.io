@@ -164,6 +164,44 @@ corrections, deduplication and historical import. A 15-minute device batch can
 contain many unaveraged samples; a 15-minute exported mean is a different thing;
 OpenAQ's polling frequency is a third independent clock.
 
+## Hardware explorer and deployment plan
+
+The hero shows **18 planned sensors**, supplied by the project owner, rather than
+claiming 18 live stations or reusing an unrelated historical data-point count.
+**3 measurement groups** means particulate matter, air temperature and relative
+humidity. PM1, PM2.5 and PM10 are three quantities within the particulate group,
+so the current focus contains five readings, not three physical sensor models.
+
+`app/opensensor/components/hardware/` replaces the old supported-device card grid
+with a responsive ESP32-S3 core diagram. RTC and microSD remain visible as the
+clock/storage architecture; changing the attached field module illustrates
+expansion rather than implementing a new hardware driver. The clock, power,
+interfaces, exposed GPIOs, media and firmware must match the selected board.
+
+Project evidence was checked in `aq-parquet/firmware/common/src/pms_frame.h`, the
+Waveshare SIM7670G trial README and the CoreS3 air-quality accessory guide. The
+parser supports PMS5003T and PMSA003. PMS5003T PM/temperature/humidity readings
+were verified in stored Parquet; PMSA003 provides PM and does not establish a
+working external temperature/humidity driver. PMS5003, SPS30 and SEN63C/SEN6x are
+shown as options to integrate, not all as implemented drivers. SEN6x capabilities
+vary: [SEN63C](https://sensirion.com/products/catalog/SEN63C) also includes CO₂.
+
+The [ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3) includes Wi-Fi
+and Bluetooth LE. Additional radio hardware and integration are required for
+LoRa, Zigbee and Z-Wave; [Espressif's Zigbee guidance](https://docs.espressif.com/projects/esp-zigbee-sdk/en/latest/esp32s3/introduction.html)
+describes the radio-coprocessor arrangement. Soil/NPK, hydrogen and other gas,
+light and sound modules are illustrated as future options, with suitable
+interfaces and drivers required. Available GPIO alone does not prove compatibility.
+
+Internet-free logging and SD storage are established prototype behaviors. A
+strict air-gapped deployment is a configuration goal: disable radios and move
+files locally, for example by removable media. Current firmware starts BLE, so
+the UI must label its air-gap disclosure as a **plan**, not a shipped radio-off
+firmware mode. RTC support is board-dependent; CoreS3 BM8563 software-reboot restore
+is documented, whereas full power-loss retention and external RTC support across
+all boards are not established. The diagram's generic clock is not a promise
+that any RTC or SD card works without integration.
+
 ## Presentation implementation
 
 - `app/opensensor/components/story/` owns the native scroll wrapper, concise copy,
@@ -266,6 +304,15 @@ All operations below are GET. No write endpoints are advertised.
 | GET    | `/v3/sensors/{sensor_id}/flags`                    | Get flags by sensor ID                                              |
 
 ## Verification
+
+The hardware explorer passed independent browser review at 1440px desktop,
+800px tablet and 320/390px phone widths, across English, Arabic and Egyptian
+Arabic, both themes and reduced motion. All five module buttons and the air-gap
+disclosure work by keyboard. Review caught and verified fixes for narrow board
+overflow, wrapping selector labels and inherited paragraph sizes; no component
+overflow or page errors remained. The repository checks passed all 170 tests.
+Production static export and an exported-page smoke check at 1440, 390 and 320px
+also passed, including all five module selections and the localized hero labels.
 
 The continuous-scene redesign passed `pnpm check` (170 tests), production static
 export, and HyperFrames lint/runtime/layout checks. Browser verification covered

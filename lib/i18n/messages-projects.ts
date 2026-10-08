@@ -279,6 +279,8 @@ export const projectMessages: MessageCatalog = {
   'Dashboard Code': phrase('شفرة لوحة البيانات', 'كود لوحة البيانات'),
   'Edge Code': phrase('شفرة الأجهزة الطرفية', 'كود الأجهزة الطرفية'),
   'Data Points': phrase('نقاط بيانات'),
+  'Planned sensors': phrase('وحدات مخطّطة', 'حسّاسات مخطّط لها'),
+  'Measurement groups': phrase('مجموعات قياس'),
   'Sensor Types': phrase('أنواع المستشعرات'),
   Open: phrase('مفتوح'),
   'Source & Data': phrase('المصدر والبيانات'),

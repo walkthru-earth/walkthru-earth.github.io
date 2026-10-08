@@ -37,7 +37,10 @@ The root layout wraps all routes in theme, consent, analytics, and scrolling beh
 `/opensensor#sensor-story` adds a full-viewport, native-scroll presentation with
 a continuous animated data journey and a three-mode connection explorer. A local HyperFrames composition illustrates the
 service chain, edge Parquet, batching, direct object storage and an optional
-OpenAQ feed. It distinguishes demonstrated capture from proposed cloud work.
+OpenAQ Parquet contribution. It distinguishes demonstrated capture from proposed
+cloud work. The hardware explorer replaces the device-card list with an
+ESP32-S3/RTC/microSD core, selectable field modules and optional communications;
+prototype support and future integration options remain distinct.
 See [presentation and source review](opensensor-story.md) for integration evidence,
 the full OpenAQ endpoint audit, localization, reduced motion and validation.
 

@@ -13,10 +13,10 @@ import {
   BrandEyebrow,
 } from '@/components/shared/brand-ui';
 import { SensorStory } from './components/story/sensor-story';
+import { HardwareExplorer } from './components/hardware/hardware-explorer';
 import { ProjectMascot } from '@/components/shared/project-mascot';
 import { GradientText } from '@/components/shared/gradient-text';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   ArrowRight,
   Cloud,
@@ -125,14 +125,12 @@ export default function OpenSensorPage() {
 
                   <div className="mt-14 grid max-w-2xl grid-cols-3 gap-4 border-t-2 border-current pt-6 text-base md:gap-8">
                     <div>
-                      <div className="text-3xl font-bold md:text-4xl">
-                        1.3M+
-                      </div>
-                      <div>Data Points</div>
+                      <div className="text-3xl font-bold md:text-4xl">18</div>
+                      <div>Planned sensors</div>
                     </div>
                     <div>
-                      <div className="text-3xl font-bold md:text-4xl">6+</div>
-                      <div>Sensor Types</div>
+                      <div className="text-3xl font-bold md:text-4xl">3</div>
+                      <div>Measurement groups</div>
                     </div>
                     <div>
                       <div className="text-3xl font-bold md:text-4xl">Open</div>
@@ -238,69 +236,9 @@ export default function OpenSensorPage() {
             </Container>
           </BrandSection>
 
-          {/* Supported Devices Section */}
           <BrandSection className="border-y">
             <Container>
-              <BrandSectionHeading
-                align="center"
-                title="Supported devices"
-                description={
-                  <> Current integrations and the development roadmap </>
-                }
-              />
-
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {[
-                  {
-                    name: 'BME280',
-                    desc: 'Temperature, pressure, and humidity sensor',
-                    badge: 'Implemented',
-                  },
-                  {
-                    name: 'Gas Sensors',
-                    desc: 'Oxidised, reducing, and NH3 gas detection',
-                    badge: 'Implemented',
-                  },
-                  {
-                    name: 'LTR559',
-                    desc: 'Ambient light (lux) and proximity sensor',
-                    badge: 'Implemented',
-                  },
-                  {
-                    name: 'PMS5003',
-                    desc: 'Particulate matter sensor (PM1, PM2.5, PM10)',
-                    badge: 'Implemented',
-                  },
-                  {
-                    name: 'GPS Module',
-                    desc: 'Location tracking for mobile sensor installations',
-                    badge: 'Roadmap',
-                  },
-                  {
-                    name: 'LoRa / Radio (AIS)',
-                    desc: 'Long-range wireless and radio signal reception',
-                    badge: 'Roadmap',
-                  },
-                ].map((item) => (
-                  <div key={item.name}>
-                    <BrandPanel className="h-full">
-                      <div className="space-y-4">
-                        <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
-                          <h3 className="text-2xl leading-tight font-bold">
-                            {item.name}
-                          </h3>
-                          {item.badge === 'Implemented' ? (
-                            <Badge className="shrink-0">{item.badge}</Badge>
-                          ) : (
-                            <Badge variant="outline">{item.badge}</Badge>
-                          )}
-                        </div>
-                        <p className="text-lg leading-relaxed">{item.desc}</p>
-                      </div>
-                    </BrandPanel>
-                  </div>
-                ))}
-              </div>
+              <HardwareExplorer />
             </Container>
           </BrandSection>
 
