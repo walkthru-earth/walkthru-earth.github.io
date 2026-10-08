@@ -24,6 +24,7 @@
   min-height: 44px;
 }
 .context {
+  min-width: 0;
   color: var(--palette-emphasis);
   font-size: 0.8rem;
   font-weight: 700;
@@ -36,10 +37,13 @@
 }
 .actions {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 1.25rem;
 }
 .tryConnection {
+  white-space: nowrap;
+  flex-shrink: 0;
   font-size: 0.75rem;
   font-weight: 700;
   border: 1px solid var(--palette-border);
@@ -76,8 +80,22 @@
   padding: 12px 0 18px;
   flex: none;
 }
+/* Reserve the tallest caption at this width so wrapping never resizes the iframe. */
 .narrative {
+  display: grid;
   max-width: 760px;
+}
+.narrativeMoment {
+  grid-area: 1 / 1;
+  visibility: hidden;
+}
+.narrativeMoment[data-active='true'] {
+  visibility: visible;
+}
+.captionAside {
+  height: 40px;
+  display: flex;
+  align-items: center;
 }
 .narrative h3 {
   font-size: clamp(1.1rem, 1.8vw, 1.6rem) !important;
@@ -94,7 +112,7 @@
   color: var(--palette-muted);
   font-size: 0.68rem;
   line-height: 1.6;
-  max-width: 290px;
+  white-space: nowrap;
 }
 .controls {
   display: flex;
@@ -152,8 +170,8 @@
   display: none;
 }
 .cadence {
-  display: grid;
-  gap: 0.25rem;
+  display: flex;
+  white-space: nowrap;
 }
 .toggle {
   display: inline-flex;
@@ -172,19 +190,6 @@
 .toggle [aria-pressed='true'] {
   background: var(--palette-emphasis);
   color: var(--palette-paper);
-}
-.cadence p {
-  font-size: 0.7rem;
-}
-.cadence strong {
-  font-size: 1.2rem;
-  margin-inline-end: 0.3rem;
-  font-variant-numeric: tabular-nums;
-}
-.cadence small {
-  font-size: 0.6rem;
-  color: var(--palette-muted);
-  line-height: 1.4;
 }
 .connectionModal {
   width: min(94vw, 720px) !important;
@@ -348,15 +353,6 @@
     max-width: 85px;
     line-height: 1.5;
   }
-  .cadence {
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: 0.8rem;
-    align-items: center;
-  }
-  .cadence small {
-    flex-basis: 100%;
-  }
   .connectionModal {
     padding: 20px 14px !important;
   }
@@ -400,6 +396,12 @@
   }
   .shortHint {
     display: inline;
+  }
+}
+@media (max-width: 360px) {
+  .scrollHint,
+  .shortHint {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

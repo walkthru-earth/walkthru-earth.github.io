@@ -77,6 +77,10 @@ export function SensorStory() {
             resolvedTheme === 'dark'
               ? brandPalettes.experience.dark.main
               : brandPalettes.experience.light.deep,
+          contribution:
+            resolvedTheme === 'dark'
+              ? brandPalettes.action.dark.main
+              : brandPalettes.action.light.deep,
         },
         labels: Object.fromEntries(
           Object.entries(diagramWords).map(([key, value]) => [
@@ -252,41 +256,48 @@ export function SensorStory() {
           </div>
           <div className={styles.caption}>
             <div className={styles.narrative}>
-              <h3>{copy.title[locale]}</h3>
-              <p>{copy.body[locale]}</p>
-            </div>
-            {chapter === 2 ? (
-              <div className={styles.cadence}>
+              {storyChapters.map((item, index) => (
                 <div
-                  role="group"
-                  aria-label={ui('cadence')}
-                  className={styles.toggle}
+                  key={item.label.en}
+                  className={styles.narrativeMoment}
+                  data-active={index === chapter}
+                  aria-hidden={index !== chapter}
                 >
-                  <button
-                    type="button"
-                    aria-pressed={cadence === 15}
-                    onClick={() => setCadence(15)}
-                  >
-                    {ui('quarter')}
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={cadence === 60}
-                    onClick={() => setCadence(60)}
-                  >
-                    {ui('hour')}
-                  </button>
+                  <h3>{item.title[locale]}</h3>
+                  <p>{item.body[locale]}</p>
                 </div>
-                <p>
-                  <strong>{cadence === 15 ? '96' : '24'}</strong> {ui('files')}
+              ))}
+            </div>
+            <div className={styles.captionAside}>
+              {chapter === 2 ? (
+                <div className={styles.cadence}>
+                  <div
+                    role="group"
+                    aria-label={ui('cadence')}
+                    className={styles.toggle}
+                  >
+                    <button
+                      type="button"
+                      aria-pressed={cadence === 15}
+                      onClick={() => setCadence(15)}
+                    >
+                      {ui('quarter')}
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={cadence === 60}
+                      onClick={() => setCadence(60)}
+                    >
+                      {ui('hour')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className={styles.status}>
+                  {chapter === 0 ? ui('illustrative') : ui('status')}
                 </p>
-                <small>{ui('estimate')}</small>
-              </div>
-            ) : (
-              <p className={styles.status}>
-                {chapter === 0 ? copy.note?.[locale] : ui('status')}
-              </p>
-            )}
+              )}
+            </div>
           </div>
           <footer className={styles.controls}>
             <span className="sr-only" aria-live="polite" aria-atomic="true">

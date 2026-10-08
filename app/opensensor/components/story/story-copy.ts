@@ -109,16 +109,20 @@ export const storyChapters = [
     ),
   },
   {
-    label: words('Share with OpenAQ', 'المشاركة مع OpenAQ', 'نشارك مع OpenAQ'),
+    label: words(
+      'Connect with OpenAQ',
+      'التكامل مع OpenAQ',
+      'نتكامل مع OpenAQ'
+    ),
     title: words(
-      'Share a copy with OpenAQ.',
-      'شارك نسخة من البيانات مع OpenAQ.',
-      'نشارك نسخة من البيانات مع OpenAQ.'
+      'A Parquet path into OpenAQ.',
+      'مسار Parquet إلى OpenAQ.',
+      'مسار Parquet لـOpenAQ.'
     ),
     body: words(
-      'Export a JSON or CSV copy for OpenAQ to fetch. Keep the original Parquet files.',
-      'صدّر نسخة JSON أو CSV ليجلبها OpenAQ، واحتفظ بملفات Parquet الأصلية.',
-      'نصدّر نسخة JSON أو CSV عشان OpenAQ يسحبها، ونحتفظ بملفات Parquet الأصلية.'
+      'OpenAQ’s archive uses CSV.gz. The dashed path is our proposed Parquet feed integration.',
+      'يستخدم أرشيف OpenAQ صيغة CSV.gz. المسار المتقطع هو تكامل Parquet الذي نقترح المساهمة به.',
+      'أرشيف OpenAQ بيستخدم CSV.gz. المسار المتقطّع هو تكامل Parquet اللي بنقترح نساهم بيه.'
     ),
     note: null,
   },
@@ -188,16 +192,11 @@ export const storyUi = {
   cadence: words('File interval', 'فترة الملف', 'مدة الملف'),
   quarter: words('15 minutes', '15 دقيقة'),
   hour: words('1 hour', 'ساعة واحدة'),
-  files: words('files / device / day', 'ملفًا / جهاز / يوم'),
-  estimate: words(
-    'Illustrative, with uninterrupted recording. Same readings; different batch sizes.',
-    'مثال بافتراض تسجيل متواصل. القراءات نفسها بأحجام دفعات مختلفة.',
-    'مثال لو التسجيل متواصل. نفس القراءات في دفعات بأحجام مختلفة.'
-  ),
+  illustrative: words('Illustrative setup', 'نموذج توضيحي', 'نموذج توضيحي'),
   status: words(
-    'Demonstrated capture → proposed cloud & OpenAQ path',
-    'تسجيل مُثبت ← مسار سحابي وتكامل OpenAQ مقترح',
-    'تسجيل اتجرّب ← مسار سحابي وتكامل OpenAQ مقترح'
+    'Cloud & OpenAQ: proposed',
+    'السحابة وOpenAQ: مسار مقترح',
+    'السحابة وOpenAQ: مسار مقترح'
   ),
   diagram: words(
     'Animated sensor data architecture',
@@ -220,6 +219,13 @@ export const diagramWords = Object.fromEntries(
   [
     words('Air', 'الهواء', 'الهوا'),
     words('API / backend', 'واجهة API'),
+    words('OpenAQ archive', 'أرشيف OpenAQ'),
+    words('Export job', 'مهمة تصدير'),
+    words('CSV.gz', 'CSV.gz'),
+    words('Partitioned by location / date', 'مقسّم حسب الموقع / التاريخ'),
+    words('OpenSensor', 'OpenSensor'),
+    words('Parquet integration', 'تكامل Parquet'),
+    words('Proposed contribution', 'مساهمة مقترحة'),
     words('Sensor', 'المستشعر'),
     words('One reading', 'قراءة واحدة'),
     words('Always on', 'يعمل باستمرار', 'شغّال باستمرار'),

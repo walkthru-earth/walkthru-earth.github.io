@@ -29,7 +29,8 @@ OpenSensor workspace. These repositories have separate implementation scopes:
 - The dashboard's intended model is reading public files across cloud providers.
 
 The story therefore labels the transition from demonstrated capture to proposed
-cloud/OpenAQ flow. In particular, it does not claim zero servers everywhere:
+cloud flow, and distinguishes the current OpenAQ archive from our proposed
+Parquet contribution. In particular, it does not claim zero servers everywhere:
 object storage still uses infrastructure, and authorization, retries, validation,
 compaction, storage requests, device power and downstream services still exist.
 Removing a dedicated always-on ingest tier and primary database can reduce the
@@ -82,8 +83,50 @@ scheduler telemetry. [AirGradient's sharing guide](https://www.airgradient.com/b
 also describes opt-in outdoor sharing. Avoid submitting the same station through
 both AirGradient and an independent OpenSensor integration.
 
-## Proposed storage-first feed
+## OpenAQ archive and proposed Parquet contribution
 
+The [published archive](https://docs.openaq.org/aws/about) uses Hive-style
+location/year/month prefixes and daily `CSV.gz` files. This is the same
+partitioning idea, with a different file format. The supplied October 2 example
+was downloaded successfully; its gzip contents matched the documented columns.
+The archive docs describe publication 72 hours after the local day ends, with
+possible later patches. This archive delay is separate from provider polling or
+public API latency.
+
+The [exporter code](https://github.com/openaq/openaq-open-data/blob/main/lambda/open_data_export/main.py)
+reads Postgres measurements, writes compressed CSV and uploads an object.
+Its [README](https://github.com/openaq/openaq-open-data#readme) describes the change
+log and scheduled export process; the [CDK configuration](https://github.com/openaq/openaq-open-data/blob/main/cdk/stacks.py)
+contains a Lambda schedule. The exporter also has a Parquet **output** option.
+These sources do not establish a Parquet-to-CSV ingestion path, or the current
+acceptance of a provider's Parquet feed.
+
+The presentation therefore shows the existing **database → export job → CSV.gz**
+archive separately from the proposed **Parquet → object storage → analysis**
+path. It labels location/date partitioning rather than implying that partitioning
+belongs exclusively to Parquet. OpenAQ uses cloud services; describing the whole
+system as “non-cloud-native” or claiming measured Lambda cost savings would be
+unsupported. Its aggregation and quality-control responsibilities also differ
+from those of an individual sensor network.
+
+[DuckDB documents](https://duckdb.org/docs/lts/core_extensions/httpfs/https)
+selective Parquet reads over HTTP using metadata and range requests. CSV generally
+requires a full file download in that reader. Both formats remain queryable, and
+partition pruning can benefit both. Benefits depend on file sizes, query patterns
+and the reader; no cost or speed benchmark was performed here.
+
+The user intends to contribute a Parquet integration to OpenAQ. The lilac dashed
+branch is explicitly marked **Proposed contribution**. It connects the retained
+Parquet files to the OpenAQ ecosystem, separately from the current archive chain;
+it does not promise that OpenAQ will replace its database, convert these files to
+CSV, or accept this integration unchanged. The contribution's adapter, schema,
+licensing, timing and ownership still need agreement and implementation. Lilac
+uses `brandPalettes.action` (light `deep`, dark `main`); the dashed stroke and label
+carry the same meaning without relying on color alone.
+
+## Compatibility feed option
+
+Until a Parquet integration is agreed, a compatibility feed remains an option.
 Keep immutable raw Parquet as the source of truth. Use a bounded scheduled or
 event-triggered export job to derive settled averages and publish small HTTPS
 JSON/CSV objects. This avoids maintaining a dynamic provider API just to serve
@@ -144,7 +187,8 @@ OpenAQ's polling frequency is a third independent clock.
   give the optional export its own row, and simplify stored-file details. The
   viewport framing follows the story to avoid reserving space for removed services.
 - The old server and primary database are crossed out in the existing coral
-  palette. Labels explain removal without relying on color. Sample measurement
+  palette. A separate lilac dashed route marks the proposed Parquet contribution
+  to OpenAQ. Labels explain removal and proposal status without relying on color. Sample measurement
   values are explicitly illustrative, not live sensor readings or averages.
 - The parent sends bounded seeks and palette/locale/cadence using same-origin
   messages. The iframe accepts only its same-origin parent and makes no data calls.
@@ -160,8 +204,10 @@ OpenAQ's polling frequency is a third independent clock.
   transcript and evidence accordion were removed; source research stays in this guide. Short viewports
   (≤720px tall) use normal page flow and explicit arrow navigation. Reduced motion
   seeks directly to settled states. English, Arabic and Egyptian Arabic are covered.
-- The 96/24 counter assumes uninterrupted 15/60-minute file rotation for one device
-  across 24 hours. It is not a request, byte, battery or cost benchmark. Batching
+- Cadence is a single-line 15-minute/hour toggle. The daily file counter and
+  explanatory footnote were removed. Captions reserve the tallest localized
+  narrative at the current width, with a fixed-height control/status row, so
+  chapter changes and wrapping do not resize the diagram viewport. Batching
   retains individual samples; it does not imply calculating an average.
 
 Run `pnpm dev` for the website. For standalone composition checks:
@@ -227,7 +273,11 @@ all seven moments on the exported page at desktop and phone sizes, both themes,
 Arabic and Egyptian Arabic, reduced motion, and short screens. Sample cards,
 removal marks and the OpenAQ branch were visually reviewed. Cadence controls,
 keyboard navigation, dialog focus restoration and reverse seeking also passed.
-No page errors or horizontal overflow were observed in these checks.
+No page errors or diagram overflow were observed in these checks. An independent
+agent reviewed 320–497px mobile layouts, including Arabic and Egyptian Arabic.
+The review found and verified fixes for a narrow footer hint and a wrapping
+connection button. Diagram viewport height stayed identical across all seven
+moments and reverse navigation in the measured profiles.
 
 The optional animation-map helper cannot load its unbundled
 `@hyperframes/producer` dependency in this environment. The working CLI

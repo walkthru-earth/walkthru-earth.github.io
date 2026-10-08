@@ -6,7 +6,7 @@ if(location.pathname==='/opensensor-story'){const base=document.createElement('b
 <style>
 @font-face{font-family:Quicksand;src:url(Quicksand.woff2) format('woff2');font-weight:300 700;font-display:swap}
 @font-face{font-family:Cairo;src:url(Cairo.ttf) format('truetype');font-weight:200 1000;font-display:swap}
-:root{--paper:#F4FAFF;--surface:#DFEEF9;--text:#102F48;--muted:#44647B;--emphasis:#205A80;--border:#A4C6DE;--accent:#9ADDE7;--removal:#8C4648}
+:root{--paper:#F4FAFF;--surface:#DFEEF9;--text:#102F48;--muted:#44647B;--emphasis:#205A80;--border:#A4C6DE;--accent:#9ADDE7;--removal:#8C4648;--contribution:var(--emphasis)}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper)}
 .portrait #sensor>text,.portrait #storage>text:not([id]),.portrait #browser>text{font-size:21px}.portrait #api-label text{font-size:18px}.portrait.stored .file-row,.portrait.stored .file-note{opacity:0}.portrait.stored .file-time{display:none}.portrait.stored .file-top{font-size:34px;justify-content:flex-start;gap:17px}.portrait.stored #file-front:after{content:"";position:absolute;left:28px;right:28px;top:104px;height:7px;border-radius:3px;background:var(--border);box-shadow:0 29px var(--border),0 58px var(--border)}.portrait #same-files-label{opacity:0!important}.portrait #saved-label{width:180px;font-size:20px}.portrait #old-ball{opacity:0!important}#root{position:absolute;width:1100px;height:700px;transform-origin:top left;font-family:Quicksand,sans-serif;color:var(--text)}
 .background{position:absolute;inset:0;background:var(--paper)}
@@ -15,17 +15,17 @@ svg{position:absolute;inset:0;width:1100px;height:700px;overflow:visible}
 text{fill:var(--text);font-family:inherit;font-size:25px;font-weight:700;text-anchor:middle}.small{font-size:22px;fill:var(--muted);font-weight:500}.tiny{font-size:19px;fill:var(--muted)}
 .ink{fill:none;stroke:var(--emphasis);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}.body{fill:var(--surface);stroke:var(--border);stroke-width:2}.paper{fill:var(--paper);stroke:var(--border);stroke-width:2}
 .route{fill:none;stroke:var(--border);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.direct-route{stroke:var(--emphasis);stroke-width:3.5}.air{fill:none;stroke:var(--emphasis);stroke-width:3;stroke-linecap:round;opacity:.28}.ball{fill:var(--emphasis);stroke:var(--paper);stroke-width:2}.ball-soft{fill:var(--accent)}
-.cross{fill:none;stroke:var(--removal);stroke-width:9;stroke-linecap:round}.removal-text{fill:var(--removal);font-size:22px}.old-device{transform-box:fill-box;transform-origin:center}
+.contribution-route{fill:none;stroke:var(--contribution);stroke-width:2.5;stroke-dasharray:6 6;stroke-linejoin:round}.contribution-box{fill:color-mix(in srgb,var(--contribution) 8%,var(--paper));stroke:var(--contribution);stroke-width:2;stroke-dasharray:5 4}.contribution-text{fill:var(--contribution);font-size:17px}.contribution-note{fill:var(--contribution);font-size:15px}.portrait .contribution-text{font-size:22px}.portrait .contribution-note{font-size:19px}.cross{fill:none;stroke:var(--removal);stroke-width:9;stroke-linecap:round}.removal-text{fill:var(--removal);font-size:22px}.old-device{transform-box:fill-box;transform-origin:center}
 #files{position:absolute;left:358px;top:270px;width:300px;height:245px;transform-style:preserve-3d;transform-origin:center;opacity:0;z-index:3}
 .file{position:absolute;inset:0;border:2px solid var(--emphasis);border-radius:18px;background:var(--paper);padding:20px 22px;box-shadow:0 10px 0 -5px var(--surface),0 14px 28px -18px var(--emphasis);transform-origin:center;backface-visibility:hidden}
-#file-front{z-index:3}#file-back-a{z-index:2}#file-back-b{z-index:1}#file-back-a,#file-back-b{background:var(--surface);border-color:var(--border);opacity:0}.file-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:19px;font-weight:700}.file-symbol{width:23px;height:29px;border:2px solid var(--emphasis);border-radius:3px;position:relative}.file-symbol:after{content:'';position:absolute;left:5px;right:5px;top:9px;height:2px;background:var(--border);box-shadow:0 5px var(--border),0 10px var(--border)}.file-time{font-size:17px;color:var(--muted)}.file-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:17px;font-size:20px}.file-row strong{font-size:22px;white-space:nowrap;font-weight:700}.file-row span{color:var(--muted)}.file-note{font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin-top:17px;color:var(--muted)}
+#file-front{z-index:3}#file-back-a{z-index:2}#file-back-b{z-index:1}#file-back-a,#file-back-b{background:var(--surface);border-color:var(--border);opacity:0}.file-top{line-height:1.15;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:19px;font-weight:700}.file-symbol{width:23px;height:29px;border:2px solid var(--emphasis);border-radius:3px;position:relative}.file-symbol:after{content:'';position:absolute;left:5px;right:5px;top:9px;height:2px;background:var(--border);box-shadow:0 5px var(--border),0 10px var(--border)}.file-time{font-size:17px;color:var(--muted)}.file-row{line-height:1.15;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:17px;font-size:20px}.file-row strong{font-size:22px;white-space:nowrap;font-weight:700}.file-row span{color:var(--muted)}.file-note{line-height:1.15;font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin-top:12px;color:var(--muted)}
 #cadence{position:absolute;left:358px;top:548px;width:300px;display:flex;justify-content:center;align-items:center;gap:12px;font-size:24px;font-weight:700;opacity:0}.clock{width:29px;height:29px;border:2px solid var(--emphasis);border-radius:50%;position:relative}.clock:after{content:'';position:absolute;width:8px;height:9px;border-left:2px solid var(--emphasis);border-bottom:2px solid var(--emphasis);left:12px;top:4px}
 #saved-label{position:absolute;left:80px;top:486px;width:220px;text-align:center;font-size:22px;font-weight:600;opacity:0}.status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--emphasis);margin-inline-end:8px}
 #read-copy{position:absolute;left:718px;top:355px;width:66px;height:86px;border:2px solid var(--emphasis);border-radius:8px;background:var(--paper);opacity:0;z-index:4}.copy-lines{margin:20px 12px;height:3px;background:var(--border);box-shadow:0 11px var(--border),0 22px var(--border)}
 </style></head><body>
 <div id="root" data-composition-id="opensensor" data-start="0" data-duration="70" data-width="1100" data-height="700"><div class="background"></div><div id="world">
 <svg viewBox="0 0 1100 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A sensor reading becomes a file, travels to object storage, and is read in a browser.">
-<defs><marker id="arrow" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 2L9 6 2 10" fill="none" stroke="var(--emphasis)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><radialGradient id="ball-shine" cx="30%" cy="25%"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--emphasis)"/></radialGradient></defs>
+<defs><marker id="arrow" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 2L9 6 2 10" fill="none" stroke="var(--emphasis)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="contribution-arrow" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="7" markerHeight="7" orient="auto"><path d="M2 2L9 6 2 10" fill="none" stroke="var(--contribution)" stroke-width="1.7"/></marker><radialGradient id="ball-shine" cx="30%" cy="25%"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--emphasis)"/></radialGradient></defs>
 <!-- These objects persist. Scroll changes their relationships, never swaps slides. -->
 <g id="old-path" data-layout-allow-overlap><path id="old-route" class="route" d="M208 300V160Q208 132 236 132H401M581 132H662M842 132H949Q977 132 977 160V289" marker-end="url(#arrow)"/><text id="common-label" x="580" y="47" class="small" data-word="Common setup">Common setup</text><g id="api-label"><rect class="paper" x="887" y="218" width="180" height="38" rx="12"/><text x="977" y="244" class="small" data-word="API / backend">API / backend</text></g></g>
 <g id="old-services-layout"><g id="old-services">
@@ -39,8 +39,17 @@ text{fill:var(--text);font-family:inherit;font-size:25px;font-weight:700;text-an
 <g id="storage"><path class="route direct-route" id="upload-route" d="M286 371H683" marker-end="url(#arrow)"/><rect class="body" x="686" y="288" width="172" height="157" rx="25"/><path class="ink" d="M724 324c-16-1-16-23-2-25 5-22 35-21 40-2 17-1 20 25 3 27z"/><path class="ink" d="M708 419h128"/><text x="772" y="478" data-word="Object storage">Object storage</text><text id="direct-label" x="494" y="285" class="small" data-word="Direct upload">Direct upload</text><text id="same-files-label" x="772" y="522" class="small" data-word="Same files">Same files</text></g>
 <g id="browser"><rect class="body" x="913" y="291" width="159" height="125" rx="16"/><path class="ink" d="M914 317h157m-149 100h-18m82 0v17m-31 1h63"/><circle cx="928" cy="306" r="3" fill="var(--emphasis)"/><circle cx="939" cy="306" r="3" fill="var(--border)"/><path class="route" d="M929 394h129"/><path id="chart" class="ink" d="M931 382L952 363 975 375 996 344 1019 352 1050 330"/><text x="992" y="478" data-word="Browser / app">Browser / app</text></g>
 <g id="read-route"><path class="route direct-route" d="M863 369H903" marker-end="url(#arrow)"/><text x="983" y="265" class="small" data-word="Read directly">Read directly</text></g>
-<g id="export-layout" data-layout-allow-overlap data-layout-allow-occlusion><g id="export-branch"><path class="route" d="M773 450V570Q773 594 748 594H666M457 594H356" marker-end="url(#arrow)"/><rect class="paper" x="458" y="563" width="207" height="64" rx="14"/><text x="561" y="602" data-word="JSON / CSV">JSON / CSV</text><rect class="body" x="177" y="563" width="170" height="64" rx="14"/><text x="262" y="602">OpenAQ</text><text x="562" y="540" class="small" data-word="Optional export">Optional export</text><text x="263" y="658" class="small" data-word="Proposed">Proposed</text><text x="377" y="541" class="tiny" data-word="OpenAQ pulls">OpenAQ pulls</text></g>
-</g><g id="measurement-balls"><circle id="ball-a" class="ball" cx="288" cy="367" r="10" fill="url(#ball-shine)"/><circle id="ball-b" class="ball ball-soft" cx="311" cy="365" r="7"/><circle id="ball-c" class="ball" cx="333" cy="378" r="9"/></g>
+<g id="export-layout" data-layout-allow-overlap data-layout-allow-occlusion><g id="export-branch">
+<text id="our-route-label" x="211" y="260" class="small" data-word="OpenSensor">OpenSensor</text>
+<path id="contribution-in" class="contribution-route" d="M858 430H888V500H996V535" marker-end="url(#contribution-arrow)"/><path id="contribution-out" class="contribution-route" d="M908 585H900V526H658" marker-end="url(#contribution-arrow)"/><g id="contribution-badge"><rect class="contribution-box" x="908" y="545" width="176" height="80" rx="15"/><text id="contribution-title" x="996" y="575" class="contribution-text" data-word="Parquet integration">Parquet integration</text><text id="contribution-note" x="996" y="603" class="contribution-note" data-word="Proposed contribution">Proposed contribution</text></g>
+<text id="archive-heading" x="550" y="526" data-word="OpenAQ archive">OpenAQ archive</text>
+<path id="archive-link-a" class="route" d="M393 586H460" marker-end="url(#arrow)"/><path id="archive-link-b" class="route" d="M643 586H710" marker-end="url(#arrow)"/>
+<g id="archive-db"><rect class="body" x="215" y="546" width="176" height="81" rx="17"/><g class="ink"><ellipse cx="303" cy="566" rx="25" ry="8"/><path d="M278 566v38c0 11 50 11 50 0v-38m-50 19c0 11 50 11 50 0"/></g><text x="303" y="656" data-word="Database">Database</text></g>
+<g id="archive-job"><rect class="body" x="465" y="546" width="176" height="81" rx="17"/><path class="ink" d="M533 566h11l23 40h10m-24-27-19 27"/><text x="553" y="656" data-word="Export job">Export job</text></g>
+<g id="archive-file"><rect class="paper" x="715" y="546" width="176" height="81" rx="17"/><path class="ink" d="M785 558h24l14 14v44h-38zM809 558v14h14m-28 12h18m-18 11h18m-18 11h12"/><text x="803" y="656" data-word="CSV.gz">CSV.gz</text></g>
+<text id="archive-partition" x="550" y="691" class="small" data-word="Partitioned by location / date">Partitioned by location / date</text>
+</g></g>
+<g id="measurement-balls"><circle id="ball-a" class="ball" cx="288" cy="367" r="10" fill="url(#ball-shine)"/><circle id="ball-b" class="ball ball-soft" cx="311" cy="365" r="7"/><circle id="ball-c" class="ball" cx="333" cy="378" r="9"/></g>
 <circle id="old-ball" class="ball" cx="211" cy="266" r="8"/><circle id="read-ball" class="ball" cx="869" cy="369" r="7"/>
 </svg>
 <div id="files-layout" style="position:absolute;inset:0"><div id="files">
@@ -89,12 +98,12 @@ tl.fromTo('#chart',{strokeDasharray:165,strokeDashoffset:165},{strokeDashoffset:
 tl.to('#read-copy',{opacity:1,duration:.4},39.7).to('#read-copy',{x:209,y:-18,scale:.55,duration:1.7,ease:'power2.inOut'},40).to('#read-copy',{opacity:0,duration:.4},41.7);
 tl.to('#read-ball',{opacity:1,duration:.2},42).to('#read-ball',{x:36,duration:1.4,ease:'power1.inOut'},42).to('#read-ball',{opacity:0,duration:.3},43.4);
 
-// A clearly secondary, proposed sharing branch; the Parquet archive stays put.
+// Independent comparison: OpenAQ exports its database to a partitioned CSV.gz archive.
 tl.to('#export-branch',{opacity:1,y:0,duration:1.4,ease:'power2.out'},49.5);
 tl.to('#old-services',{opacity:0,duration:1.5},49);
 tl.to('#same-files-label',{opacity:0,duration:.8},49);
 // Return to the complete, compact path, with the original card in storage.
-tl.to('#export-branch',{opacity:0,y:24,duration:1.5,ease:'power2.inOut'},59);
+tl.to('#export-branch',{opacity:0,duration:1.5,ease:'power2.inOut'},59);
 tl.to('#direct-label',{opacity:1,duration:1},60).to('#same-files-label',{opacity:1,duration:1},60);
 tl.to('#air-flow',{opacity:1,duration:.5},60);
 tl.fromTo('#read-ball',{x:0,opacity:0},{x:0,opacity:1,duration:.5,immediateRender:false},64.5);
@@ -109,7 +118,7 @@ const clamp=p=>Math.min(1,Math.max(0,p));
 const smooth=p=>{p=clamp(p);return p*p*(3-2*p);};
 function mobileFiles(){
  const t=tl.time(),compact=smooth((t-35)/4),pack=smooth((t-30)/2.1),ending=smooth((t-59)/3),dy=-45-110*compact;
- const w=portrait?600:1100,h=portrait?640-100*pack-130*ending:700,scale=Math.min(innerWidth/w,innerHeight/h),root=document.getElementById('root');
+ const w=portrait?600:1100,comparison=smooth((t-49.5)/1.5)*(1-smooth((t-59)/2)),h=portrait?640-100*pack-130*ending+160*comparison:700,scale=Math.min(innerWidth/w,innerHeight/h),root=document.getElementById('root');
  document.documentElement.classList.toggle('portrait',portrait);document.documentElement.classList.toggle('stored',portrait&&t>=31);
  root.style.width=w+'px';root.style.height=h+'px';root.style.left=(innerWidth-w*scale)/2+'px';root.style.top=(innerHeight-h*scale)/2+'px';root.style.transform='scale('+scale+')';
  svg.setAttribute('viewBox','0 0 '+w+' '+h);svg.style.width=w+'px';svg.style.height=h+'px';
@@ -126,16 +135,25 @@ function mobileFiles(){
  path('upload-route','M630 367H676');
  document.querySelector('#gather-route path').setAttribute('d','M170 326H205');
  document.querySelector('#read-route path').setAttribute('d','M863 369H886');
- document.querySelector('#export-branch path').setAttribute('d','M396 260H414V365H440V390M342 432H261');
- const boxes=document.querySelectorAll('#export-branch rect');position(boxes[0],{x:350,y:400,width:180,height:64});position(boxes[1],{x:70,y:400,width:180,height:64});
- const branchText=document.querySelectorAll('#export-branch text');
- [[440,439],[160,439],[440,500],[160,500],[300,380]].forEach((xy,i)=>position(branchText[i],{x:xy[0],y:xy[1]}));
+ path('archive-link-a','M184 517H229');path('archive-link-b','M364 517H409');
+ path('contribution-in','M396 260H414V336');path('contribution-out','M300 412V425');
+ position(document.querySelector('#contribution-badge rect'),{x:110,y:346,width:380,height:64});
+ position(document.getElementById('contribution-title'),{x:300,y:372});position(document.getElementById('contribution-note'),{x:300,y:398});
+ position(document.getElementById('archive-heading'),{x:300,y:452});
+ position(document.getElementById('archive-partition'),{x:300,y:646});
+ position(document.getElementById('our-route-label'),{x:100,y:110});
+ const archiveNodes=[['archive-db',120,303],['archive-job',300,553],['archive-file',480,803]];
+ for(const[id,cx,original]of archiveNodes){
+  const node=document.getElementById(id);node.setAttribute('transform','translate('+(cx-original)+' -71)');
+  position(node.querySelector('rect'),{x:original-60,y:546,width:120,height:88});
+  position(node.querySelector('text'),{x:original,y:667});
+ }
  position(document.getElementById('common-label'),{x:330,y:32});position(document.getElementById('removed-label'),{x:330,y:32});
  position(document.getElementById('direct-label'),{x:772,y:265});
  position(document.querySelector('#api-label rect'),{x:430,y:212,width:160,height:28});position(document.querySelector('#api-label text'),{x:510,y:233});
  document.querySelector('#browser>text').setAttribute('textLength','155');document.querySelector('#browser>text').setAttribute('lengthAdjust','spacingAndGlyphs');
  }
- if(!portrait){document.querySelector('#browser>text').removeAttribute('textLength');document.querySelector('#browser>text').removeAttribute('lengthAdjust');}
+ if(!portrait){for(const id of ['archive-db','archive-job','archive-file'])document.getElementById(id).setAttribute('transform','');document.querySelector('#browser>text').removeAttribute('textLength');document.querySelector('#browser>text').removeAttribute('lengthAdjust');}
  document.getElementById('files-layout').style.transform=portrait?'translate('+(-150-312*pack)+'px,'+(-30+(dy+30)*pack)+'px)':'';
  document.getElementById('cadence').style.left=portrait?'208px':'358px';document.getElementById('cadence').style.top=portrait?'525px':'548px';
  document.getElementById('saved-label').style.left=portrait?'0px':'80px';document.getElementById('saved-label').style.top=portrait?'442px':'486px';
@@ -152,7 +170,7 @@ if(event.source!==parent||event.origin!==location.origin||event.data?.type!=='op
 if(!acknowledged){acknowledged=true;parent.postMessage({type:'opensensor-ready'},location.origin);}
 const{time,colors,labels,locale,cadence}=event.data;
 if(Number.isFinite(time)){tl.seek(Math.max(0,Math.min(69.99,time)));mobileFiles();}
-if(colors)for(const[key,value]of Object.entries(colors))if(['paper','surface','text','muted','emphasis','border','accent','removal'].includes(key))document.documentElement.style.setProperty('--'+key,value);
+if(colors)for(const[key,value]of Object.entries(colors))if(['paper','surface','text','muted','emphasis','border','accent','removal','contribution'].includes(key))document.documentElement.style.setProperty('--'+key,value);
 document.documentElement.lang=locale||'en';document.getElementById('root').style.fontFamily=locale==='en'?'Quicksand, sans-serif':'Cairo, sans-serif';
 if(labels&&lastLabels!==locale+cadence){lastLabels=locale+cadence;document.querySelectorAll('[data-word]').forEach(el=>{const key=el.dataset.word==='Every 15 min'&&cadence===60?'Every hour':el.dataset.word;el.textContent=labels[key]||key;});}
 });
