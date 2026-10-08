@@ -43,7 +43,7 @@ const connections = [
 ] as const;
 
 /** A conceptual connection selector. Never makes device or network requests. */
-export function SensorFlow() {
+export function SensorFlow({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
   const [mode, setMode] =
     useState<(typeof connections)[number]['id']>('offline');
@@ -54,7 +54,11 @@ export function SensorFlow() {
   const local = mode === 'local';
 
   return (
-    <div className="sensor-flow" data-connection={mode}>
+    <div
+      className="sensor-flow"
+      data-connection={mode}
+      data-layout={compact ? 'compact' : 'default'}
+    >
       <p className="evidence-caption">
         {t('Keep measuring. Sync when ready.')}
       </p>

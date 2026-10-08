@@ -3,6 +3,7 @@ import type { MessageCatalog } from './types';
 const phrase = (ar: string, arEG = ar) => ({ ar, arEG });
 
 export const projectMessages: MessageCatalog = {
+  'Follow the data': phrase('تتبّع البيانات', 'تابع رحلة البيانات'),
   'Loading street map…': phrase(
     'جارٍ تحميل خريطة الشوارع…',
     'بنحمّل خريطة الشوارع…'

@@ -32,6 +32,15 @@ The root layout wraps all routes in theme, consent, analytics, and scrolling beh
 - `public/`: committed images, geographic outlines, and other static assets; keep large data outside JavaScript bundles.
 - Route-local `components/`, `hooks/`, and `data/`: features with a single owning route.
 
+## OpenSensor presentation
+
+`/opensensor#sensor-story` adds a full-viewport, native-scroll presentation with
+a continuous animated data journey and a three-mode connection explorer. A local HyperFrames composition illustrates the
+service chain, edge Parquet, batching, direct object storage and an optional
+OpenAQ feed. It distinguishes demonstrated capture from proposed cloud work.
+See [presentation and source review](opensensor-story.md) for integration evidence,
+the full OpenAQ endpoint audit, localization, reduced motion and validation.
+
 ## Visualization boundaries
 
 The indices explorer uses standalone deck.gl GlobeView, H3HexagonLayer, satellite tiles, and local land/border outlines. Its Parquet worker handles network, decoding, filtering, and row assembly. The route imports the explorer dynamically with server rendering disabled.

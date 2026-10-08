@@ -1,0 +1,410 @@
+.story {
+  position: relative;
+  height: 650svh;
+  color: var(--palette-text);
+  background: var(--palette-paper);
+}
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 640px;
+  padding: 88px clamp(18px, 4vw, 64px) 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-block: 1px solid var(--palette-border);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: none;
+  min-height: 44px;
+}
+.context {
+  color: var(--palette-emphasis);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.context[data-old='true'] {
+  color: var(--palette-text);
+  border: 1px dashed var(--palette-muted);
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.tryConnection {
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--palette-border);
+  border-radius: 24px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+.tryConnection:hover {
+  background: var(--palette-surface);
+}
+.skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+}
+.visual {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  width: 100%;
+}
+.visual iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+.caption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 290px);
+  align-items: center;
+  gap: 3rem;
+  padding: 12px 0 18px;
+  flex: none;
+}
+.narrative {
+  max-width: 760px;
+}
+.narrative h3 {
+  font-size: clamp(1.1rem, 1.8vw, 1.6rem) !important;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 0.45rem;
+  letter-spacing: -0.02em;
+}
+.narrative p {
+  font-size: clamp(0.85rem, 1.1vw, 1rem);
+  line-height: 1.6;
+}
+.status {
+  color: var(--palette-muted);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  max-width: 290px;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid var(--palette-border);
+  padding-top: 8px;
+  flex: none;
+}
+.controls > button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--palette-border);
+  border-radius: 50%;
+  flex: none;
+}
+.controls button {
+  cursor: pointer;
+}
+.controls button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.controls nav {
+  display: flex;
+  gap: 6px;
+}
+.controls nav button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 36px;
+}
+.track {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 100%;
+  background: var(--palette-border);
+}
+.controls [aria-current] .track {
+  width: 18px;
+  border-radius: 6px;
+  background: var(--palette-emphasis);
+}
+.scrollHint,
+.shortHint {
+  margin-inline-start: auto;
+  font-size: 0.65rem;
+  color: var(--palette-muted);
+}
+.shortHint {
+  display: none;
+}
+.cadence {
+  display: grid;
+  gap: 0.25rem;
+}
+.toggle {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--palette-border);
+  border-radius: 24px;
+  padding: 3px;
+}
+.toggle button {
+  min-height: 32px;
+  padding: 6px 14px;
+  border-radius: 22px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.toggle [aria-pressed='true'] {
+  background: var(--palette-emphasis);
+  color: var(--palette-paper);
+}
+.cadence p {
+  font-size: 0.7rem;
+}
+.cadence strong {
+  font-size: 1.2rem;
+  margin-inline-end: 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+.cadence small {
+  font-size: 0.6rem;
+  color: var(--palette-muted);
+  line-height: 1.4;
+}
+.connectionModal {
+  width: min(94vw, 720px) !important;
+  max-width: 720px !important;
+  max-height: 90svh;
+  overflow-y: auto;
+  padding: 24px !important;
+  background: var(--palette-paper) !important;
+  color: var(--palette-text) !important;
+  border-color: var(--palette-border) !important;
+  border-radius: 20px !important;
+}
+.connectionModal > h2 {
+  font-size: 1rem !important;
+  padding-inline-end: 28px;
+}
+.connectionModal :global(.sensor-flow) {
+  max-width: 580px;
+}
+.connectionModal :global(.sensor-node) {
+  min-height: 9rem;
+}
+.connectionModal :global(.sensor-node h3) {
+  font-size: 0.9rem !important;
+}
+.connectionModal :global(.sensor-explanation) {
+  min-height: auto;
+  font-size: 0.85rem;
+}
+.connectionModal :global(.evidence-caption) {
+  font-size: 0.8rem;
+  text-align: center;
+}
+.connectionModal :global(.evidence-hint) {
+  font-size: 0.65rem;
+  text-align: center;
+}
+.details {
+  padding: 1rem max(1.5rem, calc((100vw - 1100px) / 2)) 3rem;
+  background: var(--palette-paper);
+  color: var(--palette-text);
+  scroll-margin-top: 100px;
+}
+.summaryLabel {
+  font-size: 0.75rem;
+  color: var(--palette-muted);
+}
+.summaryPath {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+.summaryPath li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  position: relative;
+  text-align: center;
+  padding-inline: 12px;
+}
+.summaryPath strong {
+  font-size: clamp(0.7rem, 1.3vw, 1rem);
+}
+.summaryPath span {
+  font-size: clamp(0.6rem, 1.1vw, 0.8rem);
+  color: var(--palette-muted);
+}
+.summaryArrow {
+  position: absolute;
+  inset-inline-end: -9px;
+  top: 5px;
+  color: var(--palette-muted);
+}
+:global([dir='rtl']) .summaryArrow {
+  transform: rotate(180deg);
+}
+.summaryBenefit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--palette-border);
+}
+.story button:focus-visible,
+.story a:focus-visible {
+  outline: 3px solid var(--palette-emphasis);
+  outline-offset: 4px;
+}
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--palette-paper);
+  font-size: 0.8rem;
+}
+.fallback button {
+  text-decoration: underline;
+  padding: 12px;
+}
+@media (max-width: 800px) {
+  .stage {
+    padding: 74px 18px 12px;
+  }
+  .header {
+    gap: 0.5rem;
+  }
+  .context {
+    font-size: 0.68rem;
+  }
+  .tryConnection {
+    font-size: 0.65rem;
+    padding: 8px 10px;
+  }
+  .actions {
+    gap: 0.6rem;
+  }
+  .skip {
+    font-size: 0;
+    gap: 0;
+  }
+  .skip svg {
+    width: 16px;
+    height: 16px;
+  }
+  .caption {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    padding-block: 8px 14px;
+  }
+  .narrative h3 {
+    font-size: 1.08rem !important;
+  }
+  .narrative p {
+    font-size: 0.79rem;
+  }
+  .status {
+    font-size: 0.6rem;
+    max-width: none;
+  }
+  .controls {
+    gap: 0.5rem;
+  }
+  .controls nav {
+    gap: 2px;
+  }
+  .controls nav button {
+    width: 24px;
+  }
+  .scrollHint,
+  .shortHint {
+    font-size: 0.56rem;
+    max-width: 85px;
+    line-height: 1.5;
+  }
+  .cadence {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.8rem;
+    align-items: center;
+  }
+  .cadence small {
+    flex-basis: 100%;
+  }
+  .connectionModal {
+    padding: 20px 14px !important;
+  }
+  .connectionModal :global(.sensor-network) {
+    gap: 1.75rem 10%;
+  }
+  .connectionModal :global(.sensor-node) {
+    padding: 0.6rem;
+    min-height: 8rem;
+    border-radius: 12px;
+  }
+  .connectionModal :global(.sensor-node h3) {
+    font-size: 0.75rem !important;
+  }
+  .connectionModal :global(.sensor-node p),
+  .connectionModal :global(.sensor-node-note),
+  .connectionModal :global(.sensor-retained) {
+    font-size: 0.65rem;
+  }
+  .connectionModal :global(.sensor-modes button) {
+    font-size: 0.7rem;
+    padding: 0.5rem 0.7rem;
+  }
+}
+@media (max-height: 720px) {
+  .stage {
+    position: relative;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+  .story {
+    height: auto;
+  }
+  .visual {
+    flex: none;
+    height: 380px;
+  }
+  .scrollHint {
+    display: none;
+  }
+  .shortHint {
+    display: inline;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .story *,
+  .details * {
+    scroll-behavior: auto;
+  }
+}

@@ -12,7 +12,7 @@ import {
   BrandIcon,
   BrandEyebrow,
 } from '@/components/shared/brand-ui';
-import { SensorFlow } from './components/sensor-flow';
+import { SensorStory } from './components/story/sensor-story';
 import { ProjectMascot } from '@/components/shared/project-mascot';
 import { GradientText } from '@/components/shared/gradient-text';
 import { Button } from '@/components/ui/button';
@@ -113,10 +113,10 @@ export default function OpenSensorPage() {
                   </div>
 
                   <Link
-                    href="#sensor-sync"
+                    href="#sensor-story"
                     className="mt-5 inline-flex items-center gap-2 rounded-sm font-semibold underline decoration-current/40 underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-4"
                   >
-                    See how sync works
+                    Follow the data
                     <ArrowRight
                       className="h-4 w-4 rtl:rotate-180"
                       aria-hidden="true"
@@ -145,22 +145,7 @@ export default function OpenSensorPage() {
             </Container>
           </BrandHero>
 
-          <BrandSection
-            id="sensor-sync"
-            tone="opensensor"
-            className="scroll-mt-24 py-12 md:py-16"
-          >
-            <Container>
-              <div className="grid items-center gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
-                <BrandSectionHeading
-                  className="mb-0"
-                  title="Built for places beyond the network."
-                  description="Our peacock guide connects local observations with a shared picture of the environment. Keep collecting locally, then sync directly or through a nearby device when a connection is available."
-                />
-                <SensorFlow />
-              </div>
-            </Container>
-          </BrandSection>
+          <SensorStory />
 
           <BrandSection className="border-y py-14 md:py-20">
             <Container>
