@@ -26,6 +26,19 @@ export const founders = [
   },
 ] as const;
 
+export type Founder = (typeof founders)[number];
+
+export function findFounder(
+  id: string | null | undefined
+): Founder | undefined {
+  return founders.find((founder) => founder.id === id);
+}
+
+/** Shareable static routes have their own crawler-visible metadata. */
+export function founderPath(founder?: Founder): string {
+  return founder ? `/links/${founder.id}` : '/links';
+}
+
 export const businessWhatsApp = {
   handle: '@walkthru.earth',
   url: 'https://wa.me/walkthru.earth',

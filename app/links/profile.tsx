@@ -6,7 +6,12 @@ import { useSearchParams } from 'next/navigation';
 import { Mail, ExternalLink, MessageCircle, QrCode } from 'lucide-react';
 import { Linkedin } from '@/components/shared/brand-icons';
 import { BrandHero } from '@/components/shared/brand-ui';
-import { businessWhatsApp, founders } from '@/lib/founders';
+import {
+  businessWhatsApp,
+  findFounder,
+  founderPath,
+  type Founder,
+} from '@/lib/founders';
 import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
 
 const contactClassName =
@@ -26,12 +31,10 @@ export function LinksProfileLoading() {
   );
 }
 
-export function LinksProfile() {
+export function LinksProfile({ profile: routeProfile }: { profile?: Founder }) {
   const searchParams = useSearchParams();
   const { t } = useI18n();
-  const profile = founders.find(
-    (founder) => founder.id === searchParams.get('profile')
-  );
+  const profile = routeProfile ?? findFounder(searchParams.get('profile'));
   const email = profile?.email ?? 'hi@walkthru.earth';
   const whatsappUrl = `${businessWhatsApp.url}?text=${encodeURIComponent(
     t(profile?.whatsappGreeting ?? 'Hello!')
@@ -86,7 +89,7 @@ export function LinksProfile() {
           </h1>
         )}
         <Link
-          href={profile ? `/links?profile=${profile.id}&qr=1` : '/links?qr=1'}
+          href={`${founderPath(profile)}?qr=1`}
           className="bg-background focus-visible:ring-ring mt-5 inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-bold focus-visible:ring-2 focus-visible:ring-offset-4"
         >
           <QrCode className="h-4 w-4" aria-hidden="true" />

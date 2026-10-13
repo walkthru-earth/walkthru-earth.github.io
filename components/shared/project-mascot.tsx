@@ -190,6 +190,7 @@ export function ProjectMascot({ project }: { project: MascotProjectBrand }) {
           <div className="mascot-character" key={`${kind}-${step}-${replay}`}>
             <Image
               src={mascot.src}
+              data-no-filter
               alt={t(mascot.alt)}
               width={768}
               height={768}

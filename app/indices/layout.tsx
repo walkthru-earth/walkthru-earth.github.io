@@ -1,3 +1,4 @@
+import { socialMetadata } from '@/lib/social-preview/cards';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
     'GeoParquet',
     'cloud-native geospatial',
   ],
+  ...socialMetadata('indices'),
 };
 
 export default function IndicesLayout({

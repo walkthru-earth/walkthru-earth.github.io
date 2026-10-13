@@ -1,3 +1,4 @@
+import { socialMetadata } from '@/lib/social-preview/cards';
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
@@ -20,34 +21,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'walkthru.earth' }],
   creator: 'walkthru.earth',
   metadataBase: new URL('https://walkthru.earth'),
-  alternates: {
-    canonical: 'https://walkthru.earth',
-  },
-  openGraph: {
-    title: 'walkthru.earth - Health, Wellbeing & the Places We Live',
-    description:
-      'Open tools connecting people, places and evidence for healthier communities and better decisions.',
-    url: 'https://walkthru.earth',
-    siteName: 'walkthru.earth',
-    locale: 'en_US',
-    type: 'website',
-    images: [
-      {
-        url: 'https://walkthru.earth/globe-preview-dark.png',
-        width: 1755,
-        height: 1369,
-        alt: 'walkthru.earth environmental data globe',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'walkthru.earth - Health, Wellbeing & the Places We Live',
-    description:
-      'Open tools connecting people, places and evidence for healthier communities and better decisions.',
-    creator: '@walkthru_earth',
-    images: ['https://walkthru.earth/globe-preview-dark.png'],
-  },
+  ...socialMetadata('home'),
 };
 
 export const viewport: Viewport = {

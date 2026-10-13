@@ -164,6 +164,9 @@ importers:
       serve:
         specifier: ^14.2.6
         version: 14.2.6(supports-color@7.2.0)
+      sharp:
+        specifier: ^0.35.5
+        version: 0.35.5(@types/node@26.6.4)
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -3075,8 +3078,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@img/colour@1.1.0':
-    optional: true
+  '@img/colour@1.1.0': {}
 
   '@img/sharp-darwin-arm64@0.35.5':
     optionalDependencies:
@@ -5167,8 +5169,7 @@ snapshots:
 
   scheduler@0.28.0: {}
 
-  semver@7.8.5:
-    optional: true
+  semver@7.8.5: {}
 
   serve-handler@6.1.7:
     dependencies:
@@ -5230,7 +5231,6 @@ snapshots:
       '@img/sharp-win32-ia32': 0.35.5
       '@img/sharp-win32-x64': 0.35.5
       '@types/node': 26.6.4
-    optional: true
 
   shebang-command@2.0.0:
     dependencies:

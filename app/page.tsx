@@ -148,6 +148,7 @@ export default function HomePage() {
                       <div className="hidden flex-shrink-0 sm:block">
                         <Image
                           src={projectBrands.opensensor.mascot.src}
+                          data-no-filter
                           alt={projectBrands.opensensor.mascot.alt}
                           width={112}
                           height={112}
@@ -183,6 +184,7 @@ export default function HomePage() {
                       <div className="relative hidden h-28 w-28 flex-shrink-0 sm:block">
                         <Image
                           src={projectBrands.capybrain.mascot.src}
+                          data-no-filter
                           alt={projectBrands.capybrain.mascot.alt}
                           fill
                           className="object-contain"

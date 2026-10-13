@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { founders, founderPath } from '@/lib/founders';
 
 export const dynamic = 'force-static';
 
@@ -60,6 +61,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
+    ...founders.map((founder) => ({
+      url: `${baseUrl}${founderPath(founder)}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    })),
     {
       url: `${baseUrl}/privacy`,
       lastModified: new Date(),

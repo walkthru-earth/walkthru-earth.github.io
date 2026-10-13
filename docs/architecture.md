@@ -32,6 +32,31 @@ The root layout wraps all routes in theme, consent, analytics, and scrolling beh
 - `public/`: committed images, geographic outlines, and other static assets; keep large data outside JavaScript bundles.
 - Route-local `components/`, `hooks/`, and `data/`: features with a single owning route.
 
+## Social sharing previews
+
+`lib/social-preview/cards.ts` defines route-specific sharing copy and maps each
+page to its existing project palette, mascot, product icon or founder portrait.
+Every route explicitly sets both Open Graph and Twitter metadata, including its
+canonical URL, title, description and image; nested metadata objects are replaced
+rather than merged by Next.js. The globe preview belongs only to `/indices`.
+
+`app/share/[image]/route.ts` enumerates the registry with `generateStaticParams`
+and `force-static`. During `pnpm build`, `render-card.tsx` uses Next.js
+`ImageResponse` and sharp to export opaque 1200 × 630 PNG cards into
+`out/share/`. It reads only committed artwork and fonts, so image generation
+requires neither a running server nor remote asset requests. CapyBrain and
+OpenSensor reuse their transparent registry mascots and effective project colors;
+software cards use the products' existing icons. Founder cards reuse the public
+contact registry. Update the card registry when adding a sharing destination.
+
+The two static Quicksand TTFs in `app/fonts/` are derived at weights 500 and 700
+from the committed variable WOFF2 for the image renderer, which cannot read
+WOFF2. The website continues to use the variable WOFF2. If replacing Quicksand,
+regenerate these files from the same source with fontTools `TTFont` and
+`instantiateVariableFont`, set `font.flavor = None`, and save as TTF. Inspect the
+exported images and crawler-visible HTML after changing sharing content. Existing
+social-platform caches may retain an earlier preview until refreshed.
+
 ## OpenSensor presentation
 
 `/opensensor#sensor-story` adds a full-viewport, native-scroll presentation with
@@ -68,28 +93,38 @@ streets; it preserves access to the available capture locations.
 ## Shared behavior
 
 The compact `/links` page supports founder contact profiles at
-`/links?profile=mishka` (CEO / Co-Founder) and `/links?profile=youssef`
-(CTO / Co-Founder). Portraits, emails and personal LinkedIn URLs come from
-`lib/founders.ts`, also used by About. Missing or unknown profile values show the
-organization's links and general email. Query selection runs in a client component
-under Suspense so the route remains compatible with static export; the initial
-loading state does not display another profile's contact details.
+`/links/mishka` (CEO / Co-Founder) and `/links/youssef`
+(CTO / Co-Founder). Both routes are generated from `lib/founders.ts` at build
+time, with each founder's own title, description, canonical URL and social image.
+Portraits, emails and personal LinkedIn URLs come from the same registry, also
+used by About. The earlier `/links?profile=mishka` and
+`/links?profile=youssef` URLs still select the correct founder and upgrade to the
+static profile route in the browser, preserving QR mode and other query parameters.
+Sharing those legacy query URLs still gives the organization preview: static
+hosting serves the same HTML for every query string. Share the path URLs for
+founder-specific previews. Missing or unknown query profile values show the
+organization's links and general email. A path profile takes precedence over a
+query profile; unknown profile paths return 404. Query selection runs under
+Suspense; the initial loading state does not display another profile's details.
 The profiles and general Links page share the WhatsApp Business handle
 `@walkthru.earth`, configured in `lib/founders.ts`. Chat links use WhatsApp's
 `wa.me/username` format (without the display `@`) and a URL-encoded, localized
 greeting addressed to the selected founder; opening a link does not send it.
-Adding `&qr=1` to a founder URL (or `/links?qr=1` for the organization) shows
+Adding `?qr=1` to a founder path (or `/links?qr=1` for the organization) shows
 a compact share card with a QR code, name, small circular founder portrait and
 email. The normal profile's
 “Show QR code” link opens it; the back arrow and clickable QR return to the full
 profile. `qr-profile.tsx` generates the SVG locally with `qrcode.react`, a white
 background and a four-module quiet zone in both themes. The encoded URL always
-uses `https://walkthru.earth/links`, retains only a recognized `profile`, and omits
-`qr` and tracking parameters so a scan opens the full contact page.
+uses the `https://walkthru.earth` origin and a recognized founder’s static path
+when selected. It omits `qr` and tracking parameters so a scan opens the full
+contact page.
 The CapyBrain and OpenSensor links reuse the registry's transparent capybara and
 peacock artwork as large characters peeking above their buttons, like About's
 goal cards. Reserved space above each link keeps the artwork clear of adjacent
-buttons, and the text reserves a separate column. Hover and keyboard focus lift
+buttons, and the text reserves a separate column. Both mascots opt out of the
+global dark-mode image dimming with `data-no-filter`, keeping their opacity at
+100% across Links, homepage, strategy cards and project covers. Hover and keyboard focus lift
 them briefly; reduced-motion visitors retain the static artwork. OpenSensor links
 to the local `/opensensor` project page.
 

@@ -1,17 +1,31 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { founders } from '@/lib/founders';
+import { useEffect, type ReactNode } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { findFounder, founderPath, type Founder } from '@/lib/founders';
 import { QRProfile } from './qr-profile';
 
-export function LinksView({ children }: { children: ReactNode }) {
+export function LinksView({
+  children,
+  profile: routeProfile,
+}: {
+  children: ReactNode;
+  profile?: Founder;
+}) {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const legacyProfile = findFounder(searchParams.get('profile'));
+  const profile = routeProfile ?? legacyProfile;
+
+  useEffect(() => {
+    if (routeProfile || !legacyProfile) return;
+    const query = new URLSearchParams(searchParams.toString());
+    query.delete('profile');
+    const suffix = query.size ? `?${query}` : '';
+    router.replace(`${founderPath(legacyProfile)}${suffix}`, { scroll: false });
+  }, [routeProfile, legacyProfile, router, searchParams]);
 
   if (searchParams.get('qr') === '1') {
-    const profile = founders.find(
-      (founder) => founder.id === searchParams.get('profile')
-    );
     return <QRProfile profile={profile} />;
   }
 

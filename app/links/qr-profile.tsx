@@ -6,17 +6,13 @@ import { ArrowLeft } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { BrandHero } from '@/components/shared/brand-ui';
 import { Localized, useI18n } from '@/lib/i18n/i18n-provider';
-import type { founders } from '@/lib/founders';
+import { founderPath, type Founder } from '@/lib/founders';
 
-export function QRProfile({
-  profile,
-}: {
-  profile?: (typeof founders)[number];
-}) {
+export function QRProfile({ profile }: { profile?: Founder }) {
   const { t } = useI18n();
   const name = profile?.name ?? 'walkthru.earth';
   const email = profile?.email ?? 'hi@walkthru.earth';
-  const profilePath = profile ? `/links?profile=${profile.id}` : '/links';
+  const profilePath = founderPath(profile);
   // Always share the public contact page, excluding QR mode and tracking params.
   const profileUrl = `https://walkthru.earth${profilePath}`;
 

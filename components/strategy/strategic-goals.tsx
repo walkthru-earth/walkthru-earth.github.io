@@ -46,6 +46,7 @@ function GoalProjectIdentity({
     >
       <Image
         src={mascot.src}
+        data-no-filter
         alt=""
         aria-hidden="true"
         width={76}
@@ -123,6 +124,7 @@ export function StrategicGoals({ compact = false }: { compact?: boolean }) {
                     {'project' in goal ? (
                       <Image
                         src={projectBrands[goal.project].mascot.src}
+                        data-no-filter
                         alt=""
                         aria-hidden="true"
                         width={88}
