@@ -17,6 +17,7 @@ import { Localized } from '@/lib/i18n/i18n-provider';
 import { BrandPage, BrandPanel } from '@/components/shared/brand-ui';
 import { copyrightYear } from '@/lib/copyright';
 import { LinksProfile, LinksProfileLoading } from './profile';
+import { LinksView } from './links-view';
 
 const mainLinks = [
   {
@@ -130,86 +131,96 @@ export default function LinksPage() {
           <ThemeToggle />
         </div>
 
-        <div className="mx-auto max-w-xl px-4 pt-24 pb-12">
-          <Suspense fallback={<LinksProfileLoading />}>
-            <LinksProfile />
-          </Suspense>
-
-          {/* Main Links */}
-          <div className="mb-8 space-y-3">
-            {mainLinks.map((link) => {
-              const content = (
-                <>
-                  {link.image ? (
-                    <Image
-                      src={link.image}
-                      alt={link.title}
-                      width={24}
-                      height={24}
-                      className="h-6 w-6"
-                    />
-                  ) : link.icon ? (
-                    <link.icon className="h-6 w-6" />
-                  ) : null}
-                  <div className="flex-1">
-                    <div className="text-xl font-bold">{link.title}</div>
-                    <div className="text-base opacity-80">
-                      {link.description}
-                    </div>
-                  </div>
-                  {!link.internal && (
-                    <ExternalLink className="h-5 w-5 shrink-0" />
-                  )}
-                </>
-              );
-              const cls = `brand-panel brand-solid flex items-center gap-4 p-5 transition-transform hover:-translate-y-1 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 ${link.color}`;
-
-              return link.internal ? (
-                <Link key={link.title} href={link.url} className={cls}>
-                  {content}
-                </Link>
-              ) : (
-                <a
-                  key={link.title}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cls}
-                >
-                  {content}
-                </a>
-              );
-            })}
-          </div>
-
-          {/* Social Links */}
-          <BrandPanel className="mb-8">
-            <p className="mb-5 text-center text-lg font-bold">Follow us</p>
-            <div className="flex flex-wrap justify-center gap-3">
-              {socialLinks.map((link) => (
-                <a
-                  key={link.title}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={link.title}
-                  className={`bg-background text-foreground border-border focus-visible:ring-ring flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ${link.hoverColor}`}
-                >
-                  {link.icon ? (
-                    <link.icon className="h-5 w-5" />
-                  ) : (
-                    link.iconPath
-                  )}
-                </a>
-              ))}
+        <Suspense
+          fallback={
+            <div className="mx-auto max-w-xl px-4 pt-24 pb-12">
+              <LinksProfileLoading />
             </div>
-          </BrandPanel>
+          }
+        >
+          <LinksView>
+            <div className="mx-auto max-w-xl px-4 pt-24 pb-12">
+              <LinksProfile />
 
-          {/* Footer */}
-          <div className="text-muted-foreground text-center text-base">
-            <p className="mt-1 opacity-60">© {copyrightYear} walkthru.earth</p>
-          </div>
-        </div>
+              {/* Main Links */}
+              <div className="mb-8 space-y-3">
+                {mainLinks.map((link) => {
+                  const content = (
+                    <>
+                      {link.image ? (
+                        <Image
+                          src={link.image}
+                          alt={link.title}
+                          width={24}
+                          height={24}
+                          className="h-6 w-6"
+                        />
+                      ) : link.icon ? (
+                        <link.icon className="h-6 w-6" />
+                      ) : null}
+                      <div className="flex-1">
+                        <div className="text-xl font-bold">{link.title}</div>
+                        <div className="text-base opacity-80">
+                          {link.description}
+                        </div>
+                      </div>
+                      {!link.internal && (
+                        <ExternalLink className="h-5 w-5 shrink-0" />
+                      )}
+                    </>
+                  );
+                  const cls = `brand-panel brand-solid flex items-center gap-4 p-5 transition-transform hover:-translate-y-1 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 ${link.color}`;
+
+                  return link.internal ? (
+                    <Link key={link.title} href={link.url} className={cls}>
+                      {content}
+                    </Link>
+                  ) : (
+                    <a
+                      key={link.title}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cls}
+                    >
+                      {content}
+                    </a>
+                  );
+                })}
+              </div>
+
+              {/* Social Links */}
+              <BrandPanel className="mb-8">
+                <p className="mb-5 text-center text-lg font-bold">Follow us</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {socialLinks.map((link) => (
+                    <a
+                      key={link.title}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={link.title}
+                      className={`bg-background text-foreground border-border focus-visible:ring-ring flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ${link.hoverColor}`}
+                    >
+                      {link.icon ? (
+                        <link.icon className="h-5 w-5" />
+                      ) : (
+                        link.iconPath
+                      )}
+                    </a>
+                  ))}
+                </div>
+              </BrandPanel>
+
+              {/* Footer */}
+              <div className="text-muted-foreground text-center text-base">
+                <p className="mt-1 opacity-60">
+                  © {copyrightYear} walkthru.earth
+                </p>
+              </div>
+            </div>
+          </LinksView>
+        </Suspense>
       </BrandPage>
     </Localized>
   );

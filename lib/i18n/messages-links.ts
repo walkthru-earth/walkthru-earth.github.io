@@ -7,6 +7,16 @@ export const linkMessages: MessageCatalog = {
     'جارٍ تحميل الملف الشخصي…',
     'بنحمّل الملف الشخصي…'
   ),
+  'Show QR code': phrase('عرض رمز QR', 'اعرض كود QR'),
+  'Back to links': phrase('العودة إلى الروابط', 'ارجع للروابط'),
+  'Open full profile': phrase(
+    'فتح الملف الشخصي الكامل',
+    'افتح الملف الشخصي كامل'
+  ),
+  'QR code for {name}': phrase(
+    'رمز QR للتواصل مع {name}',
+    'كود QR للتواصل مع {name}'
+  ),
   'walkthru.earth home': phrase('الصفحة الرئيسية لـ walkthru.earth'),
   'Youssef Harby': phrase('يوسف حربي'),
   'Mishka Mendbayar': phrase('ميشكا مندبايار'),

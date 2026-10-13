@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Mail, ExternalLink, MessageCircle } from 'lucide-react';
+import { Mail, ExternalLink, MessageCircle, QrCode } from 'lucide-react';
 import { Linkedin } from '@/components/shared/brand-icons';
 import { BrandHero } from '@/components/shared/brand-ui';
 import { businessWhatsApp, founders } from '@/lib/founders';
@@ -85,6 +85,13 @@ export function LinksProfile() {
             walkthru.earth
           </h1>
         )}
+        <Link
+          href={profile ? `/links?profile=${profile.id}&qr=1` : '/links?qr=1'}
+          className="bg-background focus-visible:ring-ring mt-5 inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-bold focus-visible:ring-2 focus-visible:ring-offset-4"
+        >
+          <QrCode className="h-4 w-4" aria-hidden="true" />
+          Show QR code
+        </Link>
       </BrandHero>
 
       <div className="mb-8 space-y-3">

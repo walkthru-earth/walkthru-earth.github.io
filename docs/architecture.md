@@ -78,6 +78,14 @@ The profiles and general Links page share the WhatsApp Business handle
 `@walkthru.earth`, configured in `lib/founders.ts`. Chat links use WhatsApp's
 `wa.me/username` format (without the display `@`) and a URL-encoded, localized
 greeting addressed to the selected founder; opening a link does not send it.
+Adding `&qr=1` to a founder URL (or `/links?qr=1` for the organization) shows
+a compact share card with a QR code, name, small circular founder portrait and
+email. The normal profile's
+“Show QR code” link opens it; the back arrow and clickable QR return to the full
+profile. `qr-profile.tsx` generates the SVG locally with `qrcode.react`, a white
+background and a four-module quiet zone in both themes. The encoded URL always
+uses `https://walkthru.earth/links`, retains only a recognized `profile`, and omits
+`qr` and tracking parameters so a scan opens the full contact page.
 
 Theme switching uses `next-themes` classes and CSS variables in `app/globals.css`. Use existing tokens and components rather than duplicating theme rules. WebGL palettes must remain legible in both themes.
 
