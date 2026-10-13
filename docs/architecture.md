@@ -86,6 +86,12 @@ profile. `qr-profile.tsx` generates the SVG locally with `qrcode.react`, a white
 background and a four-module quiet zone in both themes. The encoded URL always
 uses `https://walkthru.earth/links`, retains only a recognized `profile`, and omits
 `qr` and tracking parameters so a scan opens the full contact page.
+The CapyBrain and OpenSensor links reuse the registry's transparent capybara and
+peacock artwork as large characters peeking above their buttons, like About's
+goal cards. Reserved space above each link keeps the artwork clear of adjacent
+buttons, and the text reserves a separate column. Hover and keyboard focus lift
+them briefly; reduced-motion visitors retain the static artwork. OpenSensor links
+to the local `/opensensor` project page.
 
 Theme switching uses `next-themes` classes and CSS variables in `app/globals.css`. Use existing tokens and components rather than duplicating theme rules. WebGL palettes must remain legible in both themes.
 

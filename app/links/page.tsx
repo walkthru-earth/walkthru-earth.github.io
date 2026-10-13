@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Globe, Heart, ExternalLink } from 'lucide-react';
+import { Globe, ExternalLink } from 'lucide-react';
 import {
   Github,
   Linkedin,
@@ -16,6 +16,8 @@ import { LanguageSelector } from '@/components/navigation/language-selector';
 import { Localized } from '@/lib/i18n/i18n-provider';
 import { BrandPage, BrandPanel } from '@/components/shared/brand-ui';
 import { copyrightYear } from '@/lib/copyright';
+import { projectBrands } from '@/lib/brand';
+import { cn } from '@/lib/utils';
 import { LinksProfile, LinksProfileLoading } from './profile';
 import { LinksView } from './links-view';
 
@@ -31,15 +33,16 @@ const mainLinks = [
   {
     title: 'OpenSensor.Space',
     description: 'Open environmental monitoring',
-    url: 'https://opensensor.space',
-    image: '/opensensor-icon-512.png',
+    url: projectBrands.opensensor.href,
+    mascot: projectBrands.opensensor.mascot.src,
     color: 'brand-tone-opensensor',
+    internal: true,
   },
   {
     title: 'CapyBrain',
     description: 'Urban environments and wellbeing research',
     url: '/capybrain',
-    icon: Heart,
+    mascot: projectBrands.capybrain.mascot.src,
     color: 'brand-tone-capybrain',
     internal: true,
   },
@@ -147,19 +150,37 @@ export default function LinksPage() {
                 {mainLinks.map((link) => {
                   const content = (
                     <>
-                      {link.image ? (
+                      {link.mascot ? (
+                        <Image
+                          src={link.mascot}
+                          alt=""
+                          width={176}
+                          height={176}
+                          className="pointer-events-none absolute end-0 -top-12 h-40 w-40 object-contain transition-transform duration-200 motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-visible:-translate-y-1 motion-reduce:transition-none sm:-top-14 sm:h-44 sm:w-44"
+                        />
+                      ) : link.image ? (
                         <Image
                           src={link.image}
-                          alt={link.title}
+                          alt=""
                           width={24}
                           height={24}
-                          className="h-6 w-6"
+                          className="h-6 w-6 shrink-0"
                         />
                       ) : link.icon ? (
-                        <link.icon className="h-6 w-6" />
+                        <link.icon
+                          className="h-6 w-6 shrink-0"
+                          aria-hidden="true"
+                        />
                       ) : null}
-                      <div className="flex-1">
-                        <div className="text-xl font-bold">{link.title}</div>
+                      <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+                        <div
+                          className={cn(
+                            'text-xl font-bold',
+                            link.mascot && 'text-lg sm:text-xl'
+                          )}
+                        >
+                          {link.title}
+                        </div>
                         <div className="text-base opacity-80">
                           {link.description}
                         </div>
@@ -169,22 +190,33 @@ export default function LinksPage() {
                       )}
                     </>
                   );
-                  const cls = `brand-panel brand-solid flex items-center gap-4 p-5 transition-transform hover:-translate-y-1 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 ${link.color}`;
+                  const cls = cn(
+                    'brand-panel brand-solid group flex items-center gap-4 p-5 transition-transform hover:-translate-y-1 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4',
+                    link.color,
+                    link.mascot &&
+                      'relative min-h-28 overflow-visible! pe-40 sm:pe-44'
+                  );
 
-                  return link.internal ? (
-                    <Link key={link.title} href={link.url} className={cls}>
-                      {content}
-                    </Link>
-                  ) : (
-                    <a
+                  return (
+                    <div
                       key={link.title}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cls}
+                      className={link.mascot ? 'pt-12 sm:pt-14' : undefined}
                     >
-                      {content}
-                    </a>
+                      {link.internal ? (
+                        <Link href={link.url} className={cls}>
+                          {content}
+                        </Link>
+                      ) : (
+                        <a
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cls}
+                        >
+                          {content}
+                        </a>
+                      )}
+                    </div>
                   );
                 })}
               </div>
