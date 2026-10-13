@@ -21,33 +21,13 @@ import { PolicyAlignment } from '@/components/strategy/policy-alignment';
 import { OpenEcosystem } from '@/components/strategy/open-ecosystem';
 import { Button } from '@/components/ui/button';
 import { Localized } from '@/lib/i18n/i18n-provider';
+import { founders } from '@/lib/founders';
 
 const pageSections = [
   { href: '#purpose', label: 'Our purpose' },
   { href: '#goals', label: 'Our goals' },
   { href: '#change', label: 'How change happens' },
   { href: '#alignment', label: 'Policy alignment' },
-];
-
-const founders = [
-  {
-    name: 'Youssef Harby',
-    image: '/youssef-harby.jpg',
-    alt: 'Youssef Harby',
-    linkedin: 'https://www.linkedin.com/in/yharby/',
-    linkedinLabel: 'Youssef Harby on LinkedIn',
-    email: 'yharby@walkthru.earth',
-    emailLabel: 'Email Youssef Harby',
-  },
-  {
-    name: 'Mishka Mendbayar',
-    image: '/mishka-mendbayar.jpg',
-    alt: 'Myagmarjargal Mendbayar (Mishka)',
-    linkedin: 'https://www.linkedin.com/in/myagmarjargal-mendbayar001/',
-    linkedinLabel: 'Mishka Mendbayar on LinkedIn',
-    email: 'mishka@walkthru.earth',
-    emailLabel: 'Email Mishka Mendbayar',
-  },
 ];
 
 export default function AboutPage() {

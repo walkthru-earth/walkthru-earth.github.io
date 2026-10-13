@@ -67,6 +67,18 @@ streets; it preserves access to the available capture locations.
 
 ## Shared behavior
 
+The compact `/links` page supports founder contact profiles at
+`/links?profile=mishka` (CEO / Co-Founder) and `/links?profile=youssef`
+(CTO / Co-Founder). Portraits, emails and personal LinkedIn URLs come from
+`lib/founders.ts`, also used by About. Missing or unknown profile values show the
+organization's links and general email. Query selection runs in a client component
+under Suspense so the route remains compatible with static export; the initial
+loading state does not display another profile's contact details.
+The profiles and general Links page share the WhatsApp Business handle
+`@walkthru.earth`, configured in `lib/founders.ts`. Chat links use WhatsApp's
+`wa.me/username` format (without the display `@`) and a URL-encoded, localized
+greeting addressed to the selected founder; opening a link does not send it.
+
 Theme switching uses `next-themes` classes and CSS variables in `app/globals.css`. Use existing tokens and components rather than duplicating theme rules. WebGL palettes must remain legible in both themes.
 
 Interface localization lives in `lib/i18n/`. The client-side provider persists the selected `en`, `ar-EG`, or `ar` locale, keeps the document `lang` and `dir` attributes synchronized, and falls back to English source copy when a catalog entry is absent. User-facing components own explicit `Localized` render boundaries (or call `t` for composed strings); do not translate React-owned text by mutating the DOM. Arabic uses the committed Cairo font and logical CSS properties so both Arabic variants share a complete RTL layout without a runtime translation or font service.

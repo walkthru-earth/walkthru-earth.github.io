@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Mail, Globe, Heart, ExternalLink } from 'lucide-react';
+import { Suspense } from 'react';
+import { Globe, Heart, ExternalLink } from 'lucide-react';
 import {
   Github,
   Linkedin,
@@ -13,8 +14,9 @@ import {
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { LanguageSelector } from '@/components/navigation/language-selector';
 import { Localized } from '@/lib/i18n/i18n-provider';
-import { BrandHero, BrandPage, BrandPanel } from '@/components/shared/brand-ui';
+import { BrandPage, BrandPanel } from '@/components/shared/brand-ui';
 import { copyrightYear } from '@/lib/copyright';
+import { LinksProfile, LinksProfileLoading } from './profile';
 
 const mainLinks = [
   {
@@ -129,28 +131,9 @@ export default function LinksPage() {
         </div>
 
         <div className="mx-auto max-w-xl px-4 pt-24 pb-12">
-          {/* Profile Header */}
-          <BrandHero
-            tone="spatial"
-            decorative={false}
-            className="mb-8 rounded-[2rem] px-6 py-12 text-center"
-          >
-            <Link href="/" className="inline-block">
-              <Image
-                src="/icon.svg"
-                alt="walkthru.earth"
-                width={80}
-                height={80}
-                className="bg-background mx-auto mb-5 rounded-3xl border-2 p-3"
-              />
-            </Link>
-            <h1 className="text-[clamp(2rem,7vw,3rem)]! break-all">
-              walkthru.earth
-            </h1>
-            <p className="mt-3 text-lg font-bold">
-              Open tools for the relationships between people and places.
-            </p>
-          </BrandHero>
+          <Suspense fallback={<LinksProfileLoading />}>
+            <LinksProfile />
+          </Suspense>
 
           {/* Main Links */}
           <div className="mb-8 space-y-3">
@@ -197,17 +180,6 @@ export default function LinksPage() {
                 </a>
               );
             })}
-          </div>
-
-          {/* Contact */}
-          <div className="mb-8">
-            <a
-              href="mailto:hi@walkthru.earth"
-              className="brand-panel brand-solid brand-tone-spatial focus-visible:ring-ring flex items-center justify-center gap-2 p-5 text-lg font-bold transition-transform hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-offset-4 motion-reduce:transform-none"
-            >
-              <Mail className="h-5 w-5" />
-              hi@walkthru.earth
-            </a>
           </div>
 
           {/* Social Links */}
