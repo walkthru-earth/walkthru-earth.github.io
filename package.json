@@ -65,7 +65,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
-    "@evilmartians/lefthook": "^2.1.17",
+    "@evilmartians/lefthook": "^2.2.2",
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
